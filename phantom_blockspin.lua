@@ -2591,33 +2591,30 @@ local function RenderLoop()
     -- Camera refresh
     Camera = Workspace.CurrentCamera
 
-    -- ESP (v3.1: FIXED - force hide on failed updates to prevent ghost drawings)
+    -- ESP (v3.4: each player wrapped independently)
     for player, drawings in pairs(State.ESPCache) do
-        if player and player.Parent then
-            -- v3.1: Extra safety — if character is nil or dead, force hide immediately
-            if not player.Character or not player.Character.Parent then
-                ESP.HideAll(drawings)
-            elseif Config.ESP.Enabled or Config.InventoryESP.Enabled then
-                local updateOk = pcall(ESP.Update, player, drawings)
-                -- v3.1: If pcall failed (error during update), FORCE HIDE everything
-                -- This prevents ghost drawings from staying on screen
-                if not updateOk then
-                    ESP.HideAll(drawings)
+        pcall(function()
+            if player and player.Parent then
+                if not player.Character or not player.Character.Parent then
+                    pcall(ESP.HideAll, drawings)
+                elseif Config.ESP.Enabled or Config.InventoryESP.Enabled then
+                    local updateOk, updateErr = pcall(ESP.Update, player, drawings)
+                    if not updateOk then
+                        pcall(ESP.HideAll, drawings)
+                    end
+                else
+                    pcall(ESP.HideAll, drawings)
+                    if Config.ESP.Chams then pcall(ESP.UpdateChams, player) end
                 end
             else
-                ESP.HideAll(drawings)
-                -- Still handle chams independently
-                if Config.ESP.Chams then pcall(ESP.UpdateChams, player) end
+                pcall(ESP.Destroy, drawings)
+                State.ESPCache[player] = nil
+                if State.ChamsCache[player] then
+                    pcall(function() State.ChamsCache[player]:Destroy() end)
+                    State.ChamsCache[player] = nil
+                end
             end
-        else
-            ESP.Destroy(drawings)
-            State.ESPCache[player] = nil
-            -- Clean chams too
-            if State.ChamsCache[player] then
-                pcall(function() State.ChamsCache[player]:Destroy() end)
-                State.ChamsCache[player] = nil
-            end
-        end
+        end)
     end
 
     -- Aimbot FOV Circle
@@ -2742,7 +2739,11 @@ end
 -- CLEANUP
 -- ═══════════════════════════════════════════════════
 local function Unload()
-    -- v3.4: Unbind render step
+    -- v3.4: Disconnect render
+    if State.Connections.Render then
+        pcall(function() State.Connections.Render:Disconnect() end)
+        State.Connections.Render = nil
+    end
     pcall(function() RunService:UnbindFromRenderStep("PhantomRender") end)
 
     for _, c in pairs(State.Connections) do
@@ -2802,10 +2803,10 @@ local function Init()
     State.Connections.InputBegan = UserInputService.InputBegan:Connect(OnInputBegan)
     State.Connections.InputEnded = UserInputService.InputEnded:Connect(OnInputEnded)
 
-    -- v3.4: Use BindToRenderStep with Camera+1 priority
-    -- This ensures ESP updates AFTER the camera has moved, preventing detachment
-    RunService:BindToRenderStep("PhantomRender", Enum.RenderPriority.Camera.Value + 1, function()
+    -- v3.4: Use RenderStepped for maximum compatibility
+    State.Connections.Render = RunService.RenderStepped:Connect(function()
         if State.Running then
+            Camera = Workspace.CurrentCamera
             pcall(RenderLoop)
         else
             Unload()
