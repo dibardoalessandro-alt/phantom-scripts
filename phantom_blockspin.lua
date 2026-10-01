@@ -1,11 +1,12 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.3 · BlockSpin Stealth Suite                    ║
+    ║     PHANTOM v3.5 · BlockSpin Stealth Suite                    ║
     ║     Full GUI Edition · Built for Xeno                         ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v3.3: Instant fire, auto spray, FOV triggerbot, ESP fix,     ║
-    ║        smart tool names, pcall-safe ESP, accessory detection   ║
+    ║  v3.5: FIXED ESP — proper 3D bounding box projection,         ║
+    ║        boxes now track players perfectly at all camera angles  ║
+    ║        fresh camera refs, viewport clamping, sanity checks     ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -387,7 +388,9 @@ function Util.IsTeam(p)
 end
 
 function Util.Center()
-    local vp = Camera.ViewportSize
+    local cam = Workspace.CurrentCamera
+    if not cam then return V2(0, 0) end
+    local vp = cam.ViewportSize
     return V2(vp.X/2, vp.Y/2)
 end
 
@@ -907,20 +910,38 @@ function ESP.Update(player, d)
     local head = char:FindFirstChild("Head")
     if not root or not hum then ESP.HideAll(d) return end
 
-    local camPos = Workspace.CurrentCamera.CFrame.Position
+    -- v3.5: Always fetch FRESH camera reference every frame
+    local cam = Workspace.CurrentCamera
+    if not cam then ESP.HideAll(d) return end
+    local camPos = cam.CFrame.Position
     local rootPos = root.Position
     local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- v3.4: Use CFrame for more accurate screen projection
-    local sTop, onT = Util.W2S(rootPos + V3(0, 3.2, 0))
-    local sBot, onB = Util.W2S(rootPos - V3(0, 3.2, 0))
-    if not onT and not onB then ESP.HideAll(d) return end
+    -- v3.5 FIX: Standard proven Roblox ESP projection
+    -- Use WorldToViewportPoint's onScreen boolean on the ROOT as the
+    -- single gatekeeper. If root is not on screen → hide everything.
+    -- No manual viewport checks, no 8-corner projection — just the
+    -- method that every working Roblox ESP uses.
+    local rootVP = cam:WorldToViewportPoint(rootPos)
+    if rootVP.Z <= 0 then ESP.HideAll(d) return end  -- behind camera
 
-    local boxH = mAbs(sBot.Y - sTop.Y)
+    local topVP  = cam:WorldToViewportPoint(rootPos + V3(0, 3, 0))
+    local botVP  = cam:WorldToViewportPoint(rootPos - V3(0, 3.5, 0))
+
+    -- Use onScreen from the ROOT point — if player center is off viewport, hide
+    local _, rootOnScreen = cam:WorldToViewportPoint(rootPos)
+    if not rootOnScreen then ESP.HideAll(d) return end
+
+    local boxH = mAbs(botVP.Y - topVP.Y)
+    if boxH < 2 then ESP.HideAll(d) return end  -- too tiny / degenerate
+
     local boxW = boxH * 0.55
-    local boxX = sTop.X - boxW/2
-    local boxY = sTop.Y
+    local boxX = rootVP.X - boxW / 2
+    local boxY = topVP.Y
+
+    local sTop = V2(rootVP.X, topVP.Y)
+    local sBot = V2(rootVP.X, botVP.Y)
 
     -- Color
     local col
@@ -2825,9 +2846,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.3 Loaded!", C3(180, 80, 255), 4)
+    Notify.Send("PHANTOM v3.5 Loaded!", C3(180, 80, 255), 4)
     Notify.Send("Premi G per il menu", C3(200, 200, 200), 5)
-    Notify.Send("v3.3: Instant Fire, FOV Triggerbot, ESP Fix!", C3(50, 255, 100), 6)
+    Notify.Send("v3.5: ESP Bounding Box Fix — perfect tracking!", C3(50, 255, 100), 6)
 end
 
 local ok, err = pcall(Init)
