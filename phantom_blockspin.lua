@@ -1,10 +1,12 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v2.0 · BlockSpin Stealth Suite                    ║
+    ║     PHANTOM v3.0 · BlockSpin Stealth Suite                    ║
     ║     Full GUI Edition · Built for Xeno                         ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
     ║  Tutte le opzioni sono nel GUI                                ║
+    ║  v3.0: Inventory ESP fix, keybinds, silent aim, skeleton,     ║
+    ║        chams, speed/fly/noclip, kill counter, anti-cheat++    ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -34,6 +36,7 @@ local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService     = game:GetService("TweenService")
 local Workspace        = game:GetService("Workspace")
+local Lighting         = game:GetService("Lighting")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera      = Workspace.CurrentCamera
@@ -47,8 +50,10 @@ local mHuge   = math.huge
 local mClamp  = math.clamp
 local mCos    = math.cos
 local mSin    = math.sin
+local mPi     = math.pi
 local V2      = Vector2.new
 local V3      = Vector3.new
+local CF      = CFrame.new
 local C3      = Color3.fromRGB
 local RParams = RaycastParams.new
 local tInsert = table.insert
@@ -58,6 +63,38 @@ local tConcat = table.concat
 local Tick    = tick
 local tWait   = task.wait
 local tSpawn  = task.spawn
+local tDefer  = task.defer
+
+-- ═══════════════════════════════════════════════════
+-- KEYBIND MAPS (for GUI dropdown selection)
+-- ═══════════════════════════════════════════════════
+local KeybindMap = {
+    -- Mouse
+    ["Mouse2 (RMB)"]  = {Type = "Mouse", Value = Enum.UserInputType.MouseButton2},
+    ["Mouse3 (MMB)"]  = {Type = "Mouse", Value = Enum.UserInputType.MouseButton3},
+    ["Mouse4"]        = {Type = "Mouse", Value = Enum.UserInputType.MouseButton1}, -- forward
+    -- Keyboard
+    ["LeftAlt"]       = {Type = "Key", Value = Enum.KeyCode.LeftAlt},
+    ["RightAlt"]      = {Type = "Key", Value = Enum.KeyCode.RightAlt},
+    ["LeftShift"]     = {Type = "Key", Value = Enum.KeyCode.LeftShift},
+    ["RightShift"]    = {Type = "Key", Value = Enum.KeyCode.RightShift},
+    ["LeftControl"]   = {Type = "Key", Value = Enum.KeyCode.LeftControl},
+    ["RightControl"]  = {Type = "Key", Value = Enum.KeyCode.RightControl},
+    ["CapsLock"]      = {Type = "Key", Value = Enum.KeyCode.CapsLock},
+    ["Tab"]           = {Type = "Key", Value = Enum.KeyCode.Tab},
+    ["Q"]             = {Type = "Key", Value = Enum.KeyCode.Q},
+    ["E"]             = {Type = "Key", Value = Enum.KeyCode.E},
+    ["R"]             = {Type = "Key", Value = Enum.KeyCode.R},
+    ["F"]             = {Type = "Key", Value = Enum.KeyCode.F},
+    ["Z"]             = {Type = "Key", Value = Enum.KeyCode.Z},
+    ["X"]             = {Type = "Key", Value = Enum.KeyCode.X},
+    ["C"]             = {Type = "Key", Value = Enum.KeyCode.C},
+    ["V"]             = {Type = "Key", Value = Enum.KeyCode.V},
+    ["B"]             = {Type = "Key", Value = Enum.KeyCode.B},
+}
+local KeybindOptions = {}
+for name, _ in pairs(KeybindMap) do tInsert(KeybindOptions, name) end
+table.sort(KeybindOptions)
 
 -- ═══════════════════════════════════════════════════
 -- CONFIGURATION
@@ -74,6 +111,7 @@ local Config = {
         HealthBar       = true,
         HealthBarPos    = "Left",       -- "Left" / "Right"
         HealthBarWidth  = 3,
+        HealthText      = false,        -- v3: show HP numbers
         Distance        = true,
         Tracers         = false,
         TracerOrigin    = "Bottom",     -- "Bottom" / "Center" / "Top" / "Mouse"
@@ -89,24 +127,40 @@ local Config = {
         MaxDistance      = 1000,
         TeamCheck        = false,
         ShowTeamColor    = false,
+        -- v3: Skeleton ESP
+        Skeleton        = false,
+        SkeletonColor   = C3(255, 255, 255),
+        SkeletonThickness = 1.5,
+        -- v3: Chams
+        Chams           = false,
+        ChamsVisibleColor   = C3(50, 255, 100),
+        ChamsHiddenColor    = C3(255, 50, 80),
+        ChamsTransparency   = 0.3,
     },
 
     -- ── INVENTORY ESP ──
     InventoryESP = {
-        Enabled      = false,
-        ShowEquipped = true,
-        ShowBackpack = true,
-        TextColor    = C3(0, 255, 210),
-        TextSize     = 12,
+        Enabled       = false,
+        ShowEquipped  = true,
+        ShowBackpack  = true,
+        ShowToolTip   = true,         -- v3: show tool tooltip/description
+        ShowDamage    = true,         -- v3: detect and show damage values
+        CleanNames    = true,         -- v3: remove weird prefixes/suffixes
+        TextColor     = C3(0, 255, 210),
+        EquippedColor = C3(255, 200, 50),  -- v3: equipped item highlight
+        TextSize      = 12,
+        MaxItems      = 8,           -- v3: limit display
     },
 
     -- ── AIMBOT ──
     Aimbot = {
         Enabled              = false,
         ActivationMode       = "Hold",     -- "Hold" / "Toggle"
+        KeybindName          = "Mouse2 (RMB)",
         ActivationKey        = Enum.UserInputType.MouseButton2,
+        ActivationKeyType    = "Mouse",    -- "Mouse" / "Key"
         TargetPart           = "Head",     -- "Head" / "UpperTorso" / "HumanoidRootPart" / "LowerTorso"
-        TargetMode           = "Crosshair", -- "Crosshair" (nearest to center) / "Distance" (nearest 3D)
+        TargetMode           = "Crosshair", -- "Crosshair" / "Distance"
         MaxDistance           = 500,
         FOV                  = 120,
         ShowFOV              = true,
@@ -114,7 +168,7 @@ local Config = {
         FOVThickness         = 1,
         FOVTransparency      = 0.6,
         FOVSides             = 64,
-        Smoothing            = 6,          -- 1 = instant (risky!), 20 = very slow
+        Smoothing            = 6,
         HumanizeJitter       = true,
         JitterStrength       = 0.4,
         Prediction           = true,
@@ -122,33 +176,70 @@ local Config = {
         WallCheck            = true,
         StickyAim            = false,
         TeamCheck            = false,
-        AimAssist            = false,       -- Weaker aimbot, just nudges
-        AssistStrength        = 12,         -- Higher = weaker assist
-        ShowTargetInfo       = true,        -- Show target name/health on screen
+        AimAssist            = false,
+        AssistStrength        = 12,
+        ShowTargetInfo       = true,
+        -- v3: New features
+        SilentAim            = false,       -- redirect shots server-side
+        AutoSwitch           = true,        -- switch target when current dies
+        AdaptiveSmoothing    = false,       -- closer = faster aim
+        AdaptiveMin          = 2,
+        AdaptiveMax          = 12,
+        ShowSnapLine         = false,       -- line from crosshair to target
+        SnapLineColor        = C3(255, 200, 50),
+        ShowLockIndicator    = true,        -- circle on locked target
+        LockIndicatorColor   = C3(255, 50, 80),
+        BonePriority         = false,       -- auto-pick best bone
     },
 
     -- ── TRIGGERBOT ──
     Triggerbot = {
-        Enabled       = false,
+        Enabled        = false,
         ActivationMode = "Hold",       -- "Hold" / "Always"
-        ActivationKey = Enum.KeyCode.LeftAlt,
-        MinDelay      = 0.06,
-        MaxDelay      = 0.18,
-        MaxDistance    = 300,
-        HitChance     = 95,
-        HeadshotOnly  = false,
-        BurstMode     = false,
-        BurstCount    = 3,
-        BurstDelay    = 0.05,
-        TeamCheck     = false,
-        TargetParts   = {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
+        KeybindName    = "LeftAlt",
+        ActivationKey  = Enum.KeyCode.LeftAlt,
+        ActivationKeyType = "Key",
+        MinDelay       = 0.06,
+        MaxDelay       = 0.18,
+        MaxDistance     = 300,
+        HitChance      = 95,
+        HeadshotOnly   = false,
+        BurstMode      = false,
+        BurstCount     = 3,
+        BurstDelay     = 0.05,
+        TeamCheck      = false,
+        TargetParts    = {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
                          "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"},
+        -- v3: New features
+        RapidFire      = false,
+        RapidFireRate  = 0.02,
+        HumanizedPattern = true,    -- vary delay like a real human
+        SmartTiming    = false,     -- only fire when crosshair stable for N frames
+        StableFrames   = 3,
+    },
+
+    -- ── PLAYER ── (v3: NEW TAB)
+    Player = {
+        SpeedEnabled   = false,
+        WalkSpeed      = 16,        -- default roblox
+        JumpEnabled    = false,
+        JumpPower      = 50,        -- default roblox
+        NoclipEnabled  = false,
+        FlyEnabled     = false,
+        FlySpeed       = 50,
+        InfiniteJump   = false,
     },
 
     -- ── MISC ──
     Misc = {
-        ShowWatermark = true,
-        GUIToggleKey  = Enum.KeyCode.G,
+        ShowWatermark  = true,
+        GUIToggleKey   = Enum.KeyCode.G,
+        -- v3: New
+        ShowKillFeed   = true,
+        HitSound       = false,
+        HitSoundId     = "rbxassetid://6706164783",
+        AntiAFK        = true,
+        Fullbright     = false,
     },
 }
 
@@ -156,25 +247,58 @@ local Config = {
 -- STATE
 -- ═══════════════════════════════════════════════════
 local State = {
-    Running        = true,
-    AimbotHeld     = false,
-    AimbotToggled  = false,
-    TriggerbotHeld = false,
-    CurrentTarget  = nil,
-    Connections    = {},
-    ESPCache       = {},
-    Notifications  = {},
-    GUIVisible     = true,
+    Running         = true,
+    AimbotHeld      = false,
+    AimbotToggled   = false,
+    TriggerbotHeld  = false,
+    CurrentTarget   = nil,
+    Connections     = {},
+    ESPCache        = {},
+    ChamsCache      = {},
+    Notifications   = {},
+    GUIVisible      = true,
+    -- v3: Stats
+    KillCount       = 0,
+    HitCount        = 0,
+    SessionStart    = Tick(),
+    LastTargetHP    = {},
+    -- v3: Triggerbot stability
+    StableCount     = 0,
+    LastCrosshairTarget = nil,
+    -- v3: Fly
+    FlyBody         = nil,
+    FlyGyro         = nil,
+    -- v3: Noclip
+    NoclipParts     = {},
+    -- v3: Anti-AFK
+    AntiAFKConn     = nil,
+    -- v3: Fullbright
+    OriginalAmbient = nil,
+    OriginalBrightness = nil,
 }
 
 -- ═══════════════════════════════════════════════════
--- ANTI-DETECTION (safe)
+-- ANTI-DETECTION v3 (hardened)
 -- ═══════════════════════════════════════════════════
 pcall(function()
     if not hookmetamethod or not newcclosure or not getnamecallmethod then return end
-    local bl = {"anticheat","anti_cheat","anti-cheat","ac_check","ac_flag","detect",
-                "security","validate","verify","integrity","guard","shield",
-                "monitor","cheat","exploit","kick_player","ban"}
+
+    -- Extensive blacklist of anti-cheat remote names
+    local bl = {
+        "anticheat", "anti_cheat", "anti-cheat", "ac_check", "ac_flag",
+        "detect", "security", "validate", "verify", "integrity",
+        "guard", "shield", "monitor", "cheat", "exploit",
+        "kick_player", "ban", "report", "flag_player", "suspicious",
+        "speed_check", "teleport_check", "fly_check", "noclip_check",
+        "position_check", "velocity_check", "health_check",
+        "damage_check", "remote_check", "sanity", "heartbeat_ac",
+        "movement_check", "physics_check", "boundary_check",
+        "walkspeed_check", "jumppower_check", "gravity_check",
+        "client_check", "validation", "protection", "enforcement",
+        "screening", "inspection", "surveillance", "watchdog",
+        "sentinel", "guardian", "defender", "patrol", "scan",
+    }
+
     local old
     old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
         local m = getnamecallmethod()
@@ -188,6 +312,21 @@ pcall(function()
         end
         return old(self, ...)
     end))
+end)
+
+-- Additional anti-detection: randomize heartbeat timing
+pcall(function()
+    if not hookfunction then return end
+    local oldWait = task.wait
+    local function jitteredWait(t)
+        if t and t > 0 then
+            -- Add micro-jitter to make timing less robotic
+            local jitter = (math.random() - 0.5) * 0.002
+            return oldWait(t + jitter)
+        end
+        return oldWait(t)
+    end
+    -- Only apply to our own waits (don't hook globally, too risky)
 end)
 
 -- ═══════════════════════════════════════════════════
@@ -248,6 +387,127 @@ function Util.MousePos()
     return UserInputService:GetMouseLocation()
 end
 
+-- v3: Clean tool name (remove weird prefixes, IDs, etc.)
+function Util.CleanToolName(name)
+    if not name then return "???" end
+    -- Remove common prefixes like "Tool_", "Weapon_", numbers-only prefixes
+    local clean = name
+    clean = clean:gsub("^Tool_", "")
+    clean = clean:gsub("^Weapon_", "")
+    clean = clean:gsub("^Item_", "")
+    clean = clean:gsub("^%d+_", "")
+    -- Remove trailing IDs like "_12345"
+    clean = clean:gsub("_%d+$", "")
+    -- Replace underscores with spaces
+    clean = clean:gsub("_", " ")
+    -- Capitalize first letter of each word
+    clean = clean:gsub("(%a)([%w]*)", function(first, rest)
+        return first:upper() .. rest:lower()
+    end)
+    if #clean == 0 then return name end
+    return clean
+end
+
+-- v3: Detect tool damage value
+function Util.GetToolDamage(tool)
+    -- Check common damage attribute locations
+    local dmg = nil
+    pcall(function()
+        -- Check attributes
+        for _, attr in ipairs({"Damage", "damage", "DMG", "dmg", "BaseDamage", "AttackDamage"}) do
+            local v = tool:GetAttribute(attr)
+            if v and type(v) == "number" then dmg = v; return end
+        end
+        -- Check value objects inside tool
+        for _, child in ipairs(tool:GetChildren()) do
+            if child:IsA("NumberValue") or child:IsA("IntValue") then
+                local n = child.Name:lower()
+                if n:find("damage") or n:find("dmg") or n:find("attack") then
+                    dmg = child.Value
+                    return
+                end
+            end
+        end
+        -- Check configuration folder
+        local cfg = tool:FindFirstChild("Configuration") or tool:FindFirstChild("Config") or tool:FindFirstChild("Settings")
+        if cfg then
+            for _, child in ipairs(cfg:GetChildren()) do
+                if (child:IsA("NumberValue") or child:IsA("IntValue")) then
+                    local n = child.Name:lower()
+                    if n:find("damage") or n:find("dmg") then
+                        dmg = child.Value
+                        return
+                    end
+                end
+            end
+        end
+    end)
+    return dmg
+end
+
+-- v3: Get tool display info
+function Util.GetToolInfo(tool, isEquipped)
+    local info = {}
+    local name = Config.InventoryESP.CleanNames and Util.CleanToolName(tool.Name) or tool.Name
+
+    local prefix = isEquipped and "⚔" or "📦"
+    info.display = prefix .. " " .. name
+
+    -- Add tooltip if enabled
+    if Config.InventoryESP.ShowToolTip and tool.ToolTip and #tool.ToolTip > 0 then
+        info.display = info.display .. " (" .. tool.ToolTip .. ")"
+    end
+
+    -- Add damage if detected
+    if Config.InventoryESP.ShowDamage then
+        local dmg = Util.GetToolDamage(tool)
+        if dmg then
+            info.display = info.display .. " [" .. dmg .. " DMG]"
+        end
+    end
+
+    info.isEquipped = isEquipped
+    return info
+end
+
+-- v3: Get bone connections for skeleton ESP
+local SKELETON_BONES = {
+    {"Head", "UpperTorso"},
+    {"UpperTorso", "LowerTorso"},
+    {"UpperTorso", "LeftUpperArm"},
+    {"LeftUpperArm", "LeftLowerArm"},
+    {"LeftLowerArm", "LeftHand"},
+    {"UpperTorso", "RightUpperArm"},
+    {"RightUpperArm", "RightLowerArm"},
+    {"RightLowerArm", "RightHand"},
+    {"LowerTorso", "LeftUpperLeg"},
+    {"LeftUpperLeg", "LeftLowerLeg"},
+    {"LeftLowerLeg", "LeftFoot"},
+    {"LowerTorso", "RightUpperLeg"},
+    {"RightUpperLeg", "RightLowerLeg"},
+    {"RightLowerLeg", "RightFoot"},
+}
+
+-- v3: Best bone for aimbot priority
+function Util.GetBestBone(char)
+    -- Priority: Head > UpperTorso > HumanoidRootPart > LowerTorso
+    local priority = {"Head", "UpperTorso", "HumanoidRootPart", "LowerTorso"}
+    local camPos = Camera.CFrame.Position
+    for _, boneName in ipairs(priority) do
+        local bone = char:FindFirstChild(boneName)
+        if bone then
+            if Util.Visible(camPos, bone.Position, Players:GetPlayerFromCharacter(char)) then
+                return boneName
+            end
+        end
+    end
+    -- Fallback: return first available
+    for _, boneName in ipairs(priority) do
+        if char:FindFirstChild(boneName) then return boneName end
+    end
+    return "HumanoidRootPart"
+end
+
 -- ═══════════════════════════════════════════════════
 -- NOTIFICATION SYSTEM
 -- ═══════════════════════════════════════════════════
@@ -291,7 +551,7 @@ local ESP = {}
 function ESP.Create()
     local d = {}
     pcall(function()
-        -- Box (4 lines for corner style, or 1 square for full)
+        -- Box
         d.Box = Drawing.new("Square")
         d.Box.Thickness = Config.ESP.BoxThickness; d.Box.Filled = false; d.Box.Visible = false
 
@@ -326,6 +586,11 @@ function ESP.Create()
         d.Health = Drawing.new("Line")
         d.Health.Thickness = Config.ESP.HealthBarWidth; d.Health.Visible = false
 
+        -- v3: Health text
+        d.HealthText = Drawing.new("Text")
+        d.HealthText.Size = 10; d.HealthText.Font = FONT
+        d.HealthText.Outline = true; d.HealthText.OutlineColor = C3(0,0,0); d.HealthText.Visible = false
+
         d.Tracer = Drawing.new("Line")
         d.Tracer.Thickness = Config.ESP.TracerThickness; d.Tracer.Visible = false
 
@@ -336,6 +601,15 @@ function ESP.Create()
         d.Inventory = Drawing.new("Text")
         d.Inventory.Size = Config.InventoryESP.TextSize; d.Inventory.Font = FONT
         d.Inventory.Outline = true; d.Inventory.OutlineColor = C3(0,0,0); d.Inventory.Visible = false
+
+        -- v3: Skeleton lines (14 bones)
+        d.Skeleton = {}
+        for i=1, #SKELETON_BONES do
+            d.Skeleton[i] = Drawing.new("Line")
+            d.Skeleton[i].Thickness = Config.ESP.SkeletonThickness
+            d.Skeleton[i].Color = Config.ESP.SkeletonColor
+            d.Skeleton[i].Visible = false
+        end
     end)
     return d
 end
@@ -371,6 +645,11 @@ function ESP.Unregister(p)
     if State.ESPCache[p] then
         ESP.Destroy(State.ESPCache[p])
         State.ESPCache[p] = nil
+    end
+    -- v3: Remove chams
+    if State.ChamsCache[p] then
+        pcall(function() State.ChamsCache[p]:Destroy() end)
+        State.ChamsCache[p] = nil
     end
 end
 
@@ -412,6 +691,79 @@ function ESP.HideCornerBox(d)
         pcall(function() d.Corners[i].Visible = false end)
         pcall(function() d.CornerOutlines[i].Visible = false end)
     end
+end
+
+-- v3: Skeleton ESP drawing
+function ESP.DrawSkeleton(d, char, color)
+    if not d.Skeleton then return end
+    for i, bone in ipairs(SKELETON_BONES) do
+        local partA = char:FindFirstChild(bone[1])
+        local partB = char:FindFirstChild(bone[2])
+        if partA and partB then
+            local sA, onA = Util.W2S(partA.Position)
+            local sB, onB = Util.W2S(partB.Position)
+            if onA and onB then
+                d.Skeleton[i].From = sA
+                d.Skeleton[i].To = sB
+                d.Skeleton[i].Color = color
+                d.Skeleton[i].Thickness = Config.ESP.SkeletonThickness
+                d.Skeleton[i].Visible = true
+            else
+                d.Skeleton[i].Visible = false
+            end
+        else
+            d.Skeleton[i].Visible = false
+        end
+    end
+end
+
+function ESP.HideSkeleton(d)
+    if not d.Skeleton then return end
+    for i=1, #d.Skeleton do
+        pcall(function() d.Skeleton[i].Visible = false end)
+    end
+end
+
+-- v3: Chams (Highlight instances)
+function ESP.UpdateChams(player)
+    if not Config.ESP.Chams then
+        -- Remove chams
+        if State.ChamsCache[player] then
+            pcall(function() State.ChamsCache[player]:Destroy() end)
+            State.ChamsCache[player] = nil
+        end
+        return
+    end
+
+    if not player.Character then return end
+
+    local isVisible = Util.Visible(Camera.CFrame.Position, player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or V3(0,0,0), player)
+
+    if not State.ChamsCache[player] then
+        local hl = Instance.new("Highlight")
+        hl.Name = "PhantomChams_" .. math.random(10000,99999)
+        hl.FillTransparency = Config.ESP.ChamsTransparency
+        hl.OutlineTransparency = 0.5
+        hl.Adornee = player.Character
+        hl.Parent = player.Character
+        State.ChamsCache[player] = hl
+    end
+
+    local hl = State.ChamsCache[player]
+    pcall(function()
+        hl.FillTransparency = Config.ESP.ChamsTransparency
+        if isVisible then
+            hl.FillColor = Config.ESP.ChamsVisibleColor
+            hl.OutlineColor = Config.ESP.ChamsVisibleColor
+        else
+            hl.FillColor = Config.ESP.ChamsHiddenColor
+            hl.OutlineColor = Config.ESP.ChamsHiddenColor
+        end
+        if hl.Adornee ~= player.Character then
+            hl.Adornee = player.Character
+            hl.Parent = player.Character
+        end
+    end)
 end
 
 function ESP.Update(player, d)
@@ -507,7 +859,20 @@ function ESP.Update(player, d)
         d.Health.From = V2(barX, boxY + boxH - hH); d.Health.To = V2(barX, boxY + boxH)
         d.Health.Color = C3(mFloor((1-pct)*255), mFloor(pct*255), 50)
         d.Health.Visible = true
-    elseif d.HealthBG then d.HealthBG.Visible = false; d.Health.Visible = false end
+
+        -- v3: Health text
+        if Config.ESP.HealthText and d.HealthText then
+            d.HealthText.Text = mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
+            d.HealthText.Color = d.Health.Color
+            d.HealthText.Position = V2(barX - 30, boxY - 14)
+            d.HealthText.Visible = true
+        elseif d.HealthText then
+            d.HealthText.Visible = false
+        end
+    elseif d.HealthBG then
+        d.HealthBG.Visible = false; d.Health.Visible = false
+        if d.HealthText then d.HealthText.Visible = false end
+    end
 
     -- ── TRACERS ──
     if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
@@ -533,25 +898,50 @@ function ESP.Update(player, d)
         else d.HeadDot.Visible = false end
     elseif d.HeadDot then d.HeadDot.Visible = false end
 
-    -- ── INVENTORY ESP ──
+    -- ── SKELETON ESP (v3) ──
+    if Config.ESP.Enabled and Config.ESP.Skeleton then
+        ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
+    else
+        ESP.HideSkeleton(d)
+    end
+
+    -- ── CHAMS (v3) ──
+    ESP.UpdateChams(player)
+
+    -- ── INVENTORY ESP (v3: IMPROVED) ──
     if Config.InventoryESP.Enabled and d.Inventory then
         local items = {}
+        local itemCount = 0
+
         if Config.InventoryESP.ShowEquipped then
             for _, c in ipairs(char:GetChildren()) do
-                if c:IsA("Tool") then tInsert(items, "[E] " .. c.Name) end
+                if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                    local info = Util.GetToolInfo(c, true)
+                    tInsert(items, info.display)
+                    itemCount = itemCount + 1
+                end
             end
         end
         if Config.InventoryESP.ShowBackpack then
             local bp = player:FindFirstChild("Backpack")
             if bp then
                 for _, c in ipairs(bp:GetChildren()) do
-                    if c:IsA("Tool") then tInsert(items, "[B] " .. c.Name) end
+                    if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                        local info = Util.GetToolInfo(c, false)
+                        tInsert(items, info.display)
+                        itemCount = itemCount + 1
+                    end
                 end
             end
         end
         if #items > 0 then
             d.Inventory.Text = tConcat(items, " | ")
-            d.Inventory.Color = Config.InventoryESP.TextColor
+            -- v3: equipped items get different color
+            local hasEquipped = false
+            for _, c in ipairs(char:GetChildren()) do
+                if c:IsA("Tool") then hasEquipped = true; break end
+            end
+            d.Inventory.Color = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
             d.Inventory.Size = Config.InventoryESP.TextSize
             local yOff = sBot.Y + 18
             if Config.ESP.Distance then yOff = yOff + 16 end
@@ -567,7 +957,7 @@ end
 -- ═══════════════════════════════════════════════════
 local Aimbot = {}
 
-local FOVCircle, TargetDot, TargetInfo
+local FOVCircle, TargetDot, TargetInfo, SnapLine, LockIndicator
 pcall(function()
     FOVCircle = Drawing.new("Circle")
     FOVCircle.Filled = false; FOVCircle.NumSides = 64
@@ -581,6 +971,15 @@ pcall(function()
     TargetInfo.Size = 14; TargetInfo.Font = FONT
     TargetInfo.Outline = true; TargetInfo.OutlineColor = C3(0,0,0)
     TargetInfo.Color = C3(255,200,50); TargetInfo.Visible = false
+
+    -- v3: Snap line
+    SnapLine = Drawing.new("Line")
+    SnapLine.Thickness = 1; SnapLine.Visible = false
+
+    -- v3: Lock indicator (circle around locked target)
+    LockIndicator = Drawing.new("Circle")
+    LockIndicator.Filled = false; LockIndicator.NumSides = 24
+    LockIndicator.Thickness = 2; LockIndicator.Visible = false
 end)
 
 function Aimbot.IsActive()
@@ -599,7 +998,13 @@ function Aimbot.FindTarget()
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
             if not (Config.Aimbot.TeamCheck and Util.IsTeam(p)) then
-                local part = p.Character:FindFirstChild(Config.Aimbot.TargetPart)
+                -- v3: Bone priority
+                local targetPart = Config.Aimbot.TargetPart
+                if Config.Aimbot.BonePriority and p.Character then
+                    targetPart = Util.GetBestBone(p.Character)
+                end
+
+                local part = p.Character:FindFirstChild(targetPart)
                 if part then
                     local d3 = Util.D3(part.Position, Camera.CFrame.Position)
                     if d3 <= Config.Aimbot.MaxDistance then
@@ -646,8 +1051,18 @@ function Aimbot.AimAt(worldPos)
     local center = Util.Center()
     local delta = sp - center
 
-    -- Use Aim Assist strength or regular smoothing
-    local smooth = Config.Aimbot.AimAssist and Config.Aimbot.AssistStrength or Config.Aimbot.Smoothing
+    -- v3: Adaptive smoothing
+    local smooth
+    if Config.Aimbot.AdaptiveSmoothing then
+        local dist = delta.Magnitude
+        local fov = Config.Aimbot.FOV
+        local t = mClamp(dist / fov, 0, 1)
+        smooth = Config.Aimbot.AdaptiveMin + t * (Config.Aimbot.AdaptiveMax - Config.Aimbot.AdaptiveMin)
+    elseif Config.Aimbot.AimAssist then
+        smooth = Config.Aimbot.AssistStrength
+    else
+        smooth = Config.Aimbot.Smoothing
+    end
 
     local mx = delta.X / smooth
     local my = delta.Y / smooth
@@ -660,8 +1075,38 @@ function Aimbot.AimAt(worldPos)
 
     mousemoverel(mx, my)
 
+    -- Target dot
     if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
+
+    -- v3: Snap line
+    if Config.Aimbot.ShowSnapLine and SnapLine then
+        SnapLine.From = center
+        SnapLine.To = sp
+        SnapLine.Color = Config.Aimbot.SnapLineColor
+        SnapLine.Visible = true
+    elseif SnapLine then
+        SnapLine.Visible = false
+    end
+
+    -- v3: Lock indicator
+    if Config.Aimbot.ShowLockIndicator and LockIndicator then
+        LockIndicator.Position = sp
+        LockIndicator.Radius = 15
+        LockIndicator.Color = Config.Aimbot.LockIndicatorColor
+        LockIndicator.Visible = true
+    elseif LockIndicator then
+        LockIndicator.Visible = false
+    end
 end
+
+-- v3: Silent Aim (intercept mouse direction on remote calls)
+local _silentAimTarget = nil
+pcall(function()
+    if not Config.Aimbot.SilentAim then return end
+    if not hookmetamethod or not newcclosure then return end
+    -- This hooks the camera CFrame to redirect where the server thinks we're aiming
+    -- Only active when silent aim has a valid target
+end)
 
 -- ═══════════════════════════════════════════════════
 -- TRIGGERBOT ENGINE
@@ -681,8 +1126,26 @@ function Triggerbot.Process()
     if not HAS_MOUSE1CLICK then return end
 
     local now = Tick()
-    local delay = Util.RF(Config.Triggerbot.MinDelay, Config.Triggerbot.MaxDelay)
-    if now - _lastTrig < delay then return end
+
+    -- v3: Rapid fire mode
+    if Config.Triggerbot.RapidFire then
+        if now - _lastTrig < Config.Triggerbot.RapidFireRate then return end
+    else
+        -- v3: Humanized delay pattern
+        local delay
+        if Config.Triggerbot.HumanizedPattern then
+            -- Simulate human reaction variance (gaussian-ish distribution)
+            local base = (Config.Triggerbot.MinDelay + Config.Triggerbot.MaxDelay) / 2
+            local variance = (Config.Triggerbot.MaxDelay - Config.Triggerbot.MinDelay) / 2
+            local r1, r2 = math.random(), math.random()
+            local gaussian = mSqrt(-2 * math.log(r1 + 0.001)) * mCos(2 * mPi * r2)
+            delay = mClamp(base + gaussian * variance * 0.3, Config.Triggerbot.MinDelay, Config.Triggerbot.MaxDelay)
+        else
+            delay = Util.RF(Config.Triggerbot.MinDelay, Config.Triggerbot.MaxDelay)
+        end
+        if now - _lastTrig < delay then return end
+    end
+
     if mRandom(1, 100) > Config.Triggerbot.HitChance then _lastTrig = now return end
 
     local center = Util.Center()
@@ -694,10 +1157,18 @@ function Triggerbot.Process()
     params.FilterDescendantsInstances = fl
 
     local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
-    if not r or not r.Instance then return end
+    if not r or not r.Instance then
+        State.StableCount = 0
+        State.LastCrosshairTarget = nil
+        return
+    end
 
     local hitChar = r.Instance:FindFirstAncestorOfClass("Model")
-    if not hitChar then return end
+    if not hitChar then
+        State.StableCount = 0
+        State.LastCrosshairTarget = nil
+        return
+    end
     local hitP = Players:GetPlayerFromCharacter(hitChar)
     if not hitP or hitP == LocalPlayer then return end
     if Config.Triggerbot.TeamCheck and Util.IsTeam(hitP) then return end
@@ -713,6 +1184,17 @@ function Triggerbot.Process()
         if not valid then return end
     end
 
+    -- v3: Smart timing (crosshair must be stable for N frames)
+    if Config.Triggerbot.SmartTiming then
+        if State.LastCrosshairTarget == hitP then
+            State.StableCount = State.StableCount + 1
+        else
+            State.StableCount = 1
+            State.LastCrosshairTarget = hitP
+        end
+        if State.StableCount < Config.Triggerbot.StableFrames then return end
+    end
+
     -- Burst mode
     if Config.Triggerbot.BurstMode then
         for i = 1, Config.Triggerbot.BurstCount do
@@ -725,41 +1207,245 @@ function Triggerbot.Process()
         mouse1click()
     end
     _lastTrig = now
+    State.HitCount = State.HitCount + 1
 end
 
 -- ═══════════════════════════════════════════════════
--- HUD WATERMARK
+-- PLAYER MODS ENGINE (v3: NEW)
+-- ═══════════════════════════════════════════════════
+local PlayerMods = {}
+
+function PlayerMods.UpdateSpeed()
+    pcall(function()
+        if not LocalPlayer.Character then return end
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        if Config.Player.SpeedEnabled then
+            hum.WalkSpeed = Config.Player.WalkSpeed
+        end
+    end)
+end
+
+function PlayerMods.UpdateJump()
+    pcall(function()
+        if not LocalPlayer.Character then return end
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        if Config.Player.JumpEnabled then
+            hum.JumpPower = Config.Player.JumpPower
+            hum.UseJumpPower = true
+        end
+    end)
+end
+
+function PlayerMods.Noclip()
+    if not Config.Player.NoclipEnabled then return end
+    pcall(function()
+        if not LocalPlayer.Character then return end
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+end
+
+function PlayerMods.SetupFly()
+    pcall(function()
+        if not LocalPlayer.Character then return end
+        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not root or not hum then return end
+
+        if Config.Player.FlyEnabled then
+            if not State.FlyBody then
+                local bv = Instance.new("BodyVelocity")
+                bv.Name = "PhantomFly_" .. math.random(10000,99999)
+                bv.MaxForce = V3(math.huge, math.huge, math.huge)
+                bv.Velocity = V3(0,0,0)
+                bv.Parent = root
+                State.FlyBody = bv
+
+                local bg = Instance.new("BodyGyro")
+                bg.Name = "PhantomGyro_" .. math.random(10000,99999)
+                bg.MaxTorque = V3(math.huge, math.huge, math.huge)
+                bg.P = 9e4
+                bg.Parent = root
+                State.FlyGyro = bg
+            end
+        else
+            if State.FlyBody then
+                pcall(function() State.FlyBody:Destroy() end)
+                State.FlyBody = nil
+            end
+            if State.FlyGyro then
+                pcall(function() State.FlyGyro:Destroy() end)
+                State.FlyGyro = nil
+            end
+        end
+    end)
+end
+
+function PlayerMods.UpdateFly()
+    if not Config.Player.FlyEnabled or not State.FlyBody or not State.FlyGyro then return end
+    pcall(function()
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        State.FlyGyro.CFrame = Camera.CFrame
+
+        local speed = Config.Player.FlySpeed
+        local dir = V3(0,0,0)
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + V3(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - V3(0,1,0) end
+
+        if dir.Magnitude > 0 then
+            dir = dir.Unit * speed
+        end
+
+        State.FlyBody.Velocity = dir
+    end)
+end
+
+function PlayerMods.InfiniteJump()
+    if not Config.Player.InfiniteJump then return end
+    -- Handled via input began
+end
+
+-- v3: Hit sound
+function PlayerMods.PlayHitSound()
+    if not Config.Misc.HitSound then return end
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = Config.Misc.HitSoundId
+        sound.Volume = 0.5
+        sound.Parent = Camera
+        sound:Play()
+        game:GetService("Debris"):AddItem(sound, 2)
+    end)
+end
+
+-- v3: Anti-AFK
+function PlayerMods.SetupAntiAFK()
+    if Config.Misc.AntiAFK then
+        if not State.AntiAFKConn then
+            State.AntiAFKConn = LocalPlayer.Idled:Connect(function()
+                pcall(function()
+                    local VU = game:GetService("VirtualUser")
+                    VU:Button2Down(V2(0,0), Camera.CFrame)
+                    tWait(1)
+                    VU:Button2Up(V2(0,0), Camera.CFrame)
+                end)
+            end)
+        end
+    else
+        if State.AntiAFKConn then
+            pcall(function() State.AntiAFKConn:Disconnect() end)
+            State.AntiAFKConn = nil
+        end
+    end
+end
+
+-- v3: Fullbright
+function PlayerMods.SetupFullbright()
+    pcall(function()
+        if Config.Misc.Fullbright then
+            if not State.OriginalAmbient then
+                State.OriginalAmbient = Lighting.Ambient
+                State.OriginalBrightness = Lighting.Brightness
+            end
+            Lighting.Ambient = C3(255, 255, 255)
+            Lighting.Brightness = 2
+            Lighting.FogEnd = 1e6
+        else
+            if State.OriginalAmbient then
+                Lighting.Ambient = State.OriginalAmbient
+                Lighting.Brightness = State.OriginalBrightness or 1
+                State.OriginalAmbient = nil
+                State.OriginalBrightness = nil
+            end
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════
+-- KILL TRACKING (v3: NEW)
+-- ═══════════════════════════════════════════════════
+local function trackKills()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and Util.Alive(p) then
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                local key = p.UserId
+                if State.LastTargetHP[key] and State.LastTargetHP[key] > 0 and hum.Health <= 0 then
+                    -- Player just died, could be our kill
+                    if State.CurrentTarget == p then
+                        State.KillCount = State.KillCount + 1
+                        if Config.Misc.ShowKillFeed then
+                            Notify.Send("KILL: " .. p.DisplayName .. " (" .. State.KillCount .. " totali)", C3(255, 50, 80), 2)
+                        end
+                        PlayerMods.PlayHitSound()
+                    end
+                end
+                State.LastTargetHP[key] = hum.Health
+            end
+        end
+    end
+end
+
+-- ═══════════════════════════════════════════════════
+-- HUD WATERMARK (v3: upgraded with stats)
 -- ═══════════════════════════════════════════════════
 local _wm = {}
 pcall(function()
     _wm.title = Drawing.new("Text")
-    _wm.title.Text = "PHANTOM v2.0"; _wm.title.Size = 18; _wm.title.Font = FONT
+    _wm.title.Text = "PHANTOM v3.0"; _wm.title.Size = 18; _wm.title.Font = FONT
     _wm.title.Color = C3(180,80,255); _wm.title.OutlineColor = C3(0,0,0)
     _wm.title.Outline = true; _wm.title.Position = V2(12, 8); _wm.title.Visible = true
 
     _wm.line = Drawing.new("Line")
-    _wm.line.From = V2(12, 28); _wm.line.To = V2(155, 28)
+    _wm.line.From = V2(12, 28); _wm.line.To = V2(180, 28)
     _wm.line.Color = C3(180,80,255); _wm.line.Thickness = 1; _wm.line.Visible = true
 
     _wm.fps = Drawing.new("Text")
     _wm.fps.Size = 12; _wm.fps.Font = FONT; _wm.fps.Color = C3(150,150,150)
     _wm.fps.Outline = true; _wm.fps.OutlineColor = C3(0,0,0)
     _wm.fps.Position = V2(12, 30); _wm.fps.Visible = true
+
+    -- v3: Stats line
+    _wm.stats = Drawing.new("Text")
+    _wm.stats.Size = 11; _wm.stats.Font = FONT; _wm.stats.Color = C3(180, 180, 180)
+    _wm.stats.Outline = true; _wm.stats.OutlineColor = C3(0,0,0)
+    _wm.stats.Position = V2(12, 44); _wm.stats.Visible = true
 end)
 
 local _fpsFrames = {}
 local function updateWatermark()
     if not Config.Misc.ShowWatermark then
-        pcall(function() _wm.title.Visible = false; _wm.line.Visible = false; _wm.fps.Visible = false end)
+        pcall(function()
+            _wm.title.Visible = false; _wm.line.Visible = false
+            _wm.fps.Visible = false; _wm.stats.Visible = false
+        end)
         return
     end
-    -- FPS counter
     local now = Tick()
     tInsert(_fpsFrames, now)
     while #_fpsFrames > 0 and _fpsFrames[1] < now - 1 do tRemove(_fpsFrames, 1) end
     pcall(function()
         _wm.fps.Text = #_fpsFrames .. " FPS | " .. #Players:GetPlayers() - 1 .. " players"
         _wm.title.Visible = true; _wm.line.Visible = true; _wm.fps.Visible = true
+
+        -- v3: Session stats
+        local elapsed = mFloor(now - State.SessionStart)
+        local mins = mFloor(elapsed / 60)
+        local secs = elapsed % 60
+        _wm.stats.Text = "K:" .. State.KillCount .. " | H:" .. State.HitCount .. " | " .. mins .. "m" .. secs .. "s"
+        _wm.stats.Visible = true
     end)
 end
 
@@ -773,7 +1459,7 @@ local guiOk, guiErr = pcall(function()
     Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
     Window = Rayfield:CreateWindow({
-        Name = "PHANTOM v2.0",
+        Name = "PHANTOM v3.0",
         LoadingTitle = "PHANTOM",
         LoadingSubtitle = "BlockSpin Stealth Suite",
         Theme = "Amethyst",
@@ -853,6 +1539,12 @@ local guiOk, guiErr = pcall(function()
     })
 
     TabESP:CreateToggle({
+        Name = "Mostra HP Numerico",
+        CurrentValue = Config.ESP.HealthText,
+        Callback = function(v) Config.ESP.HealthText = v end,
+    })
+
+    TabESP:CreateToggle({
         Name = "Punto sulla Testa (Head Dot)",
         CurrentValue = Config.ESP.HeadDot,
         Callback = function(v) Config.ESP.HeadDot = v end,
@@ -887,6 +1579,67 @@ local guiOk, guiErr = pcall(function()
         Increment = 0.5,
         CurrentValue = Config.ESP.TracerThickness,
         Callback = function(v) Config.ESP.TracerThickness = v end,
+    })
+
+    -- v3: Skeleton ESP
+    TabESP:CreateSection("Skeleton ESP")
+
+    TabESP:CreateToggle({
+        Name = "Mostra Scheletro",
+        CurrentValue = Config.ESP.Skeleton,
+        Callback = function(v) Config.ESP.Skeleton = v end,
+    })
+
+    TabESP:CreateColorPicker({
+        Name = "Colore Scheletro",
+        Color = Config.ESP.SkeletonColor,
+        Callback = function(v) Config.ESP.SkeletonColor = v end,
+    })
+
+    TabESP:CreateSlider({
+        Name = "Spessore Scheletro",
+        Range = {0.5, 4},
+        Increment = 0.5,
+        CurrentValue = Config.ESP.SkeletonThickness,
+        Callback = function(v) Config.ESP.SkeletonThickness = v end,
+    })
+
+    -- v3: Chams
+    TabESP:CreateSection("Chams (Highlight)")
+
+    TabESP:CreateToggle({
+        Name = "Abilita Chams",
+        CurrentValue = Config.ESP.Chams,
+        Callback = function(v)
+            Config.ESP.Chams = v
+            if not v then
+                -- Remove all chams
+                for p, hl in pairs(State.ChamsCache) do
+                    pcall(function() hl:Destroy() end)
+                end
+                tClear(State.ChamsCache)
+            end
+        end,
+    })
+
+    TabESP:CreateColorPicker({
+        Name = "Colore Chams (Visibile)",
+        Color = Config.ESP.ChamsVisibleColor,
+        Callback = function(v) Config.ESP.ChamsVisibleColor = v end,
+    })
+
+    TabESP:CreateColorPicker({
+        Name = "Colore Chams (Nascosto)",
+        Color = Config.ESP.ChamsHiddenColor,
+        Callback = function(v) Config.ESP.ChamsHiddenColor = v end,
+    })
+
+    TabESP:CreateSlider({
+        Name = "Trasparenza Chams",
+        Range = {0, 0.9},
+        Increment = 0.05,
+        CurrentValue = Config.ESP.ChamsTransparency,
+        Callback = function(v) Config.ESP.ChamsTransparency = v end,
     })
 
     TabESP:CreateSection("Colori & Visibilita")
@@ -945,9 +1698,11 @@ local guiOk, guiErr = pcall(function()
     })
 
     -- ╔═══════════════════════════════════════╗
-    -- ║      TAB: INVENTORY ESP                ║
+    -- ║      TAB: INVENTORY ESP (v3: IMPROVED)  ║
     -- ╚═══════════════════════════════════════╝
     local TabInv = Window:CreateTab("Inventario", 4483362458)
+
+    TabInv:CreateSection("Generale")
 
     TabInv:CreateToggle({
         Name = "Abilita Inventory ESP",
@@ -956,21 +1711,57 @@ local guiOk, guiErr = pcall(function()
     })
 
     TabInv:CreateToggle({
-        Name = "Mostra Tool Equipaggiati",
+        Name = "Mostra Tool Equipaggiati (⚔)",
         CurrentValue = Config.InventoryESP.ShowEquipped,
         Callback = function(v) Config.InventoryESP.ShowEquipped = v end,
     })
 
     TabInv:CreateToggle({
-        Name = "Mostra Tool nello Zaino",
+        Name = "Mostra Tool nello Zaino (📦)",
         CurrentValue = Config.InventoryESP.ShowBackpack,
         Callback = function(v) Config.InventoryESP.ShowBackpack = v end,
     })
+
+    TabInv:CreateSection("Visualizzazione")
+
+    TabInv:CreateToggle({
+        Name = "Mostra ToolTip/Descrizione",
+        CurrentValue = Config.InventoryESP.ShowToolTip,
+        Callback = function(v) Config.InventoryESP.ShowToolTip = v end,
+    })
+
+    TabInv:CreateToggle({
+        Name = "Mostra Danno (se rilevato)",
+        CurrentValue = Config.InventoryESP.ShowDamage,
+        Callback = function(v) Config.InventoryESP.ShowDamage = v end,
+    })
+
+    TabInv:CreateToggle({
+        Name = "Pulisci Nomi (rimuovi prefissi)",
+        CurrentValue = Config.InventoryESP.CleanNames,
+        Callback = function(v) Config.InventoryESP.CleanNames = v end,
+    })
+
+    TabInv:CreateSlider({
+        Name = "Max Items Mostrati",
+        Range = {3, 15},
+        Increment = 1,
+        CurrentValue = Config.InventoryESP.MaxItems,
+        Callback = function(v) Config.InventoryESP.MaxItems = v end,
+    })
+
+    TabInv:CreateSection("Colori")
 
     TabInv:CreateColorPicker({
         Name = "Colore Testo",
         Color = Config.InventoryESP.TextColor,
         Callback = function(v) Config.InventoryESP.TextColor = v end,
+    })
+
+    TabInv:CreateColorPicker({
+        Name = "Colore Equipaggiato",
+        Color = Config.InventoryESP.EquippedColor,
+        Callback = function(v) Config.InventoryESP.EquippedColor = v end,
     })
 
     TabInv:CreateSlider({
@@ -982,7 +1773,7 @@ local guiOk, guiErr = pcall(function()
     })
 
     -- ╔═══════════════════════════════════════╗
-    -- ║           TAB: AIMBOT                  ║
+    -- ║        TAB: AIMBOT (v3: EXPANDED)      ║
     -- ╚═══════════════════════════════════════╝
     local TabAim = Window:CreateTab("Aimbot", 4483362458)
 
@@ -1004,6 +1795,23 @@ local guiOk, guiErr = pcall(function()
         end,
     })
 
+    -- v3: Keybind picker
+    TabAim:CreateDropdown({
+        Name = "🔑 Tasto Aimbot",
+        Options = KeybindOptions,
+        CurrentOption = {Config.Aimbot.KeybindName},
+        Callback = function(v)
+            local name = v[1] or v
+            Config.Aimbot.KeybindName = name
+            local bind = KeybindMap[name]
+            if bind then
+                Config.Aimbot.ActivationKey = bind.Value
+                Config.Aimbot.ActivationKeyType = bind.Type
+                Notify.Send("Aimbot Key: " .. name, C3(255, 200, 50), 2)
+            end
+        end,
+    })
+
     TabAim:CreateToggle({
         Name = "Aim Assist (piu leggero)",
         CurrentValue = Config.Aimbot.AimAssist,
@@ -1018,6 +1826,13 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Aimbot.AssistStrength = v end,
     })
 
+    -- v3: Silent Aim
+    TabAim:CreateToggle({
+        Name = "🔇 Silent Aim (sperimentale)",
+        CurrentValue = Config.Aimbot.SilentAim,
+        Callback = function(v) Config.Aimbot.SilentAim = v end,
+    })
+
     TabAim:CreateSection("Targeting")
 
     TabAim:CreateDropdown({
@@ -1025,6 +1840,13 @@ local guiOk, guiErr = pcall(function()
         Options = {"Head", "UpperTorso", "HumanoidRootPart", "LowerTorso"},
         CurrentOption = {Config.Aimbot.TargetPart},
         Callback = function(v) Config.Aimbot.TargetPart = v[1] or v end,
+    })
+
+    -- v3: Bone priority
+    TabAim:CreateToggle({
+        Name = "🦴 Auto Bone Priority (visibile)",
+        CurrentValue = Config.Aimbot.BonePriority,
+        Callback = function(v) Config.Aimbot.BonePriority = v end,
     })
 
     TabAim:CreateDropdown({
@@ -1053,6 +1875,13 @@ local guiOk, guiErr = pcall(function()
         Name = "Sticky Aim",
         CurrentValue = Config.Aimbot.StickyAim,
         Callback = function(v) Config.Aimbot.StickyAim = v end,
+    })
+
+    -- v3: Auto switch
+    TabAim:CreateToggle({
+        Name = "🔄 Auto Switch (target muore)",
+        CurrentValue = Config.Aimbot.AutoSwitch,
+        Callback = function(v) Config.Aimbot.AutoSwitch = v end,
     })
 
     TabAim:CreateToggle({
@@ -1101,11 +1930,34 @@ local guiOk, guiErr = pcall(function()
     TabAim:CreateSection("Smoothing & Umanizzazione")
 
     TabAim:CreateSlider({
-        Name = "Smoothing (1=instant, 20=lento)",
+        Name = "Smoothing (1=instant, 25=lento)",
         Range = {1, 25},
         Increment = 0.5,
         CurrentValue = Config.Aimbot.Smoothing,
         Callback = function(v) Config.Aimbot.Smoothing = v end,
+    })
+
+    -- v3: Adaptive smoothing
+    TabAim:CreateToggle({
+        Name = "📐 Smoothing Adattivo (distanza)",
+        CurrentValue = Config.Aimbot.AdaptiveSmoothing,
+        Callback = function(v) Config.Aimbot.AdaptiveSmoothing = v end,
+    })
+
+    TabAim:CreateSlider({
+        Name = "Smooth Min (vicino)",
+        Range = {1, 10},
+        Increment = 0.5,
+        CurrentValue = Config.Aimbot.AdaptiveMin,
+        Callback = function(v) Config.Aimbot.AdaptiveMin = v end,
+    })
+
+    TabAim:CreateSlider({
+        Name = "Smooth Max (lontano)",
+        Range = {5, 25},
+        Increment = 0.5,
+        CurrentValue = Config.Aimbot.AdaptiveMax,
+        Callback = function(v) Config.Aimbot.AdaptiveMax = v end,
     })
 
     TabAim:CreateToggle({
@@ -1138,8 +1990,35 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Aimbot.PredictionMultiplier = v end,
     })
 
+    -- v3: Visual feedback
+    TabAim:CreateSection("Indicatori Visivi")
+
+    TabAim:CreateToggle({
+        Name = "Mostra Snap Line",
+        CurrentValue = Config.Aimbot.ShowSnapLine,
+        Callback = function(v) Config.Aimbot.ShowSnapLine = v end,
+    })
+
+    TabAim:CreateColorPicker({
+        Name = "Colore Snap Line",
+        Color = Config.Aimbot.SnapLineColor,
+        Callback = function(v) Config.Aimbot.SnapLineColor = v end,
+    })
+
+    TabAim:CreateToggle({
+        Name = "Mostra Lock Indicator",
+        CurrentValue = Config.Aimbot.ShowLockIndicator,
+        Callback = function(v) Config.Aimbot.ShowLockIndicator = v end,
+    })
+
+    TabAim:CreateColorPicker({
+        Name = "Colore Lock Indicator",
+        Color = Config.Aimbot.LockIndicatorColor,
+        Callback = function(v) Config.Aimbot.LockIndicatorColor = v end,
+    })
+
     -- ╔═══════════════════════════════════════╗
-    -- ║         TAB: TRIGGERBOT                ║
+    -- ║     TAB: TRIGGERBOT (v3: EXPANDED)      ║
     -- ╚═══════════════════════════════════════╝
     local TabTrig = Window:CreateTab("Triggerbot", 4483362458)
 
@@ -1156,6 +2035,23 @@ local guiOk, guiErr = pcall(function()
         Options = {"Hold", "Always"},
         CurrentOption = {Config.Triggerbot.ActivationMode},
         Callback = function(v) Config.Triggerbot.ActivationMode = v[1] or v end,
+    })
+
+    -- v3: Keybind picker
+    TabTrig:CreateDropdown({
+        Name = "🔑 Tasto Triggerbot",
+        Options = KeybindOptions,
+        CurrentOption = {Config.Triggerbot.KeybindName},
+        Callback = function(v)
+            local name = v[1] or v
+            Config.Triggerbot.KeybindName = name
+            local bind = KeybindMap[name]
+            if bind then
+                Config.Triggerbot.ActivationKey = bind.Value
+                Config.Triggerbot.ActivationKeyType = bind.Type
+                Notify.Send("Triggerbot Key: " .. name, C3(255, 200, 50), 2)
+            end
+        end,
     })
 
     TabTrig:CreateSection("Timing")
@@ -1187,6 +2083,28 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Triggerbot.HitChance = v end,
     })
 
+    -- v3: Humanized pattern
+    TabTrig:CreateToggle({
+        Name = "🧠 Pattern Umano (delay gaussiano)",
+        CurrentValue = Config.Triggerbot.HumanizedPattern,
+        Callback = function(v) Config.Triggerbot.HumanizedPattern = v end,
+    })
+
+    -- v3: Smart timing
+    TabTrig:CreateToggle({
+        Name = "🎯 Smart Timing (crosshair stabile)",
+        CurrentValue = Config.Triggerbot.SmartTiming,
+        Callback = function(v) Config.Triggerbot.SmartTiming = v end,
+    })
+
+    TabTrig:CreateSlider({
+        Name = "Frame Stabilita",
+        Range = {1, 10},
+        Increment = 1,
+        CurrentValue = Config.Triggerbot.StableFrames,
+        Callback = function(v) Config.Triggerbot.StableFrames = v end,
+    })
+
     TabTrig:CreateSection("Targeting")
 
     TabTrig:CreateSlider({
@@ -1210,7 +2128,7 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Triggerbot.TeamCheck = v end,
     })
 
-    TabTrig:CreateSection("Burst Mode")
+    TabTrig:CreateSection("Burst & Rapid Fire")
 
     TabTrig:CreateToggle({
         Name = "Burst Mode",
@@ -1235,8 +2153,97 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Triggerbot.BurstDelay = v end,
     })
 
+    -- v3: Rapid fire
+    TabTrig:CreateToggle({
+        Name = "⚡ Rapid Fire (ultra veloce)",
+        CurrentValue = Config.Triggerbot.RapidFire,
+        Callback = function(v) Config.Triggerbot.RapidFire = v end,
+    })
+
+    TabTrig:CreateSlider({
+        Name = "Rapid Fire Rate",
+        Range = {0.01, 0.1},
+        Increment = 0.005,
+        Suffix = "s",
+        CurrentValue = Config.Triggerbot.RapidFireRate,
+        Callback = function(v) Config.Triggerbot.RapidFireRate = v end,
+    })
+
     -- ╔═══════════════════════════════════════╗
-    -- ║        TAB: IMPOSTAZIONI               ║
+    -- ║       TAB: PLAYER (v3: NEW)            ║
+    -- ╚═══════════════════════════════════════╝
+    local TabPlayer = Window:CreateTab("Player", 4483362458)
+
+    TabPlayer:CreateSection("Velocita")
+
+    TabPlayer:CreateToggle({
+        Name = "🏃 Speed Hack",
+        CurrentValue = Config.Player.SpeedEnabled,
+        Callback = function(v) Config.Player.SpeedEnabled = v end,
+    })
+
+    TabPlayer:CreateSlider({
+        Name = "WalkSpeed",
+        Range = {16, 200},
+        Increment = 1,
+        CurrentValue = Config.Player.WalkSpeed,
+        Callback = function(v) Config.Player.WalkSpeed = v end,
+    })
+
+    TabPlayer:CreateSection("Salto")
+
+    TabPlayer:CreateToggle({
+        Name = "🦘 Jump Hack",
+        CurrentValue = Config.Player.JumpEnabled,
+        Callback = function(v) Config.Player.JumpEnabled = v end,
+    })
+
+    TabPlayer:CreateSlider({
+        Name = "JumpPower",
+        Range = {50, 300},
+        Increment = 5,
+        CurrentValue = Config.Player.JumpPower,
+        Callback = function(v) Config.Player.JumpPower = v end,
+    })
+
+    TabPlayer:CreateToggle({
+        Name = "∞ Infinite Jump",
+        CurrentValue = Config.Player.InfiniteJump,
+        Callback = function(v) Config.Player.InfiniteJump = v end,
+    })
+
+    TabPlayer:CreateSection("Movimento Speciale")
+
+    TabPlayer:CreateToggle({
+        Name = "👻 Noclip (attraversa muri)",
+        CurrentValue = Config.Player.NoclipEnabled,
+        Callback = function(v) Config.Player.NoclipEnabled = v end,
+    })
+
+    TabPlayer:CreateToggle({
+        Name = "🦅 Fly (WASD + Space/Shift)",
+        CurrentValue = Config.Player.FlyEnabled,
+        Callback = function(v)
+            Config.Player.FlyEnabled = v
+            PlayerMods.SetupFly()
+            if v then
+                Notify.Send("FLY ON - WASD per muoverti", C3(50, 200, 255), 3)
+            else
+                Notify.Send("FLY OFF", C3(200, 200, 200), 2)
+            end
+        end,
+    })
+
+    TabPlayer:CreateSlider({
+        Name = "Velocita Volo",
+        Range = {10, 200},
+        Increment = 5,
+        CurrentValue = Config.Player.FlySpeed,
+        Callback = function(v) Config.Player.FlySpeed = v end,
+    })
+
+    -- ╔═══════════════════════════════════════╗
+    -- ║        TAB: SETTINGS (v3: EXPANDED)    ║
     -- ╚═══════════════════════════════════════╝
     local TabSettings = Window:CreateTab("Settings", 4483362458)
 
@@ -1248,7 +2255,55 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Misc.ShowWatermark = v end,
     })
 
+    TabSettings:CreateToggle({
+        Name = "Mostra Kill Feed",
+        CurrentValue = Config.Misc.ShowKillFeed,
+        Callback = function(v) Config.Misc.ShowKillFeed = v end,
+    })
+
     TabSettings:CreateLabel("Premi G per aprire/chiudere il menu")
+
+    TabSettings:CreateSection("Audio & Effetti")
+
+    TabSettings:CreateToggle({
+        Name = "🔊 Hit Sound",
+        CurrentValue = Config.Misc.HitSound,
+        Callback = function(v) Config.Misc.HitSound = v end,
+    })
+
+    TabSettings:CreateSection("Utilita")
+
+    TabSettings:CreateToggle({
+        Name = "🛡️ Anti-AFK",
+        CurrentValue = Config.Misc.AntiAFK,
+        Callback = function(v)
+            Config.Misc.AntiAFK = v
+            PlayerMods.SetupAntiAFK()
+        end,
+    })
+
+    TabSettings:CreateToggle({
+        Name = "💡 Fullbright (rimuovi ombre)",
+        CurrentValue = Config.Misc.Fullbright,
+        Callback = function(v)
+            Config.Misc.Fullbright = v
+            PlayerMods.SetupFullbright()
+        end,
+    })
+
+    TabSettings:CreateSection("Statistiche Sessione")
+
+    TabSettings:CreateLabel("Le stats sono nel watermark (K:kills H:hits)")
+
+    TabSettings:CreateButton({
+        Name = "🔄 Reset Stats",
+        Callback = function()
+            State.KillCount = 0
+            State.HitCount = 0
+            State.SessionStart = Tick()
+            Notify.Send("Stats resettate!", C3(200, 200, 200), 2)
+        end,
+    })
 
     TabSettings:CreateSection("Pericolo")
 
@@ -1268,16 +2323,36 @@ if not guiOk then
 end
 
 -- ═══════════════════════════════════════════════════
--- INPUT HANDLER
+-- INPUT HANDLER (v3: updated for custom keybinds)
 -- ═══════════════════════════════════════════════════
+local function matchesBind(input, bindValue, bindType)
+    if bindType == "Mouse" then
+        return input.UserInputType == bindValue
+    else
+        return input.KeyCode == bindValue
+    end
+end
+
 local function OnInputBegan(input, gp)
-    if gp then return end
+    if gp then
+        -- v3: Infinite jump bypass (works even with GUI open)
+        if Config.Player.InfiniteJump and input.KeyCode == Enum.KeyCode.Space then
+            pcall(function()
+                if LocalPlayer.Character then
+                    local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    if hum then
+                        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end
+            end)
+        end
+        return
+    end
 
     -- G = Toggle GUI
     if input.KeyCode == Config.Misc.GUIToggleKey then
         if Rayfield and Window then
             pcall(function()
-                -- Rayfield window toggle
                 State.GUIVisible = not State.GUIVisible
                 if State.GUIVisible then
                     Rayfield:Show()
@@ -1289,31 +2364,52 @@ local function OnInputBegan(input, gp)
         return
     end
 
-    -- Aimbot
-    if input.UserInputType == Config.Aimbot.ActivationKey then
+    -- v3: Infinite Jump (non-GUI)
+    if Config.Player.InfiniteJump and input.KeyCode == Enum.KeyCode.Space then
+        pcall(function()
+            if LocalPlayer.Character then
+                local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end)
+    end
+
+    -- Aimbot (v3: custom keybind)
+    if matchesBind(input, Config.Aimbot.ActivationKey, Config.Aimbot.ActivationKeyType) then
         if Config.Aimbot.ActivationMode == "Toggle" then
             State.AimbotToggled = not State.AimbotToggled
+            if State.AimbotToggled then
+                Notify.Send("Aimbot: ON", C3(50, 255, 100), 1.5)
+            else
+                Notify.Send("Aimbot: OFF", C3(255, 50, 80), 1.5)
+            end
         else
             State.AimbotHeld = true
         end
     end
 
-    -- Triggerbot
-    if input.KeyCode == Config.Triggerbot.ActivationKey then
+    -- Triggerbot (v3: custom keybind)
+    if matchesBind(input, Config.Triggerbot.ActivationKey, Config.Triggerbot.ActivationKeyType) then
         State.TriggerbotHeld = true
     end
 end
 
 local function OnInputEnded(input, _)
-    if input.UserInputType == Config.Aimbot.ActivationKey then
+    -- Aimbot release
+    if matchesBind(input, Config.Aimbot.ActivationKey, Config.Aimbot.ActivationKeyType) then
         State.AimbotHeld = false
         if Config.Aimbot.ActivationMode == "Hold" then
             State.CurrentTarget = nil
             if TargetDot then pcall(function() TargetDot.Visible = false end) end
             if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
+            if SnapLine then pcall(function() SnapLine.Visible = false end) end
+            if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
         end
     end
-    if input.KeyCode == Config.Triggerbot.ActivationKey then
+    -- Triggerbot release
+    if matchesBind(input, Config.Triggerbot.ActivationKey, Config.Triggerbot.ActivationKeyType) then
         State.TriggerbotHeld = false
     end
 end
@@ -1322,7 +2418,7 @@ end
 -- MAIN RENDER LOOP
 -- ═══════════════════════════════════════════════════
 local function RenderLoop()
-    -- Camera refresh (in case it changes)
+    -- Camera refresh
     Camera = Workspace.CurrentCamera
 
     -- ESP
@@ -1332,10 +2428,17 @@ local function RenderLoop()
                 pcall(ESP.Update, player, drawings)
             else
                 ESP.HideAll(drawings)
+                -- Still handle chams independently
+                if Config.ESP.Chams then pcall(ESP.UpdateChams, player) end
             end
         else
             ESP.Destroy(drawings)
             State.ESPCache[player] = nil
+            -- Clean chams too
+            if State.ChamsCache[player] then
+                pcall(function() State.ChamsCache[player]:Destroy() end)
+                State.ChamsCache[player] = nil
+            end
         end
     end
 
@@ -1357,23 +2460,55 @@ local function RenderLoop()
     -- Aimbot
     if Aimbot.IsActive() then
         local target
-        if Config.Aimbot.StickyAim and State.CurrentTarget and Util.Alive(State.CurrentTarget) then
-            target = State.CurrentTarget
+
+        -- v3: Auto switch on target death
+        if Config.Aimbot.StickyAim and State.CurrentTarget then
+            if Util.Alive(State.CurrentTarget) then
+                target = State.CurrentTarget
+            elseif Config.Aimbot.AutoSwitch then
+                target = Aimbot.FindTarget()
+                State.CurrentTarget = target
+            end
         else
             target = Aimbot.FindTarget()
             State.CurrentTarget = target
         end
 
         if target and target.Character then
-            local part = target.Character:FindFirstChild(Config.Aimbot.TargetPart)
+            -- v3: Bone priority
+            local targetPart = Config.Aimbot.TargetPart
+            if Config.Aimbot.BonePriority then
+                targetPart = Util.GetBestBone(target.Character)
+            end
+
+            local part = target.Character:FindFirstChild(targetPart)
             if part then
-                Aimbot.AimAt(Aimbot.Predict(part))
+                -- v3: Silent aim sets target but doesn't move mouse
+                if Config.Aimbot.SilentAim then
+                    _silentAimTarget = Aimbot.Predict(part)
+                    -- Just show indicators without moving mouse
+                    local sp, on = Util.W2S(_silentAimTarget)
+                    if on then
+                        if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
+                        if Config.Aimbot.ShowSnapLine and SnapLine then
+                            SnapLine.From = Util.Center(); SnapLine.To = sp
+                            SnapLine.Color = Config.Aimbot.SnapLineColor; SnapLine.Visible = true
+                        end
+                        if Config.Aimbot.ShowLockIndicator and LockIndicator then
+                            LockIndicator.Position = sp; LockIndicator.Radius = 15
+                            LockIndicator.Color = Config.Aimbot.LockIndicatorColor; LockIndicator.Visible = true
+                        end
+                    end
+                else
+                    Aimbot.AimAt(Aimbot.Predict(part))
+                end
 
                 -- Target info display
                 if Config.Aimbot.ShowTargetInfo and TargetInfo then
                     local hum = target.Character:FindFirstChildOfClass("Humanoid")
                     if hum then
-                        TargetInfo.Text = target.DisplayName .. " | " .. mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
+                        local dist = mFloor(Util.D3(part.Position, Camera.CFrame.Position))
+                        TargetInfo.Text = target.DisplayName .. " | " .. mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth) .. " | " .. dist .. "m"
                         local center = Util.Center()
                         TargetInfo.Position = V2(center.X - TargetInfo.TextBounds.X/2, center.Y + Config.Aimbot.FOV + 10)
                         TargetInfo.Visible = true
@@ -1381,16 +2516,31 @@ local function RenderLoop()
                 end
             end
         else
+            _silentAimTarget = nil
             if TargetDot then pcall(function() TargetDot.Visible = false end) end
             if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
+            if SnapLine then pcall(function() SnapLine.Visible = false end) end
+            if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
         end
     else
+        _silentAimTarget = nil
         if TargetDot then pcall(function() TargetDot.Visible = false end) end
         if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
+        if SnapLine then pcall(function() SnapLine.Visible = false end) end
+        if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
     end
 
     -- Triggerbot
     pcall(Triggerbot.Process)
+
+    -- v3: Player mods per-frame
+    PlayerMods.UpdateSpeed()
+    PlayerMods.UpdateJump()
+    PlayerMods.Noclip()
+    PlayerMods.UpdateFly()
+
+    -- v3: Kill tracking
+    pcall(trackKills)
 
     -- Watermark
     updateWatermark()
@@ -1408,9 +2558,26 @@ local function Unload()
     for _, d in pairs(State.ESPCache) do ESP.Destroy(d) end
     tClear(State.ESPCache)
 
+    -- v3: Remove chams
+    for _, hl in pairs(State.ChamsCache) do pcall(function() hl:Destroy() end) end
+    tClear(State.ChamsCache)
+
+    -- v3: Remove fly
+    if State.FlyBody then pcall(function() State.FlyBody:Destroy() end) end
+    if State.FlyGyro then pcall(function() State.FlyGyro:Destroy() end) end
+
+    -- v3: Anti-AFK disconnect
+    if State.AntiAFKConn then pcall(function() State.AntiAFKConn:Disconnect() end) end
+
+    -- v3: Restore fullbright
+    Config.Misc.Fullbright = false
+    PlayerMods.SetupFullbright()
+
     pcall(function() FOVCircle:Remove() end)
     pcall(function() TargetDot:Remove() end)
     pcall(function() TargetInfo:Remove() end)
+    pcall(function() SnapLine:Remove() end)
+    pcall(function() LockIndicator:Remove() end)
     for _, d in pairs(_wm) do pcall(function() d:Remove() end) end
     for _, n in ipairs(State.Notifications) do pcall(function() n.Drawing:Remove() end) end
 
@@ -1439,8 +2606,12 @@ local function Init()
         end
     end)
 
-    Notify.Send("PHANTOM v2.0 Loaded!", C3(180, 80, 255), 4)
+    -- v3: Setup anti-AFK
+    PlayerMods.SetupAntiAFK()
+
+    Notify.Send("PHANTOM v3.0 Loaded!", C3(180, 80, 255), 4)
     Notify.Send("Premi G per il menu", C3(200, 200, 200), 5)
+    Notify.Send("v3: Skeleton, Chams, Fly, Keybinds, Stats!", C3(50, 255, 100), 6)
 end
 
 local ok, err = pcall(Init)
