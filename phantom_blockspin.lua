@@ -344,7 +344,10 @@ end)
 local Util = {}
 
 function Util.W2S(pos)
-    local sp, on = Camera:WorldToViewportPoint(pos)
+    -- v3.4: Use Workspace.CurrentCamera directly to avoid stale cache
+    local cam = Workspace.CurrentCamera
+    if not cam then return V2(0,0), false, 0 end
+    local sp, on = cam:WorldToViewportPoint(pos)
     return V2(sp.X, sp.Y), on, sp.Z
 end
 
@@ -904,7 +907,7 @@ function ESP.Update(player, d)
     local head = char:FindFirstChild("Head")
     if not root or not hum then ESP.HideAll(d) return end
 
-    local camPos = Camera.CFrame.Position
+    local camPos = Workspace.CurrentCamera.CFrame.Position
     local rootPos = root.Position
     local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
@@ -1007,7 +1010,7 @@ function ESP.Update(player, d)
 
     -- TRACERS (direct, no pcall)
     if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
-        local vp = Camera.ViewportSize
+        local vp = Workspace.CurrentCamera.ViewportSize
         local origin
         if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vp.X/2, vp.Y)
         elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vp.X/2, 0)
@@ -2592,6 +2595,7 @@ local function RenderLoop()
     Camera = Workspace.CurrentCamera
 
     -- ESP (v3.4: each player wrapped independently)
+    local _espErrCount = 0
     for player, drawings in pairs(State.ESPCache) do
         pcall(function()
             if player and player.Parent then
@@ -2600,6 +2604,7 @@ local function RenderLoop()
                 elseif Config.ESP.Enabled or Config.InventoryESP.Enabled then
                     local updateOk, updateErr = pcall(ESP.Update, player, drawings)
                     if not updateOk then
+                        _espErrCount = _espErrCount + 1
                         pcall(ESP.HideAll, drawings)
                     end
                 else
@@ -2615,6 +2620,10 @@ local function RenderLoop()
                 end
             end
         end)
+    end
+    -- v3.4: Debug - show error count on screen (remove later)
+    if _espErrCount > 0 then
+        State._espDebugErrors = (State._espDebugErrors or 0) + _espErrCount
     end
 
     -- Aimbot FOV Circle
