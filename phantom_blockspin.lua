@@ -241,7 +241,7 @@ local Config = {
 
     -- ── MISC ──
     Misc = {
-        ShowWatermark  = true,
+        ShowWatermark  = false,
         GUIToggleKey   = Enum.KeyCode.G,
         -- v3: New
         ShowKillFeed   = true,
@@ -909,6 +909,7 @@ function ESP.Update(player, d)
     local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
+    -- v3.4: Use CFrame for more accurate screen projection
     local sTop, onT = Util.W2S(rootPos + V3(0, 3.2, 0))
     local sBot, onB = Util.W2S(rootPos - V3(0, 3.2, 0))
     if not onT and not onB then ESP.HideAll(d) return end
@@ -928,119 +929,107 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
-    -- v3.2: Each section wrapped in pcall so one crash doesn't freeze everything
+    -- v3.4: DIRECT drawing (no pcall) for core ESP — fast and reliable
 
-    -- ── BOX ──
-    pcall(function()
-        if Config.ESP.Enabled then
-            if Config.ESP.BoxStyle == "Corner" then
-                d.Box.Visible = false; d.BoxOutline.Visible = false
-                ESP.DrawCornerBox(d, boxX, boxY, boxW, boxH, col)
-            else
-                ESP.HideCornerBox(d)
-                if Config.ESP.BoxOutline and d.BoxOutline then
-                    d.BoxOutline.Position = V2(boxX, boxY)
-                    d.BoxOutline.Size = V2(boxW, boxH)
-                    d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2
-                    d.BoxOutline.Visible = true
-                elseif d.BoxOutline then
-                    d.BoxOutline.Visible = false
-                end
-                d.Box.Position = V2(boxX, boxY)
-                d.Box.Size = V2(boxW, boxH)
-                d.Box.Color = col
-                d.Box.Thickness = Config.ESP.BoxThickness
-                d.Box.Visible = true
-            end
-        else
+    -- BOX
+    if Config.ESP.Enabled then
+        if Config.ESP.BoxStyle == "Corner" then
             d.Box.Visible = false; d.BoxOutline.Visible = false
+            ESP.DrawCornerBox(d, boxX, boxY, boxW, boxH, col)
+        else
             ESP.HideCornerBox(d)
-        end
-    end)
-
-    -- ── NAME ──
-    pcall(function()
-        if Config.ESP.Enabled and Config.ESP.Names and d.Name then
-            d.Name.Text = player.DisplayName
-            d.Name.Color = Config.ESP.NameColor
-            d.Name.Size = Config.ESP.NameSize
-            local tb = d.Name.TextBounds
-            d.Name.Position = V2(sTop.X - tb.X/2, sTop.Y - tb.Y - 3)
-            d.Name.Visible = true
-        elseif d.Name then d.Name.Visible = false end
-    end)
-
-    -- ── DISTANCE ──
-    pcall(function()
-        if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
-            d.Dist.Text = mFloor(dist) .. "m"
-            d.Dist.Color = Config.ESP.DistanceColor
-            local tb = d.Dist.TextBounds
-            d.Dist.Position = V2(sBot.X - tb.X/2, sBot.Y + 3)
-            d.Dist.Visible = true
-        elseif d.Dist then d.Dist.Visible = false end
-    end)
-
-    -- ── HEALTH BAR ──
-    pcall(function()
-        if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
-            local pct = mClamp(hum.Health / hum.MaxHealth, 0, 1)
-            local barX
-            if Config.ESP.HealthBarPos == "Right" then
-                barX = boxX + boxW + Config.ESP.HealthBarWidth + 2
-            else
-                barX = boxX - Config.ESP.HealthBarWidth - 4
+            if Config.ESP.BoxOutline and d.BoxOutline then
+                d.BoxOutline.Position = V2(boxX, boxY)
+                d.BoxOutline.Size = V2(boxW, boxH)
+                d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2
+                d.BoxOutline.Visible = true
+            elseif d.BoxOutline then
+                d.BoxOutline.Visible = false
             end
-            d.HealthBG.From = V2(barX, boxY); d.HealthBG.To = V2(barX, boxY + boxH)
-            d.HealthBG.Color = C3(25,25,25); d.HealthBG.Visible = true
-            local hH = boxH * pct
-            d.Health.From = V2(barX, boxY + boxH - hH); d.Health.To = V2(barX, boxY + boxH)
-            d.Health.Color = C3(mFloor((1-pct)*255), mFloor(pct*255), 50)
-            d.Health.Visible = true
-
-            if Config.ESP.HealthText and d.HealthText then
-                d.HealthText.Text = mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
-                d.HealthText.Color = d.Health.Color
-                d.HealthText.Position = V2(barX - 30, boxY - 14)
-                d.HealthText.Visible = true
-            elseif d.HealthText then
-                d.HealthText.Visible = false
-            end
-        elseif d.HealthBG then
-            d.HealthBG.Visible = false; d.Health.Visible = false
-            if d.HealthText then d.HealthText.Visible = false end
+            d.Box.Position = V2(boxX, boxY)
+            d.Box.Size = V2(boxW, boxH)
+            d.Box.Color = col
+            d.Box.Thickness = Config.ESP.BoxThickness
+            d.Box.Visible = true
         end
-    end)
+    else
+        d.Box.Visible = false; d.BoxOutline.Visible = false
+        ESP.HideCornerBox(d)
+    end
 
-    -- ── TRACERS ──
-    pcall(function()
-        if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
-            local vp = Camera.ViewportSize
-            local origin
-            if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vp.X/2, vp.Y)
-            elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vp.X/2, 0)
-            elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
-            else origin = V2(vp.X/2, vp.Y/2) end
-            d.Tracer.From = origin; d.Tracer.To = sBot
-            d.Tracer.Color = col; d.Tracer.Thickness = Config.ESP.TracerThickness
-            d.Tracer.Visible = true
-        elseif d.Tracer then d.Tracer.Visible = false end
-    end)
+    -- NAME (direct, no pcall)
+    if Config.ESP.Enabled and Config.ESP.Names and d.Name then
+        d.Name.Text = player.DisplayName
+        d.Name.Color = Config.ESP.NameColor
+        d.Name.Size = Config.ESP.NameSize
+        local tb = d.Name.TextBounds
+        d.Name.Position = V2(sTop.X - tb.X/2, sTop.Y - tb.Y - 3)
+        d.Name.Visible = true
+    elseif d.Name then d.Name.Visible = false end
 
-    -- ── HEAD DOT ──
-    pcall(function()
-        if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
-            local headScreen, headOn = Util.W2S(head.Position)
-            if headOn then
-                d.HeadDot.Position = headScreen
-                d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
-                d.HeadDot.Color = col
-                d.HeadDot.Visible = true
-            else d.HeadDot.Visible = false end
-        elseif d.HeadDot then d.HeadDot.Visible = false end
-    end)
+    -- DISTANCE (direct, no pcall)
+    if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
+        d.Dist.Text = mFloor(dist) .. "m"
+        d.Dist.Color = Config.ESP.DistanceColor
+        local tb = d.Dist.TextBounds
+        d.Dist.Position = V2(sBot.X - tb.X/2, sBot.Y + 3)
+        d.Dist.Visible = true
+    elseif d.Dist then d.Dist.Visible = false end
 
-    -- ── SKELETON ESP (v3) ──
+    -- HEALTH BAR (direct, no pcall)
+    if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
+        local pct = mClamp(hum.Health / hum.MaxHealth, 0, 1)
+        local barX
+        if Config.ESP.HealthBarPos == "Right" then
+            barX = boxX + boxW + Config.ESP.HealthBarWidth + 2
+        else
+            barX = boxX - Config.ESP.HealthBarWidth - 4
+        end
+        d.HealthBG.From = V2(barX, boxY); d.HealthBG.To = V2(barX, boxY + boxH)
+        d.HealthBG.Color = C3(25,25,25); d.HealthBG.Visible = true
+        local hH = boxH * pct
+        d.Health.From = V2(barX, boxY + boxH - hH); d.Health.To = V2(barX, boxY + boxH)
+        d.Health.Color = C3(mFloor((1-pct)*255), mFloor(pct*255), 50)
+        d.Health.Visible = true
+
+        if Config.ESP.HealthText and d.HealthText then
+            d.HealthText.Text = mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
+            d.HealthText.Color = d.Health.Color
+            d.HealthText.Position = V2(barX - 30, boxY - 14)
+            d.HealthText.Visible = true
+        elseif d.HealthText then
+            d.HealthText.Visible = false
+        end
+    elseif d.HealthBG then
+        d.HealthBG.Visible = false; d.Health.Visible = false
+        if d.HealthText then d.HealthText.Visible = false end
+    end
+
+    -- TRACERS (direct, no pcall)
+    if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
+        local vp = Camera.ViewportSize
+        local origin
+        if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vp.X/2, vp.Y)
+        elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vp.X/2, 0)
+        elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
+        else origin = V2(vp.X/2, vp.Y/2) end
+        d.Tracer.From = origin; d.Tracer.To = sBot
+        d.Tracer.Color = col; d.Tracer.Thickness = Config.ESP.TracerThickness
+        d.Tracer.Visible = true
+    elseif d.Tracer then d.Tracer.Visible = false end
+
+    -- HEAD DOT (direct, no pcall)
+    if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
+        local headScreen, headOn = Util.W2S(head.Position)
+        if headOn then
+            d.HeadDot.Position = headScreen
+            d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
+            d.HeadDot.Color = col
+            d.HeadDot.Visible = true
+        else d.HeadDot.Visible = false end
+    elseif d.HeadDot then d.HeadDot.Visible = false end
+
+    -- SKELETON (pcall — may error if bones missing mid-frame)
     pcall(function()
         if Config.ESP.Enabled and Config.ESP.Skeleton then
             ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
@@ -1049,12 +1038,12 @@ function ESP.Update(player, d)
         end
     end)
 
-    -- ── CHAMS (v3) ──
+    -- CHAMS (pcall — Instance operations can error)
     pcall(function()
         ESP.UpdateChams(player)
     end)
 
-    -- ── INVENTORY ESP (v3.2: FIXED - no more numeric IDs) ──
+    -- INVENTORY ESP (pcall — tool access can error)
     pcall(function()
         if Config.InventoryESP.Enabled and d.Inventory then
             local items = {}
@@ -1633,56 +1622,9 @@ local function trackKills()
     end
 end
 
--- ═══════════════════════════════════════════════════
--- HUD WATERMARK (v3: upgraded with stats)
--- ═══════════════════════════════════════════════════
+-- v3.4: Watermark REMOVED — clean screen
 local _wm = {}
-pcall(function()
-    _wm.title = Drawing.new("Text")
-    _wm.title.Text = "PHANTOM v3.3"; _wm.title.Size = 18; _wm.title.Font = FONT
-    _wm.title.Color = C3(180,80,255); _wm.title.OutlineColor = C3(0,0,0)
-    _wm.title.Outline = true; _wm.title.Position = V2(12, 8); _wm.title.Visible = true
-
-    _wm.line = Drawing.new("Line")
-    _wm.line.From = V2(12, 28); _wm.line.To = V2(180, 28)
-    _wm.line.Color = C3(180,80,255); _wm.line.Thickness = 1; _wm.line.Visible = true
-
-    _wm.fps = Drawing.new("Text")
-    _wm.fps.Size = 12; _wm.fps.Font = FONT; _wm.fps.Color = C3(150,150,150)
-    _wm.fps.Outline = true; _wm.fps.OutlineColor = C3(0,0,0)
-    _wm.fps.Position = V2(12, 30); _wm.fps.Visible = true
-
-    -- v3: Stats line
-    _wm.stats = Drawing.new("Text")
-    _wm.stats.Size = 11; _wm.stats.Font = FONT; _wm.stats.Color = C3(180, 180, 180)
-    _wm.stats.Outline = true; _wm.stats.OutlineColor = C3(0,0,0)
-    _wm.stats.Position = V2(12, 44); _wm.stats.Visible = true
-end)
-
-local _fpsFrames = {}
-local function updateWatermark()
-    if not Config.Misc.ShowWatermark then
-        pcall(function()
-            _wm.title.Visible = false; _wm.line.Visible = false
-            _wm.fps.Visible = false; _wm.stats.Visible = false
-        end)
-        return
-    end
-    local now = Tick()
-    tInsert(_fpsFrames, now)
-    while #_fpsFrames > 0 and _fpsFrames[1] < now - 1 do tRemove(_fpsFrames, 1) end
-    pcall(function()
-        _wm.fps.Text = #_fpsFrames .. " FPS | " .. #Players:GetPlayers() - 1 .. " players"
-        _wm.title.Visible = true; _wm.line.Visible = true; _wm.fps.Visible = true
-
-        -- v3: Session stats
-        local elapsed = mFloor(now - State.SessionStart)
-        local mins = mFloor(elapsed / 60)
-        local secs = elapsed % 60
-        _wm.stats.Text = "K:" .. State.KillCount .. " | H:" .. State.HitCount .. " | " .. mins .. "m" .. secs .. "s"
-        _wm.stats.Visible = true
-    end)
-end
+local function updateWatermark() end -- no-op
 
 -- ═══════════════════════════════════════════════════
 -- LOAD RAYFIELD GUI
@@ -2800,6 +2742,9 @@ end
 -- CLEANUP
 -- ═══════════════════════════════════════════════════
 local function Unload()
+    -- v3.4: Unbind render step
+    pcall(function() RunService:UnbindFromRenderStep("PhantomRender") end)
+
     for _, c in pairs(State.Connections) do
         pcall(function() if c and c.Connected then c:Disconnect() end end)
     end
@@ -2857,7 +2802,9 @@ local function Init()
     State.Connections.InputBegan = UserInputService.InputBegan:Connect(OnInputBegan)
     State.Connections.InputEnded = UserInputService.InputEnded:Connect(OnInputEnded)
 
-    State.Connections.Render = RunService.RenderStepped:Connect(function()
+    -- v3.4: Use BindToRenderStep with Camera+1 priority
+    -- This ensures ESP updates AFTER the camera has moved, preventing detachment
+    RunService:BindToRenderStep("PhantomRender", Enum.RenderPriority.Camera.Value + 1, function()
         if State.Running then
             pcall(RenderLoop)
         else
