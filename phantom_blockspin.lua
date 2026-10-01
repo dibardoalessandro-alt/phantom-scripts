@@ -1,12 +1,11 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.0 · BlockSpin Stealth Suite                    ║
+    ║     PHANTOM v3.3 · BlockSpin Stealth Suite                    ║
     ║     Full GUI Edition · Built for Xeno                         ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  Tutte le opzioni sono nel GUI                                ║
-    ║  v3.0: Inventory ESP fix, keybinds, silent aim, skeleton,     ║
-    ║        chams, speed/fly/noclip, kill counter, anti-cheat++    ║
+    ║  v3.3: Instant fire, auto spray, FOV triggerbot, ESP fix,     ║
+    ║        smart tool names, pcall-safe ESP, accessory detection   ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -195,14 +194,14 @@ local Config = {
     -- ── TRIGGERBOT ──
     Triggerbot = {
         Enabled        = false,
-        ActivationMode = "Hold",       -- "Hold" / "Always"
+        ActivationMode = "Always",      -- "Hold" / "Always"
         KeybindName    = "LeftAlt",
         ActivationKey  = Enum.KeyCode.LeftAlt,
         ActivationKeyType = "Key",
-        MinDelay       = 0.06,
-        MaxDelay       = 0.18,
+        MinDelay       = 0,            -- v3.3: default 0 = instant
+        MaxDelay       = 0,            -- v3.3: default 0 = instant
         MaxDistance     = 300,
-        HitChance      = 95,
+        HitChance      = 100,          -- v3.3: default 100%
         HeadshotOnly   = false,
         BurstMode      = false,
         BurstCount     = 3,
@@ -210,11 +209,21 @@ local Config = {
         TeamCheck      = false,
         TargetParts    = {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
                          "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"},
-        -- v3: New features
+        -- v3.3: NEW FEATURES
+        InstantFire    = true,          -- 0 delay, fires IMMEDIATELY on detection
+        AutoSpray      = true,          -- hold fire continuously (for automatic weapons)
+        SprayRate      = 0.01,          -- delay between spray shots (basically 0)
+        UseFOV         = false,         -- use FOV circle instead of direct crosshair
+        FOV            = 80,            -- triggerbot FOV radius in pixels
+        ShowFOV        = false,         -- show triggerbot FOV circle
+        FOVColor       = C3(255, 150, 50),
+        FOVThickness   = 1,
+        FOVTransparency = 0.5,
+        -- Kept from v3
         RapidFire      = false,
         RapidFireRate  = 0.02,
-        HumanizedPattern = true,    -- vary delay like a real human
-        SmartTiming    = false,     -- only fire when crosshair stable for N frames
+        HumanizedPattern = false,       -- v3.3: default off for instant
+        SmartTiming    = false,
         StableFrames   = 3,
     },
 
@@ -387,25 +396,106 @@ function Util.MousePos()
     return UserInputService:GetMouseLocation()
 end
 
--- v3: Clean tool name (remove weird prefixes, IDs, etc.)
-function Util.CleanToolName(name)
-    if not name then return "???" end
-    -- Remove common prefixes like "Tool_", "Weapon_", numbers-only prefixes
-    local clean = name
-    clean = clean:gsub("^Tool_", "")
-    clean = clean:gsub("^Weapon_", "")
-    clean = clean:gsub("^Item_", "")
-    clean = clean:gsub("^%d+_", "")
-    -- Remove trailing IDs like "_12345"
-    clean = clean:gsub("_%d+$", "")
-    -- Replace underscores with spaces
-    clean = clean:gsub("_", " ")
-    -- Capitalize first letter of each word
-    clean = clean:gsub("(%a)([%w]*)", function(first, rest)
+-- v3.2: REWRITTEN - Smart tool name resolution for BlockSpin and similar games
+-- Searches multiple sources to find the REAL item name instead of numeric IDs
+function Util.ResolveToolName(tool)
+    if not tool then return nil end
+    local found = nil
+
+    -- 1. Check attributes first (many games store display names here)
+    pcall(function()
+        local attrNames = {"DisplayName", "displayName", "ItemName", "itemName",
+                          "WeaponName", "weaponName", "GunName", "Name_Display",
+                          "RealName", "ShopName", "Label"}
+        for _, attr in ipairs(attrNames) do
+            local v = tool:GetAttribute(attr)
+            if v and type(v) == "string" and #v > 0 and not v:match("^%d+$") then
+                found = v
+                return
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 2. Check StringValue / ObjectValue children
+    pcall(function()
+        local valNames = {"itemname", "displayname", "name", "toolname",
+                         "weaponname", "gunname", "label", "title", "itemid"}
+        for _, child in ipairs(tool:GetChildren()) do
+            if child:IsA("StringValue") then
+                local n = child.Name:lower()
+                for _, vn in ipairs(valNames) do
+                    if n == vn or n:find(vn) then
+                        if #child.Value > 0 and not child.Value:match("^%d+$") then
+                            found = child.Value
+                            return
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 3. Check for TextLabel inside tool's GUI (some games put the name there)
+    pcall(function()
+        for _, desc in ipairs(tool:GetDescendants()) do
+            if desc:IsA("TextLabel") and desc.Text and #desc.Text > 0 then
+                if not desc.Text:match("^%d+$") and #desc.Text < 40 then
+                    found = desc.Text
+                    return
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 4. Check Configuration/Settings folder
+    pcall(function()
+        local cfgNames = {"Configuration", "Config", "Settings", "ItemConfig"}
+        for _, cfgName in ipairs(cfgNames) do
+            local cfg = tool:FindFirstChild(cfgName)
+            if cfg then
+                for _, child in ipairs(cfg:GetChildren()) do
+                    if child:IsA("StringValue") then
+                        local n = child.Name:lower()
+                        if n:find("name") or n:find("display") or n:find("label") then
+                            if #child.Value > 0 and not child.Value:match("^%d+$") then
+                                found = child.Value
+                                return
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 5. Try ToolTip (often has the real name in BlockSpin)
+    pcall(function()
+        if tool.ToolTip and #tool.ToolTip > 0 and not tool.ToolTip:match("^%d+$") then
+            found = tool.ToolTip
+        end
+    end)
+    if found then return found end
+
+    -- 6. Last resort: use Tool.Name but ONLY if it's not purely numeric
+    local raw = tool.Name
+    if raw:match("^%d+$") then
+        -- Pure number ID — useless, skip entirely
+        return nil
+    end
+
+    -- Clean up the name
+    raw = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
+    raw = raw:gsub("^%d+_", ""):gsub("_%d+$", "")
+    raw = raw:gsub("_", " ")
+    raw = raw:gsub("(%a)([%w]*)", function(first, rest)
         return first:upper() .. rest:lower()
     end)
-    if #clean == 0 then return name end
-    return clean
+    if #raw == 0 then return nil end
+    return raw
 end
 
 -- v3: Detect tool damage value
@@ -445,24 +535,28 @@ function Util.GetToolDamage(tool)
     return dmg
 end
 
--- v3: Get tool display info
+-- v3.2: REWRITTEN - Get tool display info with smart name resolution
 function Util.GetToolInfo(tool, isEquipped)
     local info = {}
-    local name = Config.InventoryESP.CleanNames and Util.CleanToolName(tool.Name) or tool.Name
 
-    local prefix = isEquipped and "⚔" or "📦"
-    info.display = prefix .. " " .. name
+    -- Use smart name resolution
+    local name = Util.ResolveToolName(tool)
 
-    -- Add tooltip if enabled
-    if Config.InventoryESP.ShowToolTip and tool.ToolTip and #tool.ToolTip > 0 then
-        info.display = info.display .. " (" .. tool.ToolTip .. ")"
+    -- If we couldn't find a real name, skip this tool entirely
+    if not name then
+        info.display = nil
+        info.isEquipped = isEquipped
+        return info
     end
+
+    local prefix = isEquipped and "[E]" or "[B]"
+    info.display = prefix .. " " .. name
 
     -- Add damage if detected
     if Config.InventoryESP.ShowDamage then
         local dmg = Util.GetToolDamage(tool)
         if dmg then
-            info.display = info.display .. " [" .. dmg .. " DMG]"
+            info.display = info.display .. " [" .. dmg .. "DMG]"
         end
     end
 
@@ -804,17 +898,19 @@ function ESP.Update(player, d)
     if Config.ESP.TeamCheck and Util.IsTeam(player) then ESP.HideAll(d) return end
 
     local char = player.Character
+    if not char or not char.Parent then ESP.HideAll(d) return end
     local root = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
     local head = char:FindFirstChild("Head")
     if not root or not hum then ESP.HideAll(d) return end
 
     local camPos = Camera.CFrame.Position
-    local dist = Util.D3(root.Position, camPos)
+    local rootPos = root.Position
+    local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    local sTop, onT = Util.W2S(root.Position + V3(0, 3.2, 0))
-    local sBot, onB = Util.W2S(root.Position - V3(0, 3.2, 0))
+    local sTop, onT = Util.W2S(rootPos + V3(0, 3.2, 0))
+    local sBot, onB = Util.W2S(rootPos - V3(0, 3.2, 0))
     if not onT and not onB then ESP.HideAll(d) return end
 
     local boxH = mAbs(sBot.Y - sTop.Y)
@@ -827,162 +923,184 @@ function ESP.Update(player, d)
     if Config.ESP.ShowTeamColor and player.Team then
         col = player.TeamColor.Color
     elseif Config.ESP.VisibilityCheck then
-        col = Util.Visible(camPos, root.Position, player) and Config.ESP.VisibleColor or Config.ESP.NotVisibleColor
+        col = Util.Visible(camPos, rootPos, player) and Config.ESP.VisibleColor or Config.ESP.NotVisibleColor
     else
         col = Config.ESP.DefaultColor
     end
 
+    -- v3.2: Each section wrapped in pcall so one crash doesn't freeze everything
+
     -- ── BOX ──
-    if Config.ESP.Enabled then
-        if Config.ESP.BoxStyle == "Corner" then
-            d.Box.Visible = false; d.BoxOutline.Visible = false
-            ESP.DrawCornerBox(d, boxX, boxY, boxW, boxH, col)
-        else
-            ESP.HideCornerBox(d)
-            if Config.ESP.BoxOutline and d.BoxOutline then
-                d.BoxOutline.Position = V2(boxX, boxY)
-                d.BoxOutline.Size = V2(boxW, boxH)
-                d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2
-                d.BoxOutline.Visible = true
-            elseif d.BoxOutline then
-                d.BoxOutline.Visible = false
+    pcall(function()
+        if Config.ESP.Enabled then
+            if Config.ESP.BoxStyle == "Corner" then
+                d.Box.Visible = false; d.BoxOutline.Visible = false
+                ESP.DrawCornerBox(d, boxX, boxY, boxW, boxH, col)
+            else
+                ESP.HideCornerBox(d)
+                if Config.ESP.BoxOutline and d.BoxOutline then
+                    d.BoxOutline.Position = V2(boxX, boxY)
+                    d.BoxOutline.Size = V2(boxW, boxH)
+                    d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2
+                    d.BoxOutline.Visible = true
+                elseif d.BoxOutline then
+                    d.BoxOutline.Visible = false
+                end
+                d.Box.Position = V2(boxX, boxY)
+                d.Box.Size = V2(boxW, boxH)
+                d.Box.Color = col
+                d.Box.Thickness = Config.ESP.BoxThickness
+                d.Box.Visible = true
             end
-            d.Box.Position = V2(boxX, boxY)
-            d.Box.Size = V2(boxW, boxH)
-            d.Box.Color = col
-            d.Box.Thickness = Config.ESP.BoxThickness
-            d.Box.Visible = true
+        else
+            d.Box.Visible = false; d.BoxOutline.Visible = false
+            ESP.HideCornerBox(d)
         end
-    else
-        d.Box.Visible = false; d.BoxOutline.Visible = false
-        ESP.HideCornerBox(d)
-    end
+    end)
 
     -- ── NAME ──
-    if Config.ESP.Enabled and Config.ESP.Names and d.Name then
-        d.Name.Text = player.DisplayName
-        d.Name.Color = Config.ESP.NameColor
-        d.Name.Size = Config.ESP.NameSize
-        local tb = d.Name.TextBounds
-        d.Name.Position = V2(sTop.X - tb.X/2, sTop.Y - tb.Y - 3)
-        d.Name.Visible = true
-    elseif d.Name then d.Name.Visible = false end
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.Names and d.Name then
+            d.Name.Text = player.DisplayName
+            d.Name.Color = Config.ESP.NameColor
+            d.Name.Size = Config.ESP.NameSize
+            local tb = d.Name.TextBounds
+            d.Name.Position = V2(sTop.X - tb.X/2, sTop.Y - tb.Y - 3)
+            d.Name.Visible = true
+        elseif d.Name then d.Name.Visible = false end
+    end)
 
     -- ── DISTANCE ──
-    if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
-        d.Dist.Text = mFloor(dist) .. "m"
-        d.Dist.Color = Config.ESP.DistanceColor
-        local tb = d.Dist.TextBounds
-        d.Dist.Position = V2(sBot.X - tb.X/2, sBot.Y + 3)
-        d.Dist.Visible = true
-    elseif d.Dist then d.Dist.Visible = false end
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
+            d.Dist.Text = mFloor(dist) .. "m"
+            d.Dist.Color = Config.ESP.DistanceColor
+            local tb = d.Dist.TextBounds
+            d.Dist.Position = V2(sBot.X - tb.X/2, sBot.Y + 3)
+            d.Dist.Visible = true
+        elseif d.Dist then d.Dist.Visible = false end
+    end)
 
     -- ── HEALTH BAR ──
-    if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
-        local pct = mClamp(hum.Health / hum.MaxHealth, 0, 1)
-        local barX
-        if Config.ESP.HealthBarPos == "Right" then
-            barX = boxX + boxW + Config.ESP.HealthBarWidth + 2
-        else
-            barX = boxX - Config.ESP.HealthBarWidth - 4
-        end
-        d.HealthBG.From = V2(barX, boxY); d.HealthBG.To = V2(barX, boxY + boxH)
-        d.HealthBG.Color = C3(25,25,25); d.HealthBG.Visible = true
-        local hH = boxH * pct
-        d.Health.From = V2(barX, boxY + boxH - hH); d.Health.To = V2(barX, boxY + boxH)
-        d.Health.Color = C3(mFloor((1-pct)*255), mFloor(pct*255), 50)
-        d.Health.Visible = true
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
+            local pct = mClamp(hum.Health / hum.MaxHealth, 0, 1)
+            local barX
+            if Config.ESP.HealthBarPos == "Right" then
+                barX = boxX + boxW + Config.ESP.HealthBarWidth + 2
+            else
+                barX = boxX - Config.ESP.HealthBarWidth - 4
+            end
+            d.HealthBG.From = V2(barX, boxY); d.HealthBG.To = V2(barX, boxY + boxH)
+            d.HealthBG.Color = C3(25,25,25); d.HealthBG.Visible = true
+            local hH = boxH * pct
+            d.Health.From = V2(barX, boxY + boxH - hH); d.Health.To = V2(barX, boxY + boxH)
+            d.Health.Color = C3(mFloor((1-pct)*255), mFloor(pct*255), 50)
+            d.Health.Visible = true
 
-        -- v3: Health text
-        if Config.ESP.HealthText and d.HealthText then
-            d.HealthText.Text = mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
-            d.HealthText.Color = d.Health.Color
-            d.HealthText.Position = V2(barX - 30, boxY - 14)
-            d.HealthText.Visible = true
-        elseif d.HealthText then
-            d.HealthText.Visible = false
+            if Config.ESP.HealthText and d.HealthText then
+                d.HealthText.Text = mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth)
+                d.HealthText.Color = d.Health.Color
+                d.HealthText.Position = V2(barX - 30, boxY - 14)
+                d.HealthText.Visible = true
+            elseif d.HealthText then
+                d.HealthText.Visible = false
+            end
+        elseif d.HealthBG then
+            d.HealthBG.Visible = false; d.Health.Visible = false
+            if d.HealthText then d.HealthText.Visible = false end
         end
-    elseif d.HealthBG then
-        d.HealthBG.Visible = false; d.Health.Visible = false
-        if d.HealthText then d.HealthText.Visible = false end
-    end
+    end)
 
     -- ── TRACERS ──
-    if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
-        local vp = Camera.ViewportSize
-        local origin
-        if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vp.X/2, vp.Y)
-        elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vp.X/2, 0)
-        elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
-        else origin = V2(vp.X/2, vp.Y/2) end
-        d.Tracer.From = origin; d.Tracer.To = sBot
-        d.Tracer.Color = col; d.Tracer.Thickness = Config.ESP.TracerThickness
-        d.Tracer.Visible = true
-    elseif d.Tracer then d.Tracer.Visible = false end
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
+            local vp = Camera.ViewportSize
+            local origin
+            if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vp.X/2, vp.Y)
+            elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vp.X/2, 0)
+            elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
+            else origin = V2(vp.X/2, vp.Y/2) end
+            d.Tracer.From = origin; d.Tracer.To = sBot
+            d.Tracer.Color = col; d.Tracer.Thickness = Config.ESP.TracerThickness
+            d.Tracer.Visible = true
+        elseif d.Tracer then d.Tracer.Visible = false end
+    end)
 
     -- ── HEAD DOT ──
-    if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
-        local headScreen, headOn = Util.W2S(head.Position)
-        if headOn then
-            d.HeadDot.Position = headScreen
-            d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
-            d.HeadDot.Color = col
-            d.HeadDot.Visible = true
-        else d.HeadDot.Visible = false end
-    elseif d.HeadDot then d.HeadDot.Visible = false end
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
+            local headScreen, headOn = Util.W2S(head.Position)
+            if headOn then
+                d.HeadDot.Position = headScreen
+                d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
+                d.HeadDot.Color = col
+                d.HeadDot.Visible = true
+            else d.HeadDot.Visible = false end
+        elseif d.HeadDot then d.HeadDot.Visible = false end
+    end)
 
     -- ── SKELETON ESP (v3) ──
-    if Config.ESP.Enabled and Config.ESP.Skeleton then
-        ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
-    else
-        ESP.HideSkeleton(d)
-    end
+    pcall(function()
+        if Config.ESP.Enabled and Config.ESP.Skeleton then
+            ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
+        else
+            ESP.HideSkeleton(d)
+        end
+    end)
 
     -- ── CHAMS (v3) ──
-    ESP.UpdateChams(player)
+    pcall(function()
+        ESP.UpdateChams(player)
+    end)
 
-    -- ── INVENTORY ESP (v3: IMPROVED) ──
-    if Config.InventoryESP.Enabled and d.Inventory then
-        local items = {}
-        local itemCount = 0
+    -- ── INVENTORY ESP (v3.2: FIXED - no more numeric IDs) ──
+    pcall(function()
+        if Config.InventoryESP.Enabled and d.Inventory then
+            local items = {}
+            local itemCount = 0
 
-        if Config.InventoryESP.ShowEquipped then
-            for _, c in ipairs(char:GetChildren()) do
-                if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                    local info = Util.GetToolInfo(c, true)
-                    tInsert(items, info.display)
-                    itemCount = itemCount + 1
-                end
-            end
-        end
-        if Config.InventoryESP.ShowBackpack then
-            local bp = player:FindFirstChild("Backpack")
-            if bp then
-                for _, c in ipairs(bp:GetChildren()) do
+            if Config.InventoryESP.ShowEquipped then
+                for _, c in ipairs(char:GetChildren()) do
                     if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                        local info = Util.GetToolInfo(c, false)
-                        tInsert(items, info.display)
-                        itemCount = itemCount + 1
+                        local info = Util.GetToolInfo(c, true)
+                        if info.display then  -- v3.2: skip items with no resolvable name
+                            tInsert(items, info.display)
+                            itemCount = itemCount + 1
+                        end
                     end
                 end
             end
-        end
-        if #items > 0 then
-            d.Inventory.Text = tConcat(items, " | ")
-            -- v3: equipped items get different color
-            local hasEquipped = false
-            for _, c in ipairs(char:GetChildren()) do
-                if c:IsA("Tool") then hasEquipped = true; break end
+            if Config.InventoryESP.ShowBackpack then
+                local bp = player:FindFirstChild("Backpack")
+                if bp then
+                    for _, c in ipairs(bp:GetChildren()) do
+                        if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                            local info = Util.GetToolInfo(c, false)
+                            if info.display then  -- v3.2: skip items with no resolvable name
+                                tInsert(items, info.display)
+                                itemCount = itemCount + 1
+                            end
+                        end
+                    end
+                end
             end
-            d.Inventory.Color = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
-            d.Inventory.Size = Config.InventoryESP.TextSize
-            local yOff = sBot.Y + 18
-            if Config.ESP.Distance then yOff = yOff + 16 end
-            local tb = d.Inventory.TextBounds
-            d.Inventory.Position = V2(sBot.X - tb.X/2, yOff)
-            d.Inventory.Visible = true
-        else d.Inventory.Visible = false end
-    elseif d.Inventory then d.Inventory.Visible = false end
+            if #items > 0 then
+                d.Inventory.Text = tConcat(items, " | ")
+                local hasEquipped = false
+                for _, c in ipairs(char:GetChildren()) do
+                    if c:IsA("Tool") then hasEquipped = true; break end
+                end
+                d.Inventory.Color = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
+                d.Inventory.Size = Config.InventoryESP.TextSize
+                local yOff = sBot.Y + 18
+                if Config.ESP.Distance then yOff = yOff + 16 end
+                local tb = d.Inventory.TextBounds
+                d.Inventory.Position = V2(sBot.X - tb.X/2, yOff)
+                d.Inventory.Visible = true
+            else d.Inventory.Visible = false end
+        elseif d.Inventory then d.Inventory.Visible = false end
+    end)
 end
 
 -- ═══════════════════════════════════════════════════
@@ -1142,11 +1260,19 @@ pcall(function()
 end)
 
 -- ═══════════════════════════════════════════════════
--- TRIGGERBOT ENGINE
+-- TRIGGERBOT ENGINE (v3.3: REWRITTEN - FOV + Instant + AutoSpray)
 -- ═══════════════════════════════════════════════════
 local Triggerbot = {}
 local _lastTrig = 0
-local _burstCount = 0
+local _sprayActive = false
+
+-- v3.3: Triggerbot FOV circle
+local TrigFOVCircle
+pcall(function()
+    TrigFOVCircle = Drawing.new("Circle")
+    TrigFOVCircle.Filled = false; TrigFOVCircle.NumSides = 48
+    TrigFOVCircle.Thickness = 1; TrigFOVCircle.Visible = false
+end)
 
 function Triggerbot.IsActive()
     if not Config.Triggerbot.Enabled then return false end
@@ -1154,20 +1280,141 @@ function Triggerbot.IsActive()
     return State.TriggerbotHeld
 end
 
+-- v3.3: Check if any enemy body part is within the triggerbot FOV circle
+function Triggerbot.FindFOVTarget()
+    local center = Util.Center()
+    local fovRadius = Config.Triggerbot.FOV
+    local best = nil
+    local bestDist = mHuge
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and Util.Alive(p) then
+            if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                local char = p.Character
+                if char then
+                    -- Check all target parts
+                    for _, partName in ipairs(Config.Triggerbot.TargetParts) do
+                        local part = char:FindFirstChild(partName)
+                        if part then
+                            local sp, on = Util.W2S(part.Position)
+                            if on then
+                                local d2 = Util.D2(sp, center)
+                                if d2 <= fovRadius then
+                                    local d3 = Util.D3(part.Position, Camera.CFrame.Position)
+                                    if d3 <= Config.Triggerbot.MaxDistance and d3 < bestDist then
+                                        -- Headshot only filter
+                                        if Config.Triggerbot.HeadshotOnly then
+                                            if partName == "Head" then
+                                                best = p; bestDist = d3
+                                            end
+                                        else
+                                            best = p; bestDist = d3
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return best
+end
+
 function Triggerbot.Process()
-    if not Triggerbot.IsActive() then return end
+    if not Triggerbot.IsActive() then
+        _sprayActive = false
+        return
+    end
     if not HAS_MOUSE1CLICK then return end
 
     local now = Tick()
+    local hasTarget = false
 
-    -- v3: Rapid fire mode
-    if Config.Triggerbot.RapidFire then
+    -- v3.3: TWO MODES - FOV based or Crosshair based
+    if Config.Triggerbot.UseFOV then
+        -- FOV MODE: fire if any enemy body part is within the FOV circle
+        local target = Triggerbot.FindFOVTarget()
+        hasTarget = (target ~= nil)
+    else
+        -- CROSSHAIR MODE: traditional raycast from screen center
+        local center = Util.Center()
+        local ray = Camera:ViewportPointToRay(center.X, center.Y)
+        local params = RParams()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        local fl = {Camera}
+        if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
+        params.FilterDescendantsInstances = fl
+
+        local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
+        if r and r.Instance then
+            -- Walk up tree to find character (handles accessories)
+            local hitInstance = r.Instance
+            local current = hitInstance
+            while current and current ~= Workspace do
+                if current:IsA("Model") then
+                    local p = Players:GetPlayerFromCharacter(current)
+                    if p and p ~= LocalPlayer then
+                        if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                            -- Resolve body part for accessories
+                            local hitPartName = hitInstance.Name
+                            local accessory = hitInstance:FindFirstAncestorOfClass("Accessory")
+                            if accessory then
+                                local resolvedPart = nil
+                                pcall(function()
+                                    for _, desc in ipairs(accessory:GetDescendants()) do
+                                        if desc:IsA("Weld") or desc:IsA("WeldConstraint") or desc:IsA("Motor6D") then
+                                            if desc.Part0 and desc.Part0.Parent == current then
+                                                resolvedPart = desc.Part0.Name
+                                            elseif desc.Part1 and desc.Part1.Parent == current then
+                                                resolvedPart = desc.Part1.Name
+                                            end
+                                            if resolvedPart then break end
+                                        end
+                                    end
+                                end)
+                                hitPartName = resolvedPart or "Head"
+                                hasTarget = true -- accessory hit = always valid
+                            else
+                                -- Check if hit part is in target parts list
+                                if Config.Triggerbot.HeadshotOnly then
+                                    hasTarget = (hitPartName == "Head")
+                                else
+                                    for _, pn in ipairs(Config.Triggerbot.TargetParts) do
+                                        if hitPartName == pn then hasTarget = true; break end
+                                    end
+                                end
+                            end
+                        end
+                        break
+                    end
+                end
+                current = current.Parent
+            end
+        end
+    end
+
+    -- No target found? Stop spray and return
+    if not hasTarget then
+        _sprayActive = false
+        State.StableCount = 0
+        State.LastCrosshairTarget = nil
+        return
+    end
+
+    -- v3.3: INSTANT FIRE MODE - 0 delay, fire immediately
+    if Config.Triggerbot.InstantFire then
+        -- No delay check, just fire
+    elseif Config.Triggerbot.AutoSpray then
+        -- SPRAY MODE: continuous fire with minimal delay
+        if now - _lastTrig < Config.Triggerbot.SprayRate then return end
+    elseif Config.Triggerbot.RapidFire then
         if now - _lastTrig < Config.Triggerbot.RapidFireRate then return end
     else
-        -- v3: Humanized delay pattern
+        -- Normal delay
         local delay
         if Config.Triggerbot.HumanizedPattern then
-            -- Simulate human reaction variance (gaussian-ish distribution)
             local base = (Config.Triggerbot.MinDelay + Config.Triggerbot.MaxDelay) / 2
             local variance = (Config.Triggerbot.MaxDelay - Config.Triggerbot.MinDelay) / 2
             local r1, r2 = math.random(), math.random()
@@ -1179,116 +1426,10 @@ function Triggerbot.Process()
         if now - _lastTrig < delay then return end
     end
 
+    -- Hit chance check
     if mRandom(1, 100) > Config.Triggerbot.HitChance then _lastTrig = now return end
 
-    local center = Util.Center()
-    local ray = Camera:ViewportPointToRay(center.X, center.Y)
-    local params = RParams()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    local fl = {Camera}
-    if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
-    params.FilterDescendantsInstances = fl
-
-    local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
-    if not r or not r.Instance then
-        State.StableCount = 0
-        State.LastCrosshairTarget = nil
-        return
-    end
-
-    -- v3.1: FIXED - Walk up the instance tree to find the actual character
-    -- This handles cases where raycast hits Accessories (hats/hair) instead of body parts
-    local hitInstance = r.Instance
-    local hitChar = nil
-    local hitP = nil
-    local current = hitInstance
-    while current and current ~= Workspace do
-        if current:IsA("Model") then
-            local p = Players:GetPlayerFromCharacter(current)
-            if p then
-                hitChar = current
-                hitP = p
-                break
-            end
-        end
-        current = current.Parent
-    end
-
-    if not hitChar or not hitP then
-        State.StableCount = 0
-        State.LastCrosshairTarget = nil
-        return
-    end
-    if hitP == LocalPlayer then return end
-    if Config.Triggerbot.TeamCheck and Util.IsTeam(hitP) then return end
-
-    -- v3.1: FIXED - Resolve actual body part name
-    -- When we hit an Accessory (hat, hair, etc.), figure out what body part it's on
-    local hitPartName = hitInstance.Name
-    local isAccessoryHit = false
-
-    -- Check if we hit something inside an Accessory
-    local accessory = hitInstance:FindFirstAncestorOfClass("Accessory")
-    if accessory then
-        isAccessoryHit = true
-        -- Find what body part this accessory is attached to via AccessoryWeld or rigid weld
-        local resolvedPart = nil
-        pcall(function()
-            for _, desc in ipairs(accessory:GetDescendants()) do
-                if desc:IsA("Weld") or desc:IsA("WeldConstraint") or desc:IsA("Motor6D") then
-                    -- Check Part0 and Part1 — one will be the Handle, the other the body part
-                    if desc.Part0 and desc.Part0.Parent == hitChar then
-                        resolvedPart = desc.Part0.Name
-                    elseif desc.Part1 and desc.Part1.Parent == hitChar then
-                        resolvedPart = desc.Part1.Name
-                    end
-                    if resolvedPart then break end
-                end
-            end
-        end)
-        -- If we found the body part it's welded to, use that
-        if resolvedPart then
-            hitPartName = resolvedPart
-        else
-            -- Fallback: most head accessories are near the head, so assume Head
-            -- Check if accessory type contains "Hat" or "Hair" or "Face"
-            local accType = ""
-            pcall(function() accType = accessory.AccessoryType.Name end)
-            if accType == "Hat" or accType == "Hair" or accType == "Face" or accType == "" then
-                hitPartName = "Head"
-            else
-                hitPartName = "UpperTorso" -- back accessories, etc.
-            end
-        end
-    end
-
-    -- Headshot only check (now works with accessories!)
-    if Config.Triggerbot.HeadshotOnly then
-        if hitPartName ~= "Head" then return end
-    else
-        -- For accessory hits, always count as valid (we already resolved the part)
-        if not isAccessoryHit then
-            local valid = false
-            for _, pn in ipairs(Config.Triggerbot.TargetParts) do
-                if hitPartName == pn then valid = true; break end
-            end
-            if not valid then return end
-        end
-        -- Accessory hits are always valid since they're attached to a valid body part
-    end
-
-    -- v3: Smart timing (crosshair must be stable for N frames)
-    if Config.Triggerbot.SmartTiming then
-        if State.LastCrosshairTarget == hitP then
-            State.StableCount = State.StableCount + 1
-        else
-            State.StableCount = 1
-            State.LastCrosshairTarget = hitP
-        end
-        if State.StableCount < Config.Triggerbot.StableFrames then return end
-    end
-
-    -- Burst mode
+    -- FIRE!
     if Config.Triggerbot.BurstMode then
         for i = 1, Config.Triggerbot.BurstCount do
             mouse1click()
@@ -1300,6 +1441,7 @@ function Triggerbot.Process()
         mouse1click()
     end
     _lastTrig = now
+    _sprayActive = true
     State.HitCount = State.HitCount + 1
 end
 
@@ -1497,7 +1639,7 @@ end
 local _wm = {}
 pcall(function()
     _wm.title = Drawing.new("Text")
-    _wm.title.Text = "PHANTOM v3.0"; _wm.title.Size = 18; _wm.title.Font = FONT
+    _wm.title.Text = "PHANTOM v3.3"; _wm.title.Size = 18; _wm.title.Font = FONT
     _wm.title.Color = C3(180,80,255); _wm.title.OutlineColor = C3(0,0,0)
     _wm.title.Outline = true; _wm.title.Position = V2(12, 8); _wm.title.Visible = true
 
@@ -1552,7 +1694,7 @@ local guiOk, guiErr = pcall(function()
     Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
     Window = Rayfield:CreateWindow({
-        Name = "PHANTOM v3.0",
+        Name = "PHANTOM v3.3",
         LoadingTitle = "PHANTOM",
         LoadingSubtitle = "BlockSpin Stealth Suite",
         Theme = "Amethyst",
@@ -2111,7 +2253,7 @@ local guiOk, guiErr = pcall(function()
     })
 
     -- ╔═══════════════════════════════════════╗
-    -- ║     TAB: TRIGGERBOT (v3: EXPANDED)      ║
+    -- ║     TAB: TRIGGERBOT (v3.3: REWRITTEN)     ║
     -- ╚═══════════════════════════════════════╝
     local TabTrig = Window:CreateTab("Triggerbot", 4483362458)
 
@@ -2125,14 +2267,13 @@ local guiOk, guiErr = pcall(function()
 
     TabTrig:CreateDropdown({
         Name = "Modalita Attivazione",
-        Options = {"Hold", "Always"},
+        Options = {"Always", "Hold"},
         CurrentOption = {Config.Triggerbot.ActivationMode},
         Callback = function(v) Config.Triggerbot.ActivationMode = v[1] or v end,
     })
 
-    -- v3: Keybind picker
     TabTrig:CreateDropdown({
-        Name = "🔑 Tasto Triggerbot",
+        Name = "Tasto Triggerbot",
         Options = KeybindOptions,
         CurrentOption = {Config.Triggerbot.KeybindName},
         Callback = function(v)
@@ -2147,55 +2288,56 @@ local guiOk, guiErr = pcall(function()
         end,
     })
 
-    TabTrig:CreateSection("Timing")
+    TabTrig:CreateSection("Fire Mode")
 
-    TabTrig:CreateSlider({
-        Name = "Delay Minimo",
-        Range = {0.01, 0.5},
-        Increment = 0.01,
-        Suffix = "s",
-        CurrentValue = Config.Triggerbot.MinDelay,
-        Callback = function(v) Config.Triggerbot.MinDelay = v end,
-    })
-
-    TabTrig:CreateSlider({
-        Name = "Delay Massimo",
-        Range = {0.05, 1.0},
-        Increment = 0.01,
-        Suffix = "s",
-        CurrentValue = Config.Triggerbot.MaxDelay,
-        Callback = function(v) Config.Triggerbot.MaxDelay = v end,
-    })
-
-    TabTrig:CreateSlider({
-        Name = "Hit Chance",
-        Range = {1, 100},
-        Increment = 1,
-        Suffix = "%",
-        CurrentValue = Config.Triggerbot.HitChance,
-        Callback = function(v) Config.Triggerbot.HitChance = v end,
-    })
-
-    -- v3: Humanized pattern
     TabTrig:CreateToggle({
-        Name = "🧠 Pattern Umano (delay gaussiano)",
-        CurrentValue = Config.Triggerbot.HumanizedPattern,
-        Callback = function(v) Config.Triggerbot.HumanizedPattern = v end,
+        Name = "INSTANT FIRE (0 delay, spara subito)",
+        CurrentValue = Config.Triggerbot.InstantFire,
+        Callback = function(v) Config.Triggerbot.InstantFire = v end,
     })
 
-    -- v3: Smart timing
     TabTrig:CreateToggle({
-        Name = "🎯 Smart Timing (crosshair stabile)",
-        CurrentValue = Config.Triggerbot.SmartTiming,
-        Callback = function(v) Config.Triggerbot.SmartTiming = v end,
+        Name = "AUTO SPRAY (raffica continua)",
+        CurrentValue = Config.Triggerbot.AutoSpray,
+        Callback = function(v) Config.Triggerbot.AutoSpray = v end,
     })
 
     TabTrig:CreateSlider({
-        Name = "Frame Stabilita",
-        Range = {1, 10},
-        Increment = 1,
-        CurrentValue = Config.Triggerbot.StableFrames,
-        Callback = function(v) Config.Triggerbot.StableFrames = v end,
+        Name = "Spray Rate (delay tra colpi)",
+        Range = {0, 0.1},
+        Increment = 0.005,
+        Suffix = "s",
+        CurrentValue = Config.Triggerbot.SprayRate,
+        Callback = function(v) Config.Triggerbot.SprayRate = v end,
+    })
+
+    TabTrig:CreateSection("FOV Triggerbot")
+
+    TabTrig:CreateToggle({
+        Name = "Usa FOV (spara se nemico nel cerchio)",
+        CurrentValue = Config.Triggerbot.UseFOV,
+        Callback = function(v) Config.Triggerbot.UseFOV = v end,
+    })
+
+    TabTrig:CreateSlider({
+        Name = "FOV Raggio",
+        Range = {20, 300},
+        Increment = 5,
+        Suffix = "px",
+        CurrentValue = Config.Triggerbot.FOV,
+        Callback = function(v) Config.Triggerbot.FOV = v end,
+    })
+
+    TabTrig:CreateToggle({
+        Name = "Mostra Cerchio FOV",
+        CurrentValue = Config.Triggerbot.ShowFOV,
+        Callback = function(v) Config.Triggerbot.ShowFOV = v end,
+    })
+
+    TabTrig:CreateColorPicker({
+        Name = "Colore FOV Triggerbot",
+        Color = Config.Triggerbot.FOVColor,
+        Callback = function(v) Config.Triggerbot.FOVColor = v end,
     })
 
     TabTrig:CreateSection("Targeting")
@@ -2207,6 +2349,15 @@ local guiOk, guiErr = pcall(function()
         Suffix = "m",
         CurrentValue = Config.Triggerbot.MaxDistance,
         Callback = function(v) Config.Triggerbot.MaxDistance = v end,
+    })
+
+    TabTrig:CreateSlider({
+        Name = "Hit Chance",
+        Range = {1, 100},
+        Increment = 1,
+        Suffix = "%",
+        CurrentValue = Config.Triggerbot.HitChance,
+        Callback = function(v) Config.Triggerbot.HitChance = v end,
     })
 
     TabTrig:CreateToggle({
@@ -2221,7 +2372,7 @@ local guiOk, guiErr = pcall(function()
         Callback = function(v) Config.Triggerbot.TeamCheck = v end,
     })
 
-    TabTrig:CreateSection("Burst & Rapid Fire")
+    TabTrig:CreateSection("Burst Mode")
 
     TabTrig:CreateToggle({
         Name = "Burst Mode",
@@ -2244,22 +2395,6 @@ local guiOk, guiErr = pcall(function()
         Suffix = "s",
         CurrentValue = Config.Triggerbot.BurstDelay,
         Callback = function(v) Config.Triggerbot.BurstDelay = v end,
-    })
-
-    -- v3: Rapid fire
-    TabTrig:CreateToggle({
-        Name = "⚡ Rapid Fire (ultra veloce)",
-        CurrentValue = Config.Triggerbot.RapidFire,
-        Callback = function(v) Config.Triggerbot.RapidFire = v end,
-    })
-
-    TabTrig:CreateSlider({
-        Name = "Rapid Fire Rate",
-        Range = {0.01, 0.1},
-        Increment = 0.005,
-        Suffix = "s",
-        CurrentValue = Config.Triggerbot.RapidFireRate,
-        Callback = function(v) Config.Triggerbot.RapidFireRate = v end,
     })
 
     -- ╔═══════════════════════════════════════╗
@@ -2543,7 +2678,7 @@ local function RenderLoop()
         end
     end
 
-    -- FOV Circle
+    -- Aimbot FOV Circle
     if FOVCircle then
         if Config.Aimbot.Enabled and Config.Aimbot.ShowFOV then
             FOVCircle.Position = Util.Center()
@@ -2555,6 +2690,20 @@ local function RenderLoop()
             FOVCircle.Visible = true
         else
             FOVCircle.Visible = false
+        end
+    end
+
+    -- v3.3: Triggerbot FOV Circle
+    if TrigFOVCircle then
+        if Config.Triggerbot.Enabled and Config.Triggerbot.UseFOV and Config.Triggerbot.ShowFOV then
+            TrigFOVCircle.Position = Util.Center()
+            TrigFOVCircle.Radius = Config.Triggerbot.FOV
+            TrigFOVCircle.Color = Config.Triggerbot.FOVColor
+            TrigFOVCircle.Thickness = Config.Triggerbot.FOVThickness
+            TrigFOVCircle.Transparency = Config.Triggerbot.FOVTransparency
+            TrigFOVCircle.Visible = true
+        else
+            TrigFOVCircle.Visible = false
         end
     end
 
@@ -2683,6 +2832,7 @@ local function Unload()
     PlayerMods.SetupFullbright()
 
     pcall(function() FOVCircle:Remove() end)
+    pcall(function() TrigFOVCircle:Remove() end)
     pcall(function() TargetDot:Remove() end)
     pcall(function() TargetInfo:Remove() end)
     pcall(function() SnapLine:Remove() end)
@@ -2718,9 +2868,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.0 Loaded!", C3(180, 80, 255), 4)
+    Notify.Send("PHANTOM v3.3 Loaded!", C3(180, 80, 255), 4)
     Notify.Send("Premi G per il menu", C3(200, 200, 200), 5)
-    Notify.Send("v3: Skeleton, Chams, Fly, Keybinds, Stats!", C3(50, 255, 100), 6)
+    Notify.Send("v3.3: Instant Fire, FOV Triggerbot, ESP Fix!", C3(50, 255, 100), 6)
 end
 
 local ok, err = pcall(Init)
