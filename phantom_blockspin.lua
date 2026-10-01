@@ -548,6 +548,9 @@ end
 -- ═══════════════════════════════════════════════════
 local ESP = {}
 
+-- v3.1: Track character connections per player to detect respawns/removals
+local _charConns = {}
+
 function ESP.Create()
     local d = {}
     pcall(function()
@@ -639,6 +642,29 @@ end
 function ESP.Register(p)
     if p == LocalPlayer or State.ESPCache[p] then return end
     State.ESPCache[p] = ESP.Create()
+
+    -- v3.1: Listen for character removal to immediately hide ghost drawings
+    local conns = {}
+    pcall(function()
+        conns.removing = p.CharacterRemoving:Connect(function()
+            -- Character is being removed → IMMEDIATELY hide all ESP drawings
+            if State.ESPCache[p] then
+                ESP.HideAll(State.ESPCache[p])
+            end
+            -- Also remove chams
+            if State.ChamsCache[p] then
+                pcall(function() State.ChamsCache[p]:Destroy() end)
+                State.ChamsCache[p] = nil
+            end
+        end)
+        conns.added = p.CharacterAdded:Connect(function()
+            -- New character → make sure old drawings are hidden first
+            if State.ESPCache[p] then
+                ESP.HideAll(State.ESPCache[p])
+            end
+        end)
+    end)
+    _charConns[p] = conns
 end
 
 function ESP.Unregister(p)
@@ -650,6 +676,13 @@ function ESP.Unregister(p)
     if State.ChamsCache[p] then
         pcall(function() State.ChamsCache[p]:Destroy() end)
         State.ChamsCache[p] = nil
+    end
+    -- v3.1: Disconnect character listeners
+    if _charConns[p] then
+        for _, conn in pairs(_charConns[p]) do
+            pcall(function() conn:Disconnect() end)
+        end
+        _charConns[p] = nil
     end
 end
 
@@ -1163,25 +1196,85 @@ function Triggerbot.Process()
         return
     end
 
-    local hitChar = r.Instance:FindFirstAncestorOfClass("Model")
-    if not hitChar then
+    -- v3.1: FIXED - Walk up the instance tree to find the actual character
+    -- This handles cases where raycast hits Accessories (hats/hair) instead of body parts
+    local hitInstance = r.Instance
+    local hitChar = nil
+    local hitP = nil
+    local current = hitInstance
+    while current and current ~= Workspace do
+        if current:IsA("Model") then
+            local p = Players:GetPlayerFromCharacter(current)
+            if p then
+                hitChar = current
+                hitP = p
+                break
+            end
+        end
+        current = current.Parent
+    end
+
+    if not hitChar or not hitP then
         State.StableCount = 0
         State.LastCrosshairTarget = nil
         return
     end
-    local hitP = Players:GetPlayerFromCharacter(hitChar)
-    if not hitP or hitP == LocalPlayer then return end
+    if hitP == LocalPlayer then return end
     if Config.Triggerbot.TeamCheck and Util.IsTeam(hitP) then return end
 
-    -- Headshot only check
-    if Config.Triggerbot.HeadshotOnly then
-        if r.Instance.Name ~= "Head" then return end
-    else
-        local valid = false
-        for _, pn in ipairs(Config.Triggerbot.TargetParts) do
-            if r.Instance.Name == pn then valid = true; break end
+    -- v3.1: FIXED - Resolve actual body part name
+    -- When we hit an Accessory (hat, hair, etc.), figure out what body part it's on
+    local hitPartName = hitInstance.Name
+    local isAccessoryHit = false
+
+    -- Check if we hit something inside an Accessory
+    local accessory = hitInstance:FindFirstAncestorOfClass("Accessory")
+    if accessory then
+        isAccessoryHit = true
+        -- Find what body part this accessory is attached to via AccessoryWeld or rigid weld
+        local resolvedPart = nil
+        pcall(function()
+            for _, desc in ipairs(accessory:GetDescendants()) do
+                if desc:IsA("Weld") or desc:IsA("WeldConstraint") or desc:IsA("Motor6D") then
+                    -- Check Part0 and Part1 — one will be the Handle, the other the body part
+                    if desc.Part0 and desc.Part0.Parent == hitChar then
+                        resolvedPart = desc.Part0.Name
+                    elseif desc.Part1 and desc.Part1.Parent == hitChar then
+                        resolvedPart = desc.Part1.Name
+                    end
+                    if resolvedPart then break end
+                end
+            end
+        end)
+        -- If we found the body part it's welded to, use that
+        if resolvedPart then
+            hitPartName = resolvedPart
+        else
+            -- Fallback: most head accessories are near the head, so assume Head
+            -- Check if accessory type contains "Hat" or "Hair" or "Face"
+            local accType = ""
+            pcall(function() accType = accessory.AccessoryType.Name end)
+            if accType == "Hat" or accType == "Hair" or accType == "Face" or accType == "" then
+                hitPartName = "Head"
+            else
+                hitPartName = "UpperTorso" -- back accessories, etc.
+            end
         end
-        if not valid then return end
+    end
+
+    -- Headshot only check (now works with accessories!)
+    if Config.Triggerbot.HeadshotOnly then
+        if hitPartName ~= "Head" then return end
+    else
+        -- For accessory hits, always count as valid (we already resolved the part)
+        if not isAccessoryHit then
+            local valid = false
+            for _, pn in ipairs(Config.Triggerbot.TargetParts) do
+                if hitPartName == pn then valid = true; break end
+            end
+            if not valid then return end
+        end
+        -- Accessory hits are always valid since they're attached to a valid body part
     end
 
     -- v3: Smart timing (crosshair must be stable for N frames)
@@ -2421,11 +2514,19 @@ local function RenderLoop()
     -- Camera refresh
     Camera = Workspace.CurrentCamera
 
-    -- ESP
+    -- ESP (v3.1: FIXED - force hide on failed updates to prevent ghost drawings)
     for player, drawings in pairs(State.ESPCache) do
         if player and player.Parent then
-            if Config.ESP.Enabled or Config.InventoryESP.Enabled then
-                pcall(ESP.Update, player, drawings)
+            -- v3.1: Extra safety — if character is nil or dead, force hide immediately
+            if not player.Character or not player.Character.Parent then
+                ESP.HideAll(drawings)
+            elseif Config.ESP.Enabled or Config.InventoryESP.Enabled then
+                local updateOk = pcall(ESP.Update, player, drawings)
+                -- v3.1: If pcall failed (error during update), FORCE HIDE everything
+                -- This prevents ghost drawings from staying on screen
+                if not updateOk then
+                    ESP.HideAll(drawings)
+                end
             else
                 ESP.HideAll(drawings)
                 -- Still handle chams independently
@@ -2554,6 +2655,14 @@ local function Unload()
         pcall(function() if c and c.Connected then c:Disconnect() end end)
     end
     tClear(State.Connections)
+
+    -- v3.1: Disconnect character listeners
+    for _, conns in pairs(_charConns) do
+        for _, conn in pairs(conns) do
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    tClear(_charConns)
 
     for _, d in pairs(State.ESPCache) do ESP.Destroy(d) end
     tClear(State.ESPCache)
