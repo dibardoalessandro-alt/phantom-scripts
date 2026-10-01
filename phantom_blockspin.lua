@@ -918,23 +918,26 @@ function ESP.Update(player, d)
     local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- v3.5 FIX: Standard proven Roblox ESP projection
-    -- Use WorldToViewportPoint's onScreen boolean on the ROOT as the
-    -- single gatekeeper. If root is not on screen → hide everything.
-    -- No manual viewport checks, no 8-corner projection — just the
-    -- method that every working Roblox ESP uses.
+    -- v3.5 FIX: Manual viewport bounds check
+    -- DO NOT rely on WorldToViewportPoint's onScreen boolean — it's
+    -- unreliable on some executors (Xeno). Instead, check the raw
+    -- projected X,Y coordinates against the viewport size ourselves.
     local rootVP = cam:WorldToViewportPoint(rootPos)
-    if rootVP.Z <= 0 then ESP.HideAll(d) return end  -- behind camera
 
-    local topVP  = cam:WorldToViewportPoint(rootPos + V3(0, 3, 0))
-    local botVP  = cam:WorldToViewportPoint(rootPos - V3(0, 3.5, 0))
+    -- Behind camera? Hide immediately
+    if rootVP.Z <= 0 then ESP.HideAll(d) return end
 
-    -- Use onScreen from the ROOT point — if player center is off viewport, hide
-    local _, rootOnScreen = cam:WorldToViewportPoint(rootPos)
-    if not rootOnScreen then ESP.HideAll(d) return end
+    -- Manual viewport bounds: if root center is outside screen, HIDE
+    local vpSize = cam.ViewportSize
+    if rootVP.X < 0 or rootVP.X > vpSize.X or rootVP.Y < 0 or rootVP.Y > vpSize.Y then
+        ESP.HideAll(d) return
+    end
+
+    local topVP = cam:WorldToViewportPoint(rootPos + V3(0, 3, 0))
+    local botVP = cam:WorldToViewportPoint(rootPos - V3(0, 3.5, 0))
 
     local boxH = mAbs(botVP.Y - topVP.Y)
-    if boxH < 2 then ESP.HideAll(d) return end  -- too tiny / degenerate
+    if boxH < 2 then ESP.HideAll(d) return end
 
     local boxW = boxH * 0.55
     local boxX = rootVP.X - boxW / 2
