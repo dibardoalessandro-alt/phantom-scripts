@@ -349,8 +349,13 @@ function Util.W2S(pos)
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0,0), false, 0 end
     local sp, on = cam:WorldToViewportPoint(pos)
-    local inset = GuiService:GetGuiInset()
-    return V2(sp.X, sp.Y - inset.Y), (on and sp.Z > 0), sp.Z
+    local offsetY = 36
+    pcall(function()
+        if GuiService then
+            offsetY = GuiService:GetGuiInset().Y
+        end
+    end)
+    return V2(sp.X, sp.Y - offsetY), (on and sp.Z > 0), sp.Z
 end
 
 function Util.D2(a, b)
