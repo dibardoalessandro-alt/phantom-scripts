@@ -37,6 +37,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService     = game:GetService("TweenService")
 local Workspace        = game:GetService("Workspace")
 local Lighting         = game:GetService("Lighting")
+local GuiService       = game:GetService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera      = Workspace.CurrentCamera
@@ -348,7 +349,8 @@ function Util.W2S(pos)
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0,0), false, 0 end
     local sp, on = cam:WorldToViewportPoint(pos)
-    return V2(sp.X, sp.Y), (on and sp.Z > 0), sp.Z
+    local inset = GuiService:GetGuiInset()
+    return V2(sp.X, sp.Y - inset.Y), (on and sp.Z > 0), sp.Z
 end
 
 function Util.D2(a, b)
@@ -894,67 +896,37 @@ function ESP.Update(player, d)
 
     local vpSize = cam.ViewportSize
 
-    -- Get key body parts
-    local head = char:FindFirstChild("Head")
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then ESP.HideAll(d) return end
+    -- 1. Get Head and Root screen positions via Util.W2S (which now correctly applies GuiInset)
+    local headPart = char:FindFirstChild("Head")
+    local rootPart = char:FindFirstChild("HumanoidRootPart")
+    if not rootPart then ESP.HideAll(d) return end
 
-    -- Check if root is in front of camera
-    local rootVP, rootOn = cam:WorldToViewportPoint(root.Position)
-    if not rootOn or rootVP.Z <= 0 then
+    local headPos = headPart and headPart.Position or (rootPart.Position + V3(0, 2, 0))
+    local topPos = headPos + V3(0, 0.7, 0)
+    local botPos = rootPart.Position - V3(0, 3.0, 0)
+
+    local topScreen, topOn = Util.W2S(topPos)
+    local botScreen, botOn = Util.W2S(botPos)
+    local rootScreen, rootOn = Util.W2S(rootPart.Position)
+
+    if not rootOn or not topOn or not botOn then
         ESP.HideAll(d)
         return
     end
 
-    -- Collect all active limbs/parts for precise 2D screen projection
-    local minX, maxX = mHuge, -mHuge
-    minY, maxY = mHuge, -mHuge
-    local validPoints = 0
-
-    for _, part in ipairs(char:GetChildren()) do
-        if part:IsA("BasePart") and part.Transparency < 1 then
-            local pVP, pOn = cam:WorldToViewportPoint(part.Position)
-            if pOn and pVP.Z > 0 then
-                validPoints = validPoints + 1
-                local ext = part.Size / 2
-                -- Check part 3D extents for accuracy
-                local partCorners = {
-                    part.CFrame * CF(ext.X, ext.Y, ext.Z),
-                    part.CFrame * CF(-ext.X, ext.Y, ext.Z),
-                    part.CFrame * CF(ext.X, -ext.Y, ext.Z),
-                    part.CFrame * CF(-ext.X, -ext.Y, ext.Z),
-                }
-                for _, cPos in ipairs(partCorners) do
-                    local cVP, cOn = cam:WorldToViewportPoint(cPos.Position)
-                    if cOn and cVP.Z > 0 then
-                        if cVP.X < minX then minX = cVP.X end
-                        if cVP.X > maxX then maxX = cVP.X end
-                        if cVP.Y < minY then minY = cVP.Y end
-                        if cVP.Y > maxY then maxY = cVP.Y end
-                    end
-                end
-            end
-        end
-    end
-
-    if validPoints == 0 or minX == mHuge or maxX == -mHuge or minY == mHuge or maxY == -mHuge then
-        ESP.HideAll(d)
-        return
-    end
-
-    local boxW = mFloor(maxX - minX)
-    local boxH = mFloor(maxY - minY)
-    local boxX = mFloor(minX)
-    local boxY = mFloor(minY)
+    local boxH = mFloor(mAbs(botScreen.Y - topScreen.Y))
+    local boxW = mFloor(boxH * 0.60)
+    local boxX = mFloor(rootScreen.X - (boxW / 2))
+    local boxY = mFloor(topScreen.Y)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
     -- Strict screen edge and dimension checks
-    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.3) or boxW > (vpSize.X * 1.3) then
+    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.5) or boxW > (vpSize.X * 1.5) then
         ESP.HideAll(d)
         return
     end
-    if (boxX + boxW < -20) or (boxX > vpSize.X + 20) or (boxY + boxH < -20) or (boxY > vpSize.Y + 20) then
+    if (boxX + boxW < -50) or (boxX > vpSize.X + 50) or (boxY + boxH < -50) or (boxY > vpSize.Y + 50) then
         ESP.HideAll(d)
         return
     end
