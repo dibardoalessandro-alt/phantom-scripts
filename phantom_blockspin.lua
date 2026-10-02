@@ -443,13 +443,15 @@ function Util.ResolveToolName(tool)
     end)
     if found then return found end
 
-    -- 3. Check for TextLabel inside tool's GUI (some games put the name there)
+    -- 3. Check for TextLabel inside tool's GUI
     pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("TextLabel") and desc.Text and #desc.Text > 0 then
-                if not desc.Text:match("^%d+$") and #desc.Text < 40 then
-                    found = desc.Text
-                    return
+        for _, child in ipairs(tool:GetChildren()) do
+            if child:IsA("BillboardGui") or child:IsA("SurfaceGui") or child:IsA("ScreenGui") then
+                for _, lbl in ipairs(child:GetChildren()) do
+                    if lbl:IsA("TextLabel") and lbl.Text and #lbl.Text > 0 and not lbl.Text:match("^%d+$") and #lbl.Text < 40 then
+                        found = lbl.Text
+                        return
+                    end
                 end
             end
         end
@@ -541,24 +543,30 @@ function Util.GetToolDamage(tool)
     return dmg
 end
 
--- v3.2: REWRITTEN - Get tool display info with smart name resolution
+-- v3.6: Cached tool display info with smart name resolution
+local _toolInfoCache = setmetatable({}, {__mode = "k"})
+
 function Util.GetToolInfo(tool, isEquipped)
+    if not tool then return {display = nil, isEquipped = isEquipped} end
+    local cached = _toolInfoCache[tool]
+    local now = Tick()
+    if cached and cached.isEquipped == isEquipped and (now - (cached.time or 0) < 3.0) then
+        return cached
+    end
+
     local info = {}
-
-    -- Use smart name resolution
     local name = Util.ResolveToolName(tool)
-
-    -- If we couldn't find a real name, skip this tool entirely
     if not name then
         info.display = nil
         info.isEquipped = isEquipped
+        info.time = now
+        _toolInfoCache[tool] = info
         return info
     end
 
     local prefix = isEquipped and "[E]" or "[B]"
     info.display = prefix .. " " .. name
 
-    -- Add damage if detected
     if Config.InventoryESP.ShowDamage then
         local dmg = Util.GetToolDamage(tool)
         if dmg then
@@ -567,6 +575,8 @@ function Util.GetToolInfo(tool, isEquipped)
     end
 
     info.isEquipped = isEquipped
+    info.time = now
+    _toolInfoCache[tool] = info
     return info
 end
 
@@ -1029,28 +1039,21 @@ function ESP.Update(player, d)
                 end
             end
 
-            -- Inventory ESP
+            -- Inventory ESP (Ultra-optimized with 0.3s throttle & diff cache)
             if d.InventoryLabel then
                 if Config.InventoryESP.Enabled then
-                    local items = {}
-                    local itemCount = 0
-                    if Config.InventoryESP.ShowEquipped then
-                        for _, c in ipairs(char:GetChildren()) do
-                            if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                                local info = Util.GetToolInfo(c, true)
-                                if info.display then
-                                    tInsert(items, info.display)
-                                    itemCount = itemCount + 1
-                                end
-                            end
-                        end
-                    end
-                    if Config.InventoryESP.ShowBackpack then
-                        local bp = player:FindFirstChild("Backpack")
-                        if bp then
-                            for _, c in ipairs(bp:GetChildren()) do
+                    local now = Tick()
+                    if not d._lastInvCheck or (now - d._lastInvCheck > 0.3) then
+                        d._lastInvCheck = now
+                        local items = {}
+                        local itemCount = 0
+                        local hasEquipped = false
+
+                        if Config.InventoryESP.ShowEquipped then
+                            for _, c in ipairs(char:GetChildren()) do
                                 if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                                    local info = Util.GetToolInfo(c, false)
+                                    hasEquipped = true
+                                    local info = Util.GetToolInfo(c, true)
                                     if info.display then
                                         tInsert(items, info.display)
                                         itemCount = itemCount + 1
@@ -1058,14 +1061,34 @@ function ESP.Update(player, d)
                                 end
                             end
                         end
-                    end
-                    if #items > 0 then
-                        d.InventoryLabel.Text = tConcat(items, " | ")
-                        local hasEquipped = false
-                        for _, c in ipairs(char:GetChildren()) do
-                            if c:IsA("Tool") then hasEquipped = true; break end
+                        if Config.InventoryESP.ShowBackpack then
+                            local bp = player:FindFirstChild("Backpack")
+                            if bp then
+                                for _, c in ipairs(bp:GetChildren()) do
+                                    if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                                        local info = Util.GetToolInfo(c, false)
+                                        if info.display then
+                                            tInsert(items, info.display)
+                                            itemCount = itemCount + 1
+                                        end
+                                    end
+                                end
+                            end
                         end
-                        d.InventoryLabel.TextColor3 = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
+
+                        d._lastInvText = (#items > 0) and tConcat(items, " | ") or ""
+                        d._lastHasEquipped = hasEquipped
+                    end
+
+                    local text = d._lastInvText or ""
+                    if #text > 0 then
+                        if d.InventoryLabel.Text ~= text then
+                            d.InventoryLabel.Text = text
+                        end
+                        local targetCol = d._lastHasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
+                        if d.InventoryLabel.TextColor3 ~= targetCol then
+                            d.InventoryLabel.TextColor3 = targetCol
+                        end
                         d.InventoryLabel.TextSize = Config.InventoryESP.TextSize
                         d.InventoryLabel.Position = UDim2.new(0, 0, 0, (Config.ESP.HealthBar and (Config.ESP.HealthText and 33 or 23)) or (Config.ESP.Names and 16 or 0))
                         d.InventoryLabel.Visible = true
