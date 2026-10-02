@@ -894,43 +894,67 @@ function ESP.Update(player, d)
 
     local vpSize = cam.ViewportSize
 
-    -- 1. Get Head and Feet 3D positions
-    local headPos = head and head.Position or (rootPos + V3(0, 2, 0))
-    local topWorld = headPos + V3(0, 0.6, 0)
-    local botWorld = rootPos - V3(0, 2.8, 0)
+    -- Get key body parts
+    local head = char:FindFirstChild("Head")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then ESP.HideAll(d) return end
 
-    -- 2. Project Head, Feet, and Root to Viewport
-    local rootScreen, rootOn = cam:WorldToViewportPoint(rootPos)
-    local topScreen, topOn = cam:WorldToViewportPoint(topWorld)
-    local botScreen, botOn = cam:WorldToViewportPoint(botWorld)
-
-    -- Hide immediately if player is behind camera or off-screen
-    if not rootOn or not topOn or not botOn or rootScreen.Z <= 0 or topScreen.Z <= 0 or botScreen.Z <= 0 then
+    -- Check if root is in front of camera
+    local rootVP, rootOn = cam:WorldToViewportPoint(root.Position)
+    if not rootOn or rootVP.Z <= 0 then
         ESP.HideAll(d)
         return
     end
 
-    -- Screen boundary check
-    if rootScreen.X < -50 or rootScreen.X > vpSize.X + 50 or rootScreen.Y < -50 or rootScreen.Y > vpSize.Y + 50 then
+    -- Collect all active limbs/parts for precise 2D screen projection
+    local minX, maxX = mHuge, -mHuge
+    minY, maxY = mHuge, -mHuge
+    local validPoints = 0
+
+    for _, part in ipairs(char:GetChildren()) do
+        if part:IsA("BasePart") and part.Transparency < 1 then
+            local pVP, pOn = cam:WorldToViewportPoint(part.Position)
+            if pOn and pVP.Z > 0 then
+                validPoints = validPoints + 1
+                local ext = part.Size / 2
+                -- Check part 3D extents for accuracy
+                local partCorners = {
+                    part.CFrame * CF(ext.X, ext.Y, ext.Z),
+                    part.CFrame * CF(-ext.X, ext.Y, ext.Z),
+                    part.CFrame * CF(ext.X, -ext.Y, ext.Z),
+                    part.CFrame * CF(-ext.X, -ext.Y, ext.Z),
+                }
+                for _, cPos in ipairs(partCorners) do
+                    local cVP, cOn = cam:WorldToViewportPoint(cPos.Position)
+                    if cOn and cVP.Z > 0 then
+                        if cVP.X < minX then minX = cVP.X end
+                        if cVP.X > maxX then maxX = cVP.X end
+                        if cVP.Y < minY then minY = cVP.Y end
+                        if cVP.Y > maxY then maxY = cVP.Y end
+                    end
+                end
+            end
+        end
+    end
+
+    if validPoints == 0 or minX == mHuge or maxX == -mHuge or minY == mHuge or maxY == -mHuge then
         ESP.HideAll(d)
         return
     end
 
-    -- 3. Calculate 2D Box position and dimensions anchored directly to character
-    local topY = topScreen.Y
-    local botY = botScreen.Y
-    local minY = (topY < botY) and topY or botY
-    local maxY = (topY < botY) and botY or topY
-
-    local boxH = mFloor(mAbs(maxY - minY))
-    local boxW = mFloor(boxH * 0.60) -- standard character proportion
-    local boxX = mFloor(rootScreen.X - (boxW / 2))
+    local boxW = mFloor(maxX - minX)
+    local boxH = mFloor(maxY - minY)
+    local boxX = mFloor(minX)
     local boxY = mFloor(minY)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
-    -- Sanity limits to prevent bugged oversized or tiny boxes
-    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.2) or boxW > (vpSize.X * 1.2) then
+    -- Strict screen edge and dimension checks
+    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.3) or boxW > (vpSize.X * 1.3) then
+        ESP.HideAll(d)
+        return
+    end
+    if (boxX + boxW < -20) or (boxX > vpSize.X + 20) or (boxY + boxH < -20) or (boxY > vpSize.Y + 20) then
         ESP.HideAll(d)
         return
     end
