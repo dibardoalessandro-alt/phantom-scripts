@@ -1695,8 +1695,8 @@ local guiOk, guiErr = pcall(function()
     Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
     Window = Rayfield:CreateWindow({
-        Name = "PHANTOM v3.3",
-        LoadingTitle = "PHANTOM",
+        Name = "PHANTOM v3.6 (Fixed ESP)",
+        LoadingTitle = "PHANTOM v3.6",
         LoadingSubtitle = "BlockSpin Stealth Suite",
         Theme = "Amethyst",
         DisableRayfieldPrompts = true,
