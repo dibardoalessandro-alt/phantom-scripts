@@ -892,84 +892,45 @@ function ESP.Update(player, d)
     local dist = (rootPos - camPos).Magnitude
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- 3D ORIENTED BOUNDING BOX PROJECTION
-    local cframe, size
-    local modelOk, mCFrame, mSize = pcall(function() return char:GetBoundingBox() end)
-    if modelOk and mSize.Y > 1 and mSize.Y < 12 then
-        cframe = mCFrame
-        size = mSize
-    else
-        cframe = root.CFrame
-        size = V3(4, 5.5, 2)
-    end
-
     local vpSize = cam.ViewportSize
 
-    -- First check root part visibility using WorldToViewportPoint
-    local rootScreen, rootOnScreen = cam:WorldToViewportPoint(rootPos)
-    if not rootOnScreen or rootScreen.Z <= 0 then
+    -- 1. Get Head and Feet 3D positions
+    local headPos = head and head.Position or (rootPos + V3(0, 2, 0))
+    local topWorld = headPos + V3(0, 0.6, 0)
+    local botWorld = rootPos - V3(0, 2.8, 0)
+
+    -- 2. Project Head, Feet, and Root to Viewport
+    local rootScreen, rootOn = cam:WorldToViewportPoint(rootPos)
+    local topScreen, topOn = cam:WorldToViewportPoint(topWorld)
+    local botScreen, botOn = cam:WorldToViewportPoint(botWorld)
+
+    -- Hide immediately if player is behind camera or off-screen
+    if not rootOn or not topOn or not botOn or rootScreen.Z <= 0 or topScreen.Z <= 0 or botScreen.Z <= 0 then
         ESP.HideAll(d)
         return
     end
 
-    -- If root screen position is outside screen bounds with threshold, hide immediately
-    if rootScreen.X < -100 or rootScreen.X > vpSize.X + 100 or rootScreen.Y < -100 or rootScreen.Y > vpSize.Y + 100 then
+    -- Screen boundary check
+    if rootScreen.X < -50 or rootScreen.X > vpSize.X + 50 or rootScreen.Y < -50 or rootScreen.Y > vpSize.Y + 50 then
         ESP.HideAll(d)
         return
     end
 
-    local halfSize = size / 2
-    local corners3D = {
-        cframe * CF(-halfSize.X,  halfSize.Y, -halfSize.Z),
-        cframe * CF( halfSize.X,  halfSize.Y, -halfSize.Z),
-        cframe * CF( halfSize.X,  halfSize.Y,  halfSize.Z),
-        cframe * CF(-halfSize.X,  halfSize.Y,  halfSize.Z),
-        cframe * CF(-halfSize.X, -halfSize.Y, -halfSize.Z),
-        cframe * CF( halfSize.X, -halfSize.Y, -halfSize.Z),
-        cframe * CF( halfSize.X, -halfSize.Y,  halfSize.Z),
-        cframe * CF(-halfSize.X, -halfSize.Y,  halfSize.Z),
-    }
+    -- 3. Calculate 2D Box position and dimensions anchored directly to character
+    local topY = topScreen.Y
+    local botY = botScreen.Y
+    local minY = (topY < botY) and topY or botY
+    local maxY = (topY < botY) and botY or topY
 
-    local minX, maxX = mHuge, -mHuge
-    local minY, maxY = mHuge, -mHuge
-    local cornersOnScreenCount = 0
-
-    for i = 1, 8 do
-        local sp, onScreen = cam:WorldToViewportPoint(corners3D[i].Position)
-        if sp.Z > 0 then
-            if onScreen then
-                cornersOnScreenCount = cornersOnScreenCount + 1
-            end
-            if sp.X < minX then minX = sp.X end
-            if sp.X > maxX then maxX = sp.X end
-            if sp.Y < minY then minY = sp.Y end
-            if sp.Y > maxY then maxY = sp.Y end
-        else
-            -- If any corner is behind camera (Z <= 0), don't draw 2D box to prevent distortion/stuck edge drawings
-            ESP.HideAll(d)
-            return
-        end
-    end
-
-    if cornersOnScreenCount == 0 then
-        ESP.HideAll(d)
-        return
-    end
-
-    local boxW = maxX - minX
-    local boxH = maxY - minY
-    local boxX = mFloor(minX)
+    local boxH = mFloor(mAbs(maxY - minY))
+    local boxW = mFloor(boxH * 0.60) -- standard character proportion
+    local boxX = mFloor(rootScreen.X - (boxW / 2))
     local boxY = mFloor(minY)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
-    -- Strict screen edge check: if bounding box is off-screen or absurdly oversized/distorted, hide!
-    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.5) or boxW > (vpSize.X * 1.5) then
-        ESP.HideAll(d)
-        return
-    end
-
-    if (boxX + boxW < 0) or (boxX > vpSize.X) or (boxY + boxH < 0) or (boxY > vpSize.Y) then
+    -- Sanity limits to prevent bugged oversized or tiny boxes
+    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.2) or boxW > (vpSize.X * 1.2) then
         ESP.HideAll(d)
         return
     end
