@@ -643,11 +643,10 @@ function Notify.Send(text, color, dur)
 end
 
 -- ═══════════════════════════════════════════════════
--- ESP ENGINE
+-- ESP ENGINE (v3.6 ULTRA-STABLE 3D PROJECTION REWRITE)
 -- ═══════════════════════════════════════════════════
 local ESP = {}
 
--- v3.1: Track character connections per player to detect respawns/removals
 local _charConns = {}
 
 function ESP.Create()
@@ -677,6 +676,20 @@ function ESP.Create()
     d.HeadDot = safeNew("Circle", {Filled = true, NumSides = 12, Radius = Config.ESP.HeadDotSize, Visible = false})
     d.Inventory = safeNew("Text", {Size = Config.InventoryESP.TextSize, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
 
+    -- Corner box drawings (8 lines + 8 outlines)
+    d.Corners = {}
+    d.CornerOutlines = {}
+    for i = 1, 8 do
+        d.Corners[i] = safeNew("Line", {Thickness = Config.ESP.BoxThickness, Visible = false})
+        d.CornerOutlines[i] = safeNew("Line", {Thickness = Config.ESP.BoxThickness + 2, Color = C3(0,0,0), Visible = false})
+    end
+
+    -- Skeleton drawings
+    d.Skeleton = {}
+    for i = 1, #SKELETON_BONES do
+        d.Skeleton[i] = safeNew("Line", {Thickness = Config.ESP.SkeletonThickness, Visible = false})
+    end
+
     return d
 end
 
@@ -684,7 +697,9 @@ function ESP.Destroy(d)
     if not d then return end
     for k, v in pairs(d) do
         if typeof(v) == "table" then
-            for _, line in pairs(v) do pcall(function() line:Remove() end) end
+            for _, item in pairs(v) do
+                pcall(function() item:Remove() end)
+            end
         else
             pcall(function() v:Remove() end)
         end
@@ -695,7 +710,9 @@ function ESP.HideAll(d)
     if not d then return end
     for k, v in pairs(d) do
         if typeof(v) == "table" then
-            for _, line in pairs(v) do pcall(function() line.Visible = false end) end
+            for _, item in pairs(v) do
+                pcall(function() item.Visible = false end)
+            end
         else
             pcall(function() v.Visible = false end)
         end
@@ -706,22 +723,18 @@ function ESP.Register(p)
     if p == LocalPlayer or State.ESPCache[p] then return end
     State.ESPCache[p] = ESP.Create()
 
-    -- v3.1: Listen for character removal to immediately hide ghost drawings
     local conns = {}
     pcall(function()
         conns.removing = p.CharacterRemoving:Connect(function()
-            -- Character is being removed → IMMEDIATELY hide all ESP drawings
             if State.ESPCache[p] then
                 ESP.HideAll(State.ESPCache[p])
             end
-            -- Also remove chams
             if State.ChamsCache[p] then
                 pcall(function() State.ChamsCache[p]:Destroy() end)
                 State.ChamsCache[p] = nil
             end
         end)
         conns.added = p.CharacterAdded:Connect(function()
-            -- New character → make sure old drawings are hidden first
             if State.ESPCache[p] then
                 ESP.HideAll(State.ESPCache[p])
             end
@@ -735,12 +748,10 @@ function ESP.Unregister(p)
         ESP.Destroy(State.ESPCache[p])
         State.ESPCache[p] = nil
     end
-    -- v3: Remove chams
     if State.ChamsCache[p] then
         pcall(function() State.ChamsCache[p]:Destroy() end)
         State.ChamsCache[p] = nil
     end
-    -- v3.1: Disconnect character listeners
     if _charConns[p] then
         for _, conn in pairs(_charConns[p]) do
             pcall(function() conn:Disconnect() end)
@@ -750,6 +761,7 @@ function ESP.Unregister(p)
 end
 
 function ESP.DrawCornerBox(d, x, y, w, h, color)
+    if not d.Corners or not d.CornerOutlines then return end
     local cornerLen = mClamp(w * 0.25, 4, 20)
     local lines = d.Corners
     local outlines = d.CornerOutlines
@@ -771,31 +783,31 @@ function ESP.DrawCornerBox(d, x, y, w, h, color)
         lines[i].Color = color
         lines[i].Thickness = Config.ESP.BoxThickness
         lines[i].Visible = true
-        if Config.ESP.BoxOutline then
+        if Config.ESP.BoxOutline and outlines[i] then
             outlines[i].From = lines[i].From
             outlines[i].To = lines[i].To
             outlines[i].Thickness = Config.ESP.BoxThickness + 2
             outlines[i].Visible = true
-        else
+        elseif outlines[i] then
             outlines[i].Visible = false
         end
     end
 end
 
 function ESP.HideCornerBox(d)
-    for i=1,8 do
+    if not d.Corners then return end
+    for i=1, 8 do
         pcall(function() d.Corners[i].Visible = false end)
         pcall(function() d.CornerOutlines[i].Visible = false end)
     end
 end
 
--- v3: Skeleton ESP drawing
 function ESP.DrawSkeleton(d, char, color)
     if not d.Skeleton then return end
     for i, bone in ipairs(SKELETON_BONES) do
         local partA = char:FindFirstChild(bone[1])
         local partB = char:FindFirstChild(bone[2])
-        if partA and partB then
+        if partA and partB and d.Skeleton[i] then
             local sA, onA = Util.W2S(partA.Position)
             local sB, onB = Util.W2S(partB.Position)
             if onA and onB then
@@ -807,7 +819,7 @@ function ESP.DrawSkeleton(d, char, color)
             else
                 d.Skeleton[i].Visible = false
             end
-        else
+        elseif d.Skeleton[i] then
             d.Skeleton[i].Visible = false
         end
     end
@@ -820,10 +832,8 @@ function ESP.HideSkeleton(d)
     end
 end
 
--- v3: Chams (Highlight instances)
 function ESP.UpdateChams(player)
     if not Config.ESP.Chams then
-        -- Remove chams
         if State.ChamsCache[player] then
             pcall(function() State.ChamsCache[player]:Destroy() end)
             State.ChamsCache[player] = nil
@@ -832,8 +842,10 @@ function ESP.UpdateChams(player)
     end
 
     if not player.Character then return end
+    local root = player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
 
-    local isVisible = Util.Visible(Camera.CFrame.Position, player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or V3(0,0,0), player)
+    local isVisible = Util.Visible(Camera.CFrame.Position, root.Position, player)
 
     if not State.ChamsCache[player] then
         local hl = Instance.new("Highlight")
@@ -880,52 +892,71 @@ function ESP.Update(player, d)
     local dist = (rootPos - camPos).Magnitude
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- Calcolo punti superiore e inferiore stabili
-    local topWorld = head and (head.Position + V3(0, 0.6, 0)) or (rootPos + V3(0, 2.5, 0))
-    local botWorld = rootPos - V3(0, 3.0, 0)
+    -- 3D ORIENTED BOUNDING BOX PROJECTION
+    local cframe, size
+    local modelOk, mCFrame, mSize = pcall(function() return char:GetBoundingBox() end)
+    if modelOk and mSize.Y > 1 and mSize.Y < 12 then
+        cframe = mCFrame
+        size = mSize
+    else
+        cframe = root.CFrame
+        size = V3(4, 5.5, 2)
+    end
 
-    local rootVP, rootOn = cam:WorldToViewportPoint(rootPos)
-    local topVP, topOn   = cam:WorldToViewportPoint(topWorld)
-    local botVP, botOn   = cam:WorldToViewportPoint(botWorld)
+    local halfSize = size / 2
+    local corners3D = {
+        cframe * CF(-halfSize.X,  halfSize.Y, -halfSize.Z),
+        cframe * CF( halfSize.X,  halfSize.Y, -halfSize.Z),
+        cframe * CF( halfSize.X,  halfSize.Y,  halfSize.Z),
+        cframe * CF(-halfSize.X,  halfSize.Y,  halfSize.Z),
+        cframe * CF(-halfSize.X, -halfSize.Y, -halfSize.Z),
+        cframe * CF( halfSize.X, -halfSize.Y, -halfSize.Z),
+        cframe * CF( halfSize.X, -halfSize.Y,  halfSize.Z),
+        cframe * CF(-halfSize.X, -halfSize.Y,  halfSize.Z),
+    }
 
-    -- Controllo di visibilità rigoroso: root, top e bot DEVONO essere tutti visibili e davanti alla telecamera
-    if not rootOn or rootVP.Z <= 0 then
+    local minX, maxX = mHuge, -mHuge
+    local minY, maxY = mHuge, -mHuge
+    local allInFront = true
+
+    for i = 1, 8 do
+        local sp, onScreen = cam:WorldToViewportPoint(corners3D[i].Position)
+        if sp.Z <= 0 then
+            allInFront = false
+            break
+        end
+        if sp.X < minX then minX = sp.X end
+        if sp.X > maxX then maxX = sp.X end
+        if sp.Y < minY then minY = sp.Y end
+        if sp.Y > maxY then maxY = sp.Y end
+    end
+
+    -- Rigorous check: if any corner is behind the camera, HIDE ALL immediately
+    if not allInFront then
         ESP.HideAll(d)
         return
     end
 
-    if not topOn or not botOn or topVP.Z <= 0 or botVP.Z <= 0 then
-        ESP.HideAll(d)
-        return
-    end
-
-    local topY = topVP.Y
-    local botY = botVP.Y
-    local minY = (topY < botY) and topY or botY
-    local maxY = (topY < botY) and botY or topY
-
-    local boxH = mAbs(maxY - minY)
     local vpSize = cam.ViewportSize
-
-    -- Sanity check: altezza minima e massima per evitare box enormi a bordo schermo
-    if boxH < 4 or boxH > (vpSize.Y * 0.85) then
-        ESP.HideAll(d)
-        return
-    end
-
-    local boxW = boxH * 0.60
-    local boxX = mFloor(rootVP.X - (boxW / 2))
+    local boxW = maxX - minX
+    local boxH = maxY - minY
+    local boxX = mFloor(minX)
     local boxY = mFloor(minY)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
-    -- Se il box è fuori dallo schermo, nascondi tutto
-    if (boxX + boxW < 0) or (boxX > vpSize.X) or (boxY + boxH < 0) or (boxY > vpSize.Y) then
+    -- Sanity check & off-screen viewport clipping check
+    if boxH < 3 or boxW < 3 or boxH > (vpSize.Y * 1.5) then
         ESP.HideAll(d)
         return
     end
 
-    -- Determinazione Colore
+    if (boxX + boxW < -20) or (boxX > vpSize.X + 20) or (boxY + boxH < -20) or (boxY > vpSize.Y + 20) then
+        ESP.HideAll(d)
+        return
+    end
+
+    -- Visibility & Team color determination
     local col
     if Config.ESP.ShowTeamColor and player.Team then
         col = player.TeamColor.Color
@@ -935,7 +966,7 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
-    -- BOX DRAWING
+    -- 1. BOX DRAWING
     if Config.ESP.Enabled then
         if Config.ESP.BoxStyle == "Corner" then
             d.Box.Visible = false
@@ -963,7 +994,7 @@ function ESP.Update(player, d)
         ESP.HideCornerBox(d)
     end
 
-    -- NAME DRAWING
+    -- 2. NAME DRAWING
     if Config.ESP.Enabled and Config.ESP.Names and d.Name then
         d.Name.Text = player.DisplayName
         d.Name.Color = Config.ESP.NameColor
@@ -975,7 +1006,7 @@ function ESP.Update(player, d)
         d.Name.Visible = false
     end
 
-    -- DISTANCE DRAWING
+    -- 3. DISTANCE DRAWING
     if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
         d.Dist.Text = mFloor(dist) .. "m"
         d.Dist.Color = Config.ESP.DistanceColor
@@ -986,7 +1017,7 @@ function ESP.Update(player, d)
         d.Dist.Visible = false
     end
 
-    -- HEALTH BAR
+    -- 4. HEALTH BAR
     if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
         local maxHp = (hum.MaxHealth and hum.MaxHealth > 0) and hum.MaxHealth or 100
         local curHp = mClamp(hum.Health, 0, maxHp)
@@ -1022,7 +1053,7 @@ function ESP.Update(player, d)
         if d.HealthText then d.HealthText.Visible = false end
     end
 
-    -- TRACERS
+    -- 5. TRACERS
     if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
         local origin
         if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vpSize.X / 2, vpSize.Y)
@@ -1038,7 +1069,7 @@ function ESP.Update(player, d)
         d.Tracer.Visible = false
     end
 
-    -- HEAD DOT
+    -- 6. HEAD DOT
     if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
         local headScreen, headOn = Util.W2S(head.Position)
         if headOn then
@@ -1053,7 +1084,7 @@ function ESP.Update(player, d)
         d.HeadDot.Visible = false
     end
 
-    -- SKELETON
+    -- 7. SKELETON
     pcall(function()
         if Config.ESP.Enabled and Config.ESP.Skeleton then
             ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
@@ -1062,12 +1093,12 @@ function ESP.Update(player, d)
         end
     end)
 
-    -- CHAMS
+    -- 8. CHAMS
     pcall(function()
         ESP.UpdateChams(player)
     end)
 
-    -- INVENTORY ESP
+    -- 9. INVENTORY ESP
     pcall(function()
         if Config.InventoryESP.Enabled and d.Inventory then
             local items = {}
@@ -1118,6 +1149,7 @@ function ESP.Update(player, d)
         end
     end)
 end
+
 
 -- ═══════════════════════════════════════════════════
 -- AIMBOT ENGINE
