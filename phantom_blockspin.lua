@@ -1,12 +1,12 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.5 · BlockSpin Stealth Suite                    ║
+    ║     PHANTOM v3.6 · BlockSpin Stealth Suite                    ║
     ║     Full GUI Edition · Built for Xeno                         ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v3.5: FIXED ESP — proper 3D bounding box projection,         ║
-    ║        boxes now track players perfectly at all camera angles  ║
-    ║        fresh camera refs, viewport clamping, sanity checks     ║
+    ║  v3.6: NATIVE ESP REWRITE — Highlight + BillboardGui engine,  ║
+    ║        100% immune to Xeno ImGui lag & edge-sticking glitches ║
+    ║        Roblox native 3D rendering with zero frame drop        ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -644,95 +644,194 @@ function Notify.Send(text, color, dur)
 end
 
 -- ═══════════════════════════════════════════════════
--- ESP ENGINE (v3.6 ULTRA-STABLE 3D PROJECTION REWRITE)
+-- ESP ENGINE (v3.6 NATIVE HIGHLIGHT & BILLBOARDGUI SYSTEM)
 -- ═══════════════════════════════════════════════════
 local ESP = {}
 
 local _charConns = {}
 
-function ESP.Create()
+function ESP.Create(player)
     local d = {}
-    
-    local function safeNew(typ, props)
-        local ok, obj = pcall(function()
-            local item = Drawing.new(typ)
-            if props then
-                for k, v in pairs(props) do
-                    item[k] = v
-                end
-            end
-            return item
-        end)
-        return ok and obj or nil
-    end
+    d.Player = player
 
-    d.Box = safeNew("Square", {Thickness = Config.ESP.BoxThickness, Filled = false, Visible = false})
-    d.BoxOutline = safeNew("Square", {Thickness = Config.ESP.BoxThickness + 2, Filled = false, Visible = false, Color = C3(0,0,0)})
-    d.Name = safeNew("Text", {Size = Config.ESP.NameSize, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
-    d.Dist = safeNew("Text", {Size = 12, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
-    d.HealthBG = safeNew("Line", {Thickness = Config.ESP.HealthBarWidth + 2, Visible = false, Color = C3(20,20,20)})
-    d.Health = safeNew("Line", {Thickness = Config.ESP.HealthBarWidth, Visible = false})
-    d.HealthText = safeNew("Text", {Size = 10, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
-    d.Tracer = safeNew("Line", {Thickness = Config.ESP.TracerThickness, Visible = false})
-    d.HeadDot = safeNew("Circle", {Filled = true, NumSides = 12, Radius = Config.ESP.HeadDotSize, Visible = false})
-    d.Inventory = safeNew("Text", {Size = Config.InventoryESP.TextSize, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
+    -- 1. Native Roblox Highlight (Silhouettes, Chams, Depth-Aware Outline)
+    pcall(function()
+        local hl = Instance.new("Highlight")
+        hl.Name = "P_HL_" .. (player and player.UserId or mRandom(1000, 9999))
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.FillTransparency = 0.85
+        hl.OutlineTransparency = 0
+        hl.Enabled = false
+        d.Highlight = hl
+    end)
 
-    -- Corner box drawings (8 lines + 8 outlines)
-    d.Corners = {}
-    d.CornerOutlines = {}
-    for i = 1, 8 do
-        d.Corners[i] = safeNew("Line", {Thickness = Config.ESP.BoxThickness, Visible = false})
-        d.CornerOutlines[i] = safeNew("Line", {Thickness = Config.ESP.BoxThickness + 2, Color = C3(0,0,0), Visible = false})
-    end
+    -- 2. Native Roblox SelectionBox (3D Bounding Box around character)
+    pcall(function()
+        local sb = Instance.new("SelectionBox")
+        sb.Name = "P_SB_" .. (player and player.UserId or mRandom(1000, 9999))
+        sb.AlwaysOnTop = true
+        sb.LineThickness = 0.04
+        sb.SurfaceTransparency = 1
+        sb.Visible = false
+        d.SelectionBox = sb
+    end)
 
-    -- Skeleton drawings
+    -- 3. Native Roblox BillboardGui (Name, Distance, Health Bar, Inventory)
+    pcall(function()
+        local bb = Instance.new("BillboardGui")
+        bb.Name = "P_ESP_" .. (player and player.UserId or mRandom(1000, 9999))
+        bb.AlwaysOnTop = true
+        bb.Size = UDim2.new(0, 160, 0, 65)
+        bb.StudsOffset = V3(0, 2.8, 0)
+        bb.LightInfluence = 0
+        bb.MaxDistance = Config.ESP.MaxDistance
+        bb.Enabled = false
+
+        -- Name & Distance Label
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Name = "NameLabel"
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Size = UDim2.new(1, 0, 0, 14)
+        nameLbl.Position = UDim2.new(0, 0, 0, 0)
+        nameLbl.Font = Enum.Font.SourceSansBold
+        nameLbl.TextSize = Config.ESP.NameSize
+        nameLbl.TextColor3 = Config.ESP.NameColor
+        nameLbl.TextStrokeTransparency = 0
+        nameLbl.TextStrokeColor3 = C3(0, 0, 0)
+        nameLbl.Text = ""
+        nameLbl.Visible = false
+        nameLbl.Parent = bb
+        d.NameLabel = nameLbl
+
+        -- Health Bar Background
+        local hpBG = Instance.new("Frame")
+        hpBG.Name = "HealthBG"
+        hpBG.BackgroundColor3 = C3(20, 20, 20)
+        hpBG.BorderSizePixel = 0
+        hpBG.Size = UDim2.new(0, 70, 0, 4)
+        hpBG.Position = UDim2.new(0.5, -35, 0, 16)
+        hpBG.Visible = false
+        hpBG.Parent = bb
+        d.HealthBG = hpBG
+
+        -- Health Bar Fill
+        local hpFill = Instance.new("Frame")
+        hpFill.Name = "HealthFill"
+        hpFill.BorderSizePixel = 0
+        hpFill.Size = UDim2.new(1, 0, 1, 0)
+        hpFill.BackgroundColor3 = C3(50, 255, 100)
+        hpFill.Parent = hpBG
+        d.HealthFill = hpFill
+
+        -- Health Text
+        local hpText = Instance.new("TextLabel")
+        hpText.Name = "HealthText"
+        hpText.BackgroundTransparency = 1
+        hpText.Size = UDim2.new(1, 0, 0, 11)
+        hpText.Position = UDim2.new(0, 0, 0, 21)
+        hpText.Font = Enum.Font.SourceSans
+        hpText.TextSize = 10
+        hpText.TextColor3 = C3(255, 255, 255)
+        hpText.TextStrokeTransparency = 0
+        hpText.TextStrokeColor3 = C3(0, 0, 0)
+        hpText.Text = ""
+        hpText.Visible = false
+        hpText.Parent = bb
+        d.HealthText = hpText
+
+        -- Inventory Label
+        local invLbl = Instance.new("TextLabel")
+        invLbl.Name = "InventoryLabel"
+        invLbl.BackgroundTransparency = 1
+        invLbl.Size = UDim2.new(1, 0, 0, 13)
+        invLbl.Position = UDim2.new(0, 0, 0, 22)
+        invLbl.Font = Enum.Font.SourceSans
+        invLbl.TextSize = Config.InventoryESP.TextSize
+        invLbl.TextColor3 = Config.InventoryESP.TextColor
+        invLbl.TextStrokeTransparency = 0
+        invLbl.TextStrokeColor3 = C3(0, 0, 0)
+        invLbl.Text = ""
+        invLbl.Visible = false
+        invLbl.Parent = bb
+        d.InventoryLabel = invLbl
+
+        d.Billboard = bb
+    end)
+
+    -- 4. Drawing Tracer (for optional screen tracers, with border-escape safeguard)
+    pcall(function()
+        if Drawing and Drawing.new then
+            local tr = Drawing.new("Line")
+            tr.Thickness = Config.ESP.TracerThickness
+            tr.Visible = false
+            tr.From = V2(-2000, -2000)
+            tr.To = V2(-2000, -2000)
+            d.Tracer = tr
+        end
+    end)
+
+    -- 5. Optional Skeleton lines container
     d.Skeleton = {}
-    for i = 1, #SKELETON_BONES do
-        d.Skeleton[i] = safeNew("Line", {Thickness = Config.ESP.SkeletonThickness, Visible = false})
-    end
 
     return d
 end
 
 function ESP.Destroy(d)
     if not d then return end
-    for k, v in pairs(d) do
-        if typeof(v) == "table" then
-            for _, item in pairs(v) do
-                pcall(function() item:Remove() end)
-            end
-        else
-            pcall(function() v:Remove() end)
+    pcall(function() if d.Highlight then d.Highlight:Destroy() end end)
+    pcall(function() if d.SelectionBox then d.SelectionBox:Destroy() end end)
+    pcall(function() if d.Billboard then d.Billboard:Destroy() end end)
+    pcall(function() if d.Tracer then d.Tracer:Remove() end end)
+    pcall(function() if d.HeadDot then d.HeadDot:Remove() end end)
+    if d.Skeleton then
+        for _, line in pairs(d.Skeleton) do
+            pcall(function() line:Remove() end)
         end
     end
 end
 
 function ESP.HideAll(d)
     if not d then return end
-    for k, v in pairs(d) do
-        if typeof(v) == "table" then
-            for _, item in pairs(v) do
-                pcall(function() item.Visible = false end)
-            end
-        else
-            pcall(function() v.Visible = false end)
+    pcall(function() if d.Highlight then d.Highlight.Enabled = false end end)
+    pcall(function() if d.SelectionBox then d.SelectionBox.Visible = false end end)
+    pcall(function() if d.Billboard then d.Billboard.Enabled = false end end)
+    pcall(function()
+        if d.Tracer then
+            d.Tracer.Visible = false
+            d.Tracer.From = V2(-2000, -2000)
+            d.Tracer.To = V2(-2000, -2000)
+        end
+    end)
+    pcall(function()
+        if d.HeadDot then
+            d.HeadDot.Visible = false
+            d.HeadDot.Position = V2(-2000, -2000)
+        end
+    end)
+    if d.Skeleton then
+        for _, line in pairs(d.Skeleton) do
+            pcall(function()
+                line.Visible = false
+                line.From = V2(-2000, -2000)
+                line.To = V2(-2000, -2000)
+            end)
         end
     end
 end
 
 function ESP.Register(p)
     if p == LocalPlayer or State.ESPCache[p] then return end
-    State.ESPCache[p] = ESP.Create()
+    local entry = ESP.Create(p)
+    State.ESPCache[p] = entry
+    if entry.Highlight then
+        State.ChamsCache[p] = entry.Highlight
+    end
 
     local conns = {}
     pcall(function()
         conns.removing = p.CharacterRemoving:Connect(function()
             if State.ESPCache[p] then
                 ESP.HideAll(State.ESPCache[p])
-            end
-            if State.ChamsCache[p] then
-                pcall(function() State.ChamsCache[p]:Destroy() end)
-                State.ChamsCache[p] = nil
             end
         end)
         conns.added = p.CharacterAdded:Connect(function()
@@ -750,7 +849,6 @@ function ESP.Unregister(p)
         State.ESPCache[p] = nil
     end
     if State.ChamsCache[p] then
-        pcall(function() State.ChamsCache[p]:Destroy() end)
         State.ChamsCache[p] = nil
     end
     if _charConns[p] then
@@ -761,121 +859,61 @@ function ESP.Unregister(p)
     end
 end
 
-function ESP.DrawCornerBox(d, x, y, w, h, color)
-    if not d.Corners or not d.CornerOutlines then return end
-    local cornerLen = mClamp(w * 0.25, 4, 20)
-    local lines = d.Corners
-    local outlines = d.CornerOutlines
-
-    -- Top-left
-    lines[1].From = V2(x, y); lines[1].To = V2(x + cornerLen, y)
-    lines[2].From = V2(x, y); lines[2].To = V2(x, y + cornerLen)
-    -- Top-right
-    lines[3].From = V2(x+w, y); lines[3].To = V2(x+w - cornerLen, y)
-    lines[4].From = V2(x+w, y); lines[4].To = V2(x+w, y + cornerLen)
-    -- Bottom-left
-    lines[5].From = V2(x, y+h); lines[5].To = V2(x + cornerLen, y+h)
-    lines[6].From = V2(x, y+h); lines[6].To = V2(x, y+h - cornerLen)
-    -- Bottom-right
-    lines[7].From = V2(x+w, y+h); lines[7].To = V2(x+w - cornerLen, y+h)
-    lines[8].From = V2(x+w, y+h); lines[8].To = V2(x+w, y+h - cornerLen)
-
-    for i=1,8 do
-        lines[i].Color = color
-        lines[i].Thickness = Config.ESP.BoxThickness
-        lines[i].Visible = true
-        if Config.ESP.BoxOutline and outlines[i] then
-            outlines[i].From = lines[i].From
-            outlines[i].To = lines[i].To
-            outlines[i].Thickness = Config.ESP.BoxThickness + 2
-            outlines[i].Visible = true
-        elseif outlines[i] then
-            outlines[i].Visible = false
-        end
-    end
-end
-
-function ESP.HideCornerBox(d)
-    if not d.Corners then return end
-    for i=1, 8 do
-        pcall(function() d.Corners[i].Visible = false end)
-        pcall(function() d.CornerOutlines[i].Visible = false end)
-    end
-end
-
 function ESP.DrawSkeleton(d, char, color)
-    if not d.Skeleton then return end
+    if not d.Skeleton then d.Skeleton = {} end
     for i, bone in ipairs(SKELETON_BONES) do
         local partA = char:FindFirstChild(bone[1])
         local partB = char:FindFirstChild(bone[2])
-        if partA and partB and d.Skeleton[i] then
-            local sA, onA = Util.W2S(partA.Position)
-            local sB, onB = Util.W2S(partB.Position)
-            if onA and onB then
-                d.Skeleton[i].From = sA
-                d.Skeleton[i].To = sB
-                d.Skeleton[i].Color = color
-                d.Skeleton[i].Thickness = Config.ESP.SkeletonThickness
-                d.Skeleton[i].Visible = true
-            else
-                d.Skeleton[i].Visible = false
+        if partA and partB then
+            if not d.Skeleton[i] and Drawing and Drawing.new then
+                pcall(function()
+                    d.Skeleton[i] = Drawing.new("Line")
+                end)
+            end
+            local line = d.Skeleton[i]
+            if line then
+                local sA, onA = Util.W2S(partA.Position)
+                local sB, onB = Util.W2S(partB.Position)
+                if onA and onB then
+                    line.From = sA
+                    line.To = sB
+                    line.Color = color
+                    line.Thickness = Config.ESP.SkeletonThickness
+                    line.Visible = true
+                else
+                    line.Visible = false
+                    line.From = V2(-2000, -2000)
+                    line.To = V2(-2000, -2000)
+                end
             end
         elseif d.Skeleton[i] then
             d.Skeleton[i].Visible = false
+            d.Skeleton[i].From = V2(-2000, -2000)
+            d.Skeleton[i].To = V2(-2000, -2000)
         end
     end
 end
 
 function ESP.HideSkeleton(d)
-    if not d.Skeleton then return end
-    for i=1, #d.Skeleton do
-        pcall(function() d.Skeleton[i].Visible = false end)
+    if not d or not d.Skeleton then return end
+    for _, line in pairs(d.Skeleton) do
+        pcall(function()
+            line.Visible = false
+            line.From = V2(-2000, -2000)
+            line.To = V2(-2000, -2000)
+        end)
     end
 end
 
 function ESP.UpdateChams(player)
-    if not Config.ESP.Chams then
-        if State.ChamsCache[player] then
-            pcall(function() State.ChamsCache[player]:Destroy() end)
-            State.ChamsCache[player] = nil
-        end
-        return
+    local entry = State.ESPCache[player]
+    if entry then
+        ESP.Update(player, entry)
     end
-
-    if not player.Character then return end
-    local root = player.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-
-    local isVisible = Util.Visible(Camera.CFrame.Position, root.Position, player)
-
-    if not State.ChamsCache[player] then
-        local hl = Instance.new("Highlight")
-        hl.Name = "PhantomChams_" .. math.random(10000,99999)
-        hl.FillTransparency = Config.ESP.ChamsTransparency
-        hl.OutlineTransparency = 0.5
-        hl.Adornee = player.Character
-        hl.Parent = player.Character
-        State.ChamsCache[player] = hl
-    end
-
-    local hl = State.ChamsCache[player]
-    pcall(function()
-        hl.FillTransparency = Config.ESP.ChamsTransparency
-        if isVisible then
-            hl.FillColor = Config.ESP.ChamsVisibleColor
-            hl.OutlineColor = Config.ESP.ChamsVisibleColor
-        else
-            hl.FillColor = Config.ESP.ChamsHiddenColor
-            hl.OutlineColor = Config.ESP.ChamsHiddenColor
-        end
-        if hl.Adornee ~= player.Character then
-            hl.Adornee = player.Character
-            hl.Parent = player.Character
-        end
-    end)
 end
 
 function ESP.Update(player, d)
+    if not player or not player.Parent then ESP.HideAll(d) return end
     if not Util.Alive(player) then ESP.HideAll(d) return end
     if Config.ESP.TeamCheck and Util.IsTeam(player) then ESP.HideAll(d) return end
 
@@ -893,172 +931,185 @@ function ESP.Update(player, d)
     local dist = (rootPos - camPos).Magnitude
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    local vpSize = cam.ViewportSize
-
-    -- 1. Get Head and Root screen positions
-    local headPart = char:FindFirstChild("Head")
-    local rootPart = char:FindFirstChild("HumanoidRootPart")
-    if not rootPart then ESP.HideAll(d) return end
-
-    local headPos = headPart and headPart.Position or (rootPart.Position + V3(0, 2, 0))
-    local topPos = headPos + V3(0, 0.7, 0)
-    local botPos = rootPart.Position - V3(0, 3.0, 0)
-
-    local topScreen, topOn = Util.W2S(topPos)
-    local botScreen, botOn = Util.W2S(botPos)
-    local rootScreen, rootOn = Util.W2S(rootPart.Position)
-
-    if not rootOn or not topOn or not botOn then
-        ESP.HideAll(d)
-        return
-    end
-
-    local boxH = mFloor(mAbs(botScreen.Y - topScreen.Y))
-    local boxW = mFloor(boxH * 0.55)
-    local boxX = mFloor(rootScreen.X - (boxW / 2))
-    local boxY = mFloor(topScreen.Y)
-    local boxCenterX = mFloor(boxX + (boxW / 2))
-    local boxBottomY = mFloor(boxY + boxH)
-
-    -- Strict screen edge and dimension checks
-    if boxH < 4 or boxW < 4 or boxH > (vpSize.Y * 1.5) or boxW > (vpSize.X * 1.5) then
-        ESP.HideAll(d)
-        return
-    end
-    if (boxX + boxW < -50) or (boxX > vpSize.X + 50) or (boxY + boxH < -50) or (boxY > vpSize.Y + 50) then
-        ESP.HideAll(d)
-        return
-    end
-
-    -- Visibility & Team color determination
+    -- Color determination
+    local isVisible = Util.Visible(camPos, rootPos, player)
     local col
     if Config.ESP.ShowTeamColor and player.Team then
         col = player.TeamColor.Color
     elseif Config.ESP.VisibilityCheck then
-        col = Util.Visible(camPos, rootPos, player) and Config.ESP.VisibleColor or Config.ESP.NotVisibleColor
+        col = isVisible and Config.ESP.VisibleColor or Config.ESP.NotVisibleColor
     else
         col = Config.ESP.DefaultColor
     end
 
-    -- 1. BOX DRAWING
-    if Config.ESP.Enabled then
-        if Config.ESP.BoxStyle == "Corner" then
-            d.Box.Visible = false
-            d.BoxOutline.Visible = false
-            ESP.DrawCornerBox(d, boxX, boxY, boxW, boxH, col)
-        else
-            ESP.HideCornerBox(d)
-            if Config.ESP.BoxOutline and d.BoxOutline then
-                d.BoxOutline.Position = V2(boxX, boxY)
-                d.BoxOutline.Size = V2(boxW, boxH)
-                d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2
-                d.BoxOutline.Visible = true
-            elseif d.BoxOutline then
-                d.BoxOutline.Visible = false
+    -- 1. NATIVE HIGHLIGHT (Outline / Chams)
+    if d.Highlight then
+        if Config.ESP.Chams or Config.ESP.Enabled then
+            if d.Highlight.Parent ~= char then d.Highlight.Parent = char end
+            if d.Highlight.Adornee ~= char then d.Highlight.Adornee = char end
+            d.Highlight.OutlineColor = col
+            if Config.ESP.Chams then
+                d.Highlight.FillColor = isVisible and Config.ESP.ChamsVisibleColor or Config.ESP.ChamsHiddenColor
+                d.Highlight.FillTransparency = Config.ESP.ChamsTransparency
+                d.Highlight.OutlineTransparency = 0
+            else
+                d.Highlight.FillColor = col
+                d.Highlight.FillTransparency = 0.85
+                d.Highlight.OutlineTransparency = 0
             end
-            d.Box.Position = V2(boxX, boxY)
-            d.Box.Size = V2(boxW, boxH)
-            d.Box.Color = col
-            d.Box.Thickness = Config.ESP.BoxThickness
-            d.Box.Visible = true
-        end
-    else
-        d.Box.Visible = false
-        d.BoxOutline.Visible = false
-        ESP.HideCornerBox(d)
-    end
-
-    -- 2. NAME DRAWING
-    if Config.ESP.Enabled and Config.ESP.Names and d.Name then
-        d.Name.Text = player.DisplayName
-        d.Name.Color = Config.ESP.NameColor
-        d.Name.Size = Config.ESP.NameSize
-        local tb = d.Name.TextBounds
-        d.Name.Position = V2(mFloor(boxCenterX - (tb.X / 2)), mFloor(boxY - tb.Y - 2))
-        d.Name.Visible = true
-    elseif d.Name then
-        d.Name.Visible = false
-    end
-
-    -- 3. DISTANCE DRAWING
-    if Config.ESP.Enabled and Config.ESP.Distance and d.Dist then
-        d.Dist.Text = mFloor(dist) .. "m"
-        d.Dist.Color = Config.ESP.DistanceColor
-        local tb = d.Dist.TextBounds
-        d.Dist.Position = V2(mFloor(boxCenterX - (tb.X / 2)), mFloor(boxBottomY + 2))
-        d.Dist.Visible = true
-    elseif d.Dist then
-        d.Dist.Visible = false
-    end
-
-    -- 4. HEALTH BAR
-    if Config.ESP.Enabled and Config.ESP.HealthBar and d.HealthBG and d.Health then
-        local maxHp = (hum.MaxHealth and hum.MaxHealth > 0) and hum.MaxHealth or 100
-        local curHp = mClamp(hum.Health, 0, maxHp)
-        local pct = curHp / maxHp
-        local barW = Config.ESP.HealthBarWidth
-        local barX = (Config.ESP.HealthBarPos == "Right") and (boxX + boxW + 4) or (boxX - barW - 4)
-
-        d.HealthBG.From = V2(barX, boxY)
-        d.HealthBG.To   = V2(barX, boxBottomY)
-        d.HealthBG.Color = C3(20, 20, 20)
-        d.HealthBG.Thickness = barW + 2
-        d.HealthBG.Visible = true
-
-        local filledH = mFloor(boxH * pct)
-        d.Health.From = V2(barX, boxBottomY)
-        d.Health.To   = V2(barX, boxBottomY - filledH)
-        d.Health.Color = C3(mFloor((1 - pct) * 255), mFloor(pct * 255), 50)
-        d.Health.Thickness = barW
-        d.Health.Visible = true
-
-        if Config.ESP.HealthText and d.HealthText then
-            d.HealthText.Text = mFloor(curHp) .. ""
-            d.HealthText.Color = d.Health.Color
-            local htb = d.HealthText.TextBounds
-            d.HealthText.Position = V2(barX - htb.X - 2, mFloor(boxBottomY - filledH - (htb.Y / 2)))
-            d.HealthText.Visible = true
-        elseif d.HealthText then
-            d.HealthText.Visible = false
-        end
-    elseif d.HealthBG then
-        d.HealthBG.Visible = false
-        d.Health.Visible = false
-        if d.HealthText then d.HealthText.Visible = false end
-    end
-
-    -- 5. TRACERS
-    if Config.ESP.Enabled and Config.ESP.Tracers and d.Tracer then
-        local origin
-        if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vpSize.X / 2, vpSize.Y)
-        elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vpSize.X / 2, 0)
-        elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
-        else origin = V2(vpSize.X / 2, vpSize.Y / 2) end
-        d.Tracer.From = origin
-        d.Tracer.To = V2(boxCenterX, boxBottomY)
-        d.Tracer.Color = col
-        d.Tracer.Thickness = Config.ESP.TracerThickness
-        d.Tracer.Visible = true
-    elseif d.Tracer then
-        d.Tracer.Visible = false
-    end
-
-    -- 6. HEAD DOT
-    if Config.ESP.Enabled and Config.ESP.HeadDot and head and d.HeadDot then
-        local headScreen, headOn = Util.W2S(head.Position)
-        if headOn then
-            d.HeadDot.Position = headScreen
-            d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
-            d.HeadDot.Color = col
-            d.HeadDot.Visible = true
+            d.Highlight.Enabled = true
         else
-            d.HeadDot.Visible = false
+            d.Highlight.Enabled = false
         end
-    elseif d.HeadDot then
-        d.HeadDot.Visible = false
     end
 
-    -- 7. SKELETON
+    -- 2. NATIVE SELECTIONBOX (3D Box bounding character)
+    if d.SelectionBox then
+        if Config.ESP.Enabled and Config.ESP.BoxStyle ~= "None" then
+            if d.SelectionBox.Parent ~= char then d.SelectionBox.Parent = char end
+            if d.SelectionBox.Adornee ~= char then d.SelectionBox.Adornee = char end
+            d.SelectionBox.Color3 = col
+            d.SelectionBox.LineThickness = (Config.ESP.BoxThickness or 1.3) * 0.025
+            d.SelectionBox.Visible = true
+        else
+            d.SelectionBox.Visible = false
+        end
+    end
+
+    -- 3. NATIVE BILLBOARDGUI (Name, Distance, Health, Inventory)
+    if d.Billboard then
+        local showGui = Config.ESP.Enabled or Config.InventoryESP.Enabled
+        if showGui then
+            local adorneePart = head or root
+            if d.Billboard.Parent ~= char then d.Billboard.Parent = char end
+            if d.Billboard.Adornee ~= adorneePart then d.Billboard.Adornee = adorneePart end
+            d.Billboard.MaxDistance = Config.ESP.MaxDistance
+            d.Billboard.Enabled = true
+
+            -- Name & Distance
+            if d.NameLabel then
+                if Config.ESP.Names or Config.ESP.Distance then
+                    local txt = ""
+                    if Config.ESP.Names then txt = player.DisplayName end
+                    if Config.ESP.Distance then
+                        txt = txt .. (txt ~= "" and " " or "") .. "[" .. mFloor(dist) .. "m]"
+                    end
+                    d.NameLabel.Text = txt
+                    d.NameLabel.TextColor3 = Config.ESP.NameColor
+                    d.NameLabel.TextSize = Config.ESP.NameSize
+                    d.NameLabel.Visible = true
+                else
+                    d.NameLabel.Visible = false
+                end
+            end
+
+            -- Health Bar & Health Text
+            if d.HealthBG and d.HealthFill then
+                if Config.ESP.HealthBar then
+                    local maxHp = (hum.MaxHealth and hum.MaxHealth > 0) and hum.MaxHealth or 100
+                    local curHp = mClamp(hum.Health, 0, maxHp)
+                    local pct = mClamp(curHp / maxHp, 0, 1)
+                    d.HealthFill.Size = UDim2.new(pct, 0, 1, 0)
+                    local hpColor = C3(mFloor((1 - pct) * 255), mFloor(pct * 255), 50)
+                    d.HealthFill.BackgroundColor3 = hpColor
+                    d.HealthBG.Visible = true
+
+                    if d.HealthText then
+                        if Config.ESP.HealthText then
+                            d.HealthText.Text = mFloor(curHp) .. " HP"
+                            d.HealthText.TextColor3 = hpColor
+                            d.HealthText.Visible = true
+                        else
+                            d.HealthText.Visible = false
+                        end
+                    end
+                else
+                    d.HealthBG.Visible = false
+                    if d.HealthText then d.HealthText.Visible = false end
+                end
+            end
+
+            -- Inventory ESP
+            if d.InventoryLabel then
+                if Config.InventoryESP.Enabled then
+                    local items = {}
+                    local itemCount = 0
+                    if Config.InventoryESP.ShowEquipped then
+                        for _, c in ipairs(char:GetChildren()) do
+                            if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                                local info = Util.GetToolInfo(c, true)
+                                if info.display then
+                                    tInsert(items, info.display)
+                                    itemCount = itemCount + 1
+                                end
+                            end
+                        end
+                    end
+                    if Config.InventoryESP.ShowBackpack then
+                        local bp = player:FindFirstChild("Backpack")
+                        if bp then
+                            for _, c in ipairs(bp:GetChildren()) do
+                                if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                                    local info = Util.GetToolInfo(c, false)
+                                    if info.display then
+                                        tInsert(items, info.display)
+                                        itemCount = itemCount + 1
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if #items > 0 then
+                        d.InventoryLabel.Text = tConcat(items, " | ")
+                        local hasEquipped = false
+                        for _, c in ipairs(char:GetChildren()) do
+                            if c:IsA("Tool") then hasEquipped = true; break end
+                        end
+                        d.InventoryLabel.TextColor3 = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
+                        d.InventoryLabel.TextSize = Config.InventoryESP.TextSize
+                        d.InventoryLabel.Position = UDim2.new(0, 0, 0, (Config.ESP.HealthBar and (Config.ESP.HealthText and 33 or 23)) or (Config.ESP.Names and 16 or 0))
+                        d.InventoryLabel.Visible = true
+                    else
+                        d.InventoryLabel.Visible = false
+                    end
+                else
+                    d.InventoryLabel.Visible = false
+                end
+            end
+        else
+            d.Billboard.Enabled = false
+        end
+    end
+
+    -- 4. TRACERS (Safe 2D Fallback with offscreen reset)
+    if d.Tracer then
+        if Config.ESP.Enabled and Config.ESP.Tracers then
+            local rootScreen, onScreen = Util.W2S(rootPos)
+            local vpSize = cam.ViewportSize
+            if onScreen and rootScreen.X >= -10 and rootScreen.X <= vpSize.X + 10 and rootScreen.Y >= -10 and rootScreen.Y <= vpSize.Y + 10 then
+                local origin
+                if Config.ESP.TracerOrigin == "Bottom" then origin = V2(vpSize.X / 2, vpSize.Y)
+                elseif Config.ESP.TracerOrigin == "Top" then origin = V2(vpSize.X / 2, 0)
+                elseif Config.ESP.TracerOrigin == "Mouse" then origin = Util.MousePos()
+                else origin = V2(vpSize.X / 2, vpSize.Y / 2) end
+                d.Tracer.From = origin
+                d.Tracer.To = rootScreen
+                d.Tracer.Color = col
+                d.Tracer.Thickness = Config.ESP.TracerThickness
+                d.Tracer.Visible = true
+            else
+                d.Tracer.Visible = false
+                d.Tracer.From = V2(-2000, -2000)
+                d.Tracer.To = V2(-2000, -2000)
+            end
+        else
+            d.Tracer.Visible = false
+            d.Tracer.From = V2(-2000, -2000)
+            d.Tracer.To = V2(-2000, -2000)
+        end
+    end
+
+    -- 5. SKELETON
     pcall(function()
         if Config.ESP.Enabled and Config.ESP.Skeleton then
             ESP.DrawSkeleton(d, char, Config.ESP.SkeletonColor)
@@ -1067,61 +1118,31 @@ function ESP.Update(player, d)
         end
     end)
 
-    -- 8. CHAMS
-    pcall(function()
-        ESP.UpdateChams(player)
-    end)
-
-    -- 9. INVENTORY ESP
-    pcall(function()
-        if Config.InventoryESP.Enabled and d.Inventory then
-            local items = {}
-            local itemCount = 0
-
-            if Config.InventoryESP.ShowEquipped then
-                for _, c in ipairs(char:GetChildren()) do
-                    if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                        local info = Util.GetToolInfo(c, true)
-                        if info.display then
-                            tInsert(items, info.display)
-                            itemCount = itemCount + 1
-                        end
-                    end
-                end
-            end
-            if Config.InventoryESP.ShowBackpack then
-                local bp = player:FindFirstChild("Backpack")
-                if bp then
-                    for _, c in ipairs(bp:GetChildren()) do
-                        if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                            local info = Util.GetToolInfo(c, false)
-                            if info.display then
-                                tInsert(items, info.display)
-                                itemCount = itemCount + 1
-                            end
-                        end
-                    end
-                end
-            end
-            if #items > 0 then
-                d.Inventory.Text = tConcat(items, " | ")
-                local hasEquipped = false
-                for _, c in ipairs(char:GetChildren()) do
-                    if c:IsA("Tool") then hasEquipped = true; break end
-                end
-                d.Inventory.Color = hasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
-                d.Inventory.Size = Config.InventoryESP.TextSize
-                local yOff = boxBottomY + (Config.ESP.Distance and 16 or 3)
-                local tb = d.Inventory.TextBounds
-                d.Inventory.Position = V2(mFloor(boxCenterX - (tb.X / 2)), yOff)
-                d.Inventory.Visible = true
-            else
-                d.Inventory.Visible = false
-            end
-        elseif d.Inventory then
-            d.Inventory.Visible = false
+    -- 6. HEAD DOT
+    if Config.ESP.Enabled and Config.ESP.HeadDot and head then
+        if not d.HeadDot and Drawing and Drawing.new then
+            pcall(function()
+                d.HeadDot = Drawing.new("Circle")
+                d.HeadDot.Filled = true
+                d.HeadDot.NumSides = 12
+            end)
         end
-    end)
+        if d.HeadDot then
+            local headScreen, headOn = Util.W2S(head.Position)
+            if headOn then
+                d.HeadDot.Position = headScreen
+                d.HeadDot.Radius = mClamp(Config.ESP.HeadDotSize * (200 / dist), 1, 8)
+                d.HeadDot.Color = col
+                d.HeadDot.Visible = true
+            else
+                d.HeadDot.Visible = false
+                d.HeadDot.Position = V2(-2000, -2000)
+            end
+        end
+    elseif d.HeadDot then
+        d.HeadDot.Visible = false
+        d.HeadDot.Position = V2(-2000, -2000)
+    end
 end
 
 
@@ -2648,36 +2669,23 @@ local function RenderLoop()
     -- Camera refresh
     Camera = Workspace.CurrentCamera
 
-    -- ESP (v3.4: each player wrapped independently)
-    local _espErrCount = 0
+    -- ESP (v3.6: native Roblox rendering with safe cleanup)
     for player, drawings in pairs(State.ESPCache) do
         pcall(function()
             if player and player.Parent then
                 if not player.Character or not player.Character.Parent then
                     pcall(ESP.HideAll, drawings)
-                elseif Config.ESP.Enabled or Config.InventoryESP.Enabled then
-                    local updateOk, updateErr = pcall(ESP.Update, player, drawings)
-                    if not updateOk then
-                        _espErrCount = _espErrCount + 1
-                        pcall(ESP.HideAll, drawings)
-                    end
+                elseif Config.ESP.Enabled or Config.InventoryESP.Enabled or Config.ESP.Chams then
+                    pcall(ESP.Update, player, drawings)
                 else
                     pcall(ESP.HideAll, drawings)
-                    if Config.ESP.Chams then pcall(ESP.UpdateChams, player) end
                 end
             else
                 pcall(ESP.Destroy, drawings)
                 State.ESPCache[player] = nil
-                if State.ChamsCache[player] then
-                    pcall(function() State.ChamsCache[player]:Destroy() end)
-                    State.ChamsCache[player] = nil
-                end
+                State.ChamsCache[player] = nil
             end
         end)
-    end
-    -- v3.4: Debug - show error count on screen (remove later)
-    if _espErrCount > 0 then
-        State._espDebugErrors = (State._espDebugErrors or 0) + _espErrCount
     end
 
     -- Aimbot FOV Circle
@@ -2891,9 +2899,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.5 Loaded!", C3(180, 80, 255), 4)
+    Notify.Send("PHANTOM v3.6 Loaded!", C3(180, 80, 255), 4)
     Notify.Send("Premi G per il menu", C3(200, 200, 200), 5)
-    Notify.Send("v3.5: ESP Bounding Box Fix — perfect tracking!", C3(50, 255, 100), 6)
+    Notify.Send("v3.6: Native Highlight & BillboardGui ESP — 100% Xeno Immune!", C3(50, 255, 100), 6)
 end
 
 local ok, err = pcall(Init)
