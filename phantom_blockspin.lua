@@ -391,7 +391,13 @@ function Util.Center()
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0, 0) end
     local vp = cam.ViewportSize
-    return V2(vp.X/2, vp.Y/2)
+    local offsetY = 36
+    pcall(function()
+        if GuiService then
+            offsetY = GuiService:GetGuiInset().Y
+        end
+    end)
+    return V2(vp.X / 2, (vp.Y / 2) - offsetY)
 end
 
 function Util.RF(a, b)
@@ -1166,7 +1172,7 @@ end
 
 function Aimbot.FindTarget()
     local best, bestVal = nil, mHuge
-    local center = Util.Center()
+    local aimPoint = UserInputService:GetMouseLocation()
 
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
@@ -1187,7 +1193,7 @@ function Aimbot.FindTarget()
                             if Config.Aimbot.TargetMode == "Distance" then
                                 val = d3
                             else
-                                val = Util.D2(sp, center)
+                                val = Util.D2(sp, aimPoint)
                             end
 
                             if val <= Config.Aimbot.FOV and val < bestVal then
@@ -1221,8 +1227,8 @@ function Aimbot.AimAt(worldPos)
     local sp, on = Util.W2S(worldPos)
     if not on then return end
 
-    local center = Util.Center()
-    local delta = sp - center
+    local aimPoint = UserInputService:GetMouseLocation()
+    local delta = sp - aimPoint
 
     -- v3: Adaptive smoothing
     local smooth
