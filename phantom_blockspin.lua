@@ -120,9 +120,9 @@ local Config = {
         HeadDot         = false,
         HeadDotSize     = 3,
         VisibilityCheck = true,
-        VisibleColor    = C3(50, 255, 100),
-        NotVisibleColor = C3(255, 50, 80),
-        DefaultColor    = C3(255, 50, 80),
+        VisibleColor    = C3(255, 40, 40),
+        NotVisibleColor = C3(160, 20, 20),
+        DefaultColor    = C3(255, 40, 40),
         NameColor       = C3(255, 255, 255),
         DistanceColor   = C3(200, 200, 200),
         MaxDistance      = 1000,
@@ -134,8 +134,8 @@ local Config = {
         SkeletonThickness = 1.5,
         -- v3: Chams
         Chams           = false,
-        ChamsVisibleColor   = C3(50, 255, 100),
-        ChamsHiddenColor    = C3(255, 50, 80),
+        ChamsVisibleColor   = C3(255, 40, 40),
+        ChamsHiddenColor    = C3(160, 20, 20),
         ChamsTransparency   = 0.3,
     },
 
@@ -348,7 +348,7 @@ local Util = {}
 function Util.W2S(pos)
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0,0), false, 0 end
-    local sp, on = cam:WorldToScreenPoint(pos)
+    local sp, on = cam:WorldToViewportPoint(pos)
     return V2(sp.X, sp.Y), (on and sp.Z > 0), sp.Z
 end
 
@@ -1234,9 +1234,9 @@ end
 
 function Aimbot.Predict(part)
     local targetPos = part.Position
-    -- If targeting Head, aim slightly lower at the actual face/jaw level so it doesn't overshoot upwards
+    -- Calibrate head aim down by 0.65 studs to hit direct face/chin center and eliminate overshooting above head
     if part.Name == "Head" then
-        targetPos = targetPos - V3(0, 0.25, 0)
+        targetPos = targetPos - V3(0, 0.65, 0)
     end
     if not Config.Aimbot.Prediction then return targetPos end
     local vel = V3(0,0,0)
