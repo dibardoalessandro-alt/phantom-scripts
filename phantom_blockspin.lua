@@ -391,13 +391,7 @@ function Util.Center()
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0, 0) end
     local vp = cam.ViewportSize
-    local offsetY = 36
-    pcall(function()
-        if GuiService then
-            offsetY = GuiService:GetGuiInset().Y
-        end
-    end)
-    return V2(vp.X / 2, (vp.Y / 2) - offsetY)
+    return V2(vp.X / 2, vp.Y / 2)
 end
 
 function Util.RF(a, b)
@@ -1380,59 +1374,69 @@ function Triggerbot.Process()
         local target = Triggerbot.FindFOVTarget()
         hasTarget = (target ~= nil)
     else
-        -- CROSSHAIR MODE: traditional raycast from screen center
+        -- CROSSHAIR MODE: hybrid raycast + screen-center part intersection (flawless at ANY distance)
         local center = Util.Center()
-        local ray = Camera:ViewportPointToRay(center.X, center.Y)
-        local params = RParams()
-        params.FilterType = Enum.RaycastFilterType.Exclude
-        local fl = {Camera}
-        if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
-        params.FilterDescendantsInstances = fl
 
-        local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
-        if r and r.Instance then
-            -- Walk up tree to find character (handles accessories)
-            local hitInstance = r.Instance
-            local current = hitInstance
-            while current and current ~= Workspace do
-                if current:IsA("Model") then
-                    local p = Players:GetPlayerFromCharacter(current)
-                    if p and p ~= LocalPlayer then
-                        if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
-                            -- Resolve body part for accessories
-                            local hitPartName = hitInstance.Name
-                            local accessory = hitInstance:FindFirstAncestorOfClass("Accessory")
-                            if accessory then
-                                local resolvedPart = nil
-                                pcall(function()
-                                    for _, desc in ipairs(accessory:GetDescendants()) do
-                                        if desc:IsA("Weld") or desc:IsA("WeldConstraint") or desc:IsA("Motor6D") then
-                                            if desc.Part0 and desc.Part0.Parent == current then
-                                                resolvedPart = desc.Part0.Name
-                                            elseif desc.Part1 and desc.Part1.Parent == current then
-                                                resolvedPart = desc.Part1.Name
+        -- 1. Check direct 2D crosshair alignment with all target parts (immune to transparent barriers / hitboxes)
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and Util.Alive(p) then
+                if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                    local char = p.Character
+                    if char then
+                        local root = char:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            local d3 = Util.D3(root.Position, Camera.CFrame.Position)
+                            if d3 <= Config.Triggerbot.MaxDistance then
+                                for _, partName in ipairs(Config.Triggerbot.TargetParts) do
+                                    local part = char:FindFirstChild(partName)
+                                    if part then
+                                        local vp, on = Camera:WorldToViewportPoint(part.Position)
+                                        if on and vp.Z > 0 then
+                                            local partScreenRadius = mClamp((part.Size.Magnitude / 2) * (Camera.ViewportSize.Y / (2 * math.tan(math.rad(Camera.FieldOfView / 2)) * vp.Z)), 4, 30)
+                                            if Util.D2(V2(vp.X, vp.Y), center) <= partScreenRadius then
+                                                if Config.Triggerbot.HeadshotOnly then
+                                                    if partName == "Head" then hasTarget = true break end
+                                                else
+                                                    hasTarget = true
+                                                    break
+                                                end
                                             end
-                                            if resolvedPart then break end
                                         end
-                                    end
-                                end)
-                                hitPartName = resolvedPart or "Head"
-                                hasTarget = true -- accessory hit = always valid
-                            else
-                                -- Check if hit part is in target parts list
-                                if Config.Triggerbot.HeadshotOnly then
-                                    hasTarget = (hitPartName == "Head")
-                                else
-                                    for _, pn in ipairs(Config.Triggerbot.TargetParts) do
-                                        if hitPartName == pn then hasTarget = true; break end
                                     end
                                 end
                             end
                         end
-                        break
                     end
                 end
-                current = current.Parent
+            end
+            if hasTarget then break end
+        end
+
+        -- 2. Fallback to physical Raycast if 2D check didn't trip
+        if not hasTarget then
+            local ray = Camera:ViewportPointToRay(center.X, center.Y)
+            local params = RParams()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            local fl = {Camera}
+            if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
+            params.FilterDescendantsInstances = fl
+
+            local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
+            if r and r.Instance then
+                local hitInstance = r.Instance
+                local current = hitInstance
+                while current and current ~= Workspace do
+                    if current:IsA("Model") then
+                        local p = Players:GetPlayerFromCharacter(current)
+                        if p and p ~= LocalPlayer then
+                            if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                                hasTarget = true
+                            end
+                            break
+                        end
+                    end
+                    current = current.Parent
+                end
             end
         end
     end
