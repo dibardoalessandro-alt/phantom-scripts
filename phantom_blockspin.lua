@@ -903,6 +903,20 @@ function ESP.Update(player, d)
         size = V3(4, 5.5, 2)
     end
 
+    -- First check root part visibility using WorldToViewportPoint
+    local rootScreen, rootOnScreen = cam:WorldToViewportPoint(rootPos)
+    if not rootOnScreen or rootScreen.Z <= 0 then
+        ESP.HideAll(d)
+        return
+    end
+
+    local vpSize = cam.ViewportSize
+    -- If root screen position is outside screen bounds with small threshold, hide immediately
+    if rootScreen.X < -50 or rootScreen.X > vpSize.X + 50 or rootScreen.Y < -50 or rootScreen.Y > vpSize.Y + 50 then
+        ESP.HideAll(d)
+        return
+    end
+
     local halfSize = size / 2
     local corners3D = {
         cframe * CF(-halfSize.X,  halfSize.Y, -halfSize.Z),
@@ -917,27 +931,24 @@ function ESP.Update(player, d)
 
     local minX, maxX = mHuge, -mHuge
     local minY, maxY = mHuge, -mHuge
-    local allInFront = true
+    local anyInFront = false
 
     for i = 1, 8 do
         local sp, onScreen = cam:WorldToViewportPoint(corners3D[i].Position)
-        if sp.Z <= 0 then
-            allInFront = false
-            break
+        if sp.Z > 0 then
+            anyInFront = true
+            if sp.X < minX then minX = sp.X end
+            if sp.X > maxX then maxX = sp.X end
+            if sp.Y < minY then minY = sp.Y end
+            if sp.Y > maxY then maxY = sp.Y end
         end
-        if sp.X < minX then minX = sp.X end
-        if sp.X > maxX then maxX = sp.X end
-        if sp.Y < minY then minY = sp.Y end
-        if sp.Y > maxY then maxY = sp.Y end
     end
 
-    -- Rigorous check: if any corner is behind the camera, HIDE ALL immediately
-    if not allInFront then
+    if not anyInFront then
         ESP.HideAll(d)
         return
     end
 
-    local vpSize = cam.ViewportSize
     local boxW = maxX - minX
     local boxH = maxY - minY
     local boxX = mFloor(minX)
@@ -945,13 +956,13 @@ function ESP.Update(player, d)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
-    -- Sanity check & off-screen viewport clipping check
+    -- Strict screen edge check: if bounding box is fully off-screen or absurdly oversized, hide!
     if boxH < 3 or boxW < 3 or boxH > (vpSize.Y * 1.5) then
         ESP.HideAll(d)
         return
     end
 
-    if (boxX + boxW < -20) or (boxX > vpSize.X + 20) or (boxY + boxH < -20) or (boxY > vpSize.Y + 20) then
+    if (boxX + boxW < 0) or (boxX > vpSize.X) or (boxY + boxH < 0) or (boxY > vpSize.Y) then
         ESP.HideAll(d)
         return
     end
