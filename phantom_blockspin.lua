@@ -910,7 +910,7 @@ function ESP.Update(player, d)
     local head = char:FindFirstChild("Head")
     if not root or not hum then ESP.HideAll(d) return end
 
-    -- v3.5: Always fetch FRESH camera reference every frame
+    -- Fetch camera
     local cam = Workspace.CurrentCamera
     if not cam then ESP.HideAll(d) return end
     local camPos = cam.CFrame.Position
@@ -918,29 +918,32 @@ function ESP.Update(player, d)
     local dist = Util.D3(rootPos, camPos)
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- v3.5 FIX: Manual viewport bounds check
-    -- DO NOT rely on WorldToViewportPoint's onScreen boolean — it's
-    -- unreliable on some executors (Xeno). Instead, check the raw
-    -- projected X,Y coordinates against the viewport size ourselves.
-    local rootVP = cam:WorldToViewportPoint(rootPos)
+    -- Calcolo Bounding Box basato sul CFrame del personaggio
+    local cf, size = char:GetBoundingBox()
+    local rootVP, onScreen = cam:WorldToViewportPoint(cf.Position)
 
-    -- Behind camera? Hide immediately
-    if rootVP.Z <= 0 then ESP.HideAll(d) return end
-
-    -- Manual viewport bounds: if root center is outside screen, HIDE
-    local vpSize = cam.ViewportSize
-    if rootVP.X < 0 or rootVP.X > vpSize.X or rootVP.Y < 0 or rootVP.Y > vpSize.Y then
-        ESP.HideAll(d) return
+    -- Se è dietro alla telecamera o non visibile a schermo, nascondi subito
+    if not onScreen or rootVP.Z <= 0 then
+        ESP.HideAll(d)
+        return
     end
 
-    local topVP = cam:WorldToViewportPoint(rootPos + V3(0, 3, 0))
-    local botVP = cam:WorldToViewportPoint(rootPos - V3(0, 3.5, 0))
+    local topPos = cf.Position + V3(0, size.Y / 2 + 0.5, 0)
+    local botPos = cf.Position - V3(0, size.Y / 2 + 0.5, 0)
+    local topVP, topOn = cam:WorldToViewportPoint(topPos)
+    local botVP, botOn = cam:WorldToViewportPoint(botPos)
+
+    if topVP.Z <= 0 or botVP.Z <= 0 then
+        ESP.HideAll(d)
+        return
+    end
 
     local boxH = mAbs(botVP.Y - topVP.Y)
     if boxH < 2 then ESP.HideAll(d) return end
 
-    local boxW = boxH * 0.55
-    local boxX = rootVP.X - boxW / 2
+    -- Rapporto larghezza box proporzionato al modello
+    local boxW = boxH * 0.65
+    local boxX = rootVP.X - (boxW / 2)
     local boxY = topVP.Y
 
     local sTop = V2(rootVP.X, topVP.Y)
