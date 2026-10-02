@@ -1172,7 +1172,9 @@ end
 
 function Aimbot.FindTarget()
     local best, bestVal = nil, mHuge
-    local aimPoint = UserInputService:GetMouseLocation()
+    local cam = Workspace.CurrentCamera
+    if not cam then return nil end
+    local center = V2(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
 
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
@@ -1185,20 +1187,21 @@ function Aimbot.FindTarget()
 
                 local part = p.Character:FindFirstChild(targetPart)
                 if part then
-                    local d3 = Util.D3(part.Position, Camera.CFrame.Position)
+                    local d3 = Util.D3(part.Position, cam.CFrame.Position)
                     if d3 <= Config.Aimbot.MaxDistance then
-                        local sp, on = Util.W2S(part.Position)
-                        if on then
+                        local vp, on = cam:WorldToViewportPoint(part.Position)
+                        if on and vp.Z > 0 then
+                            local sp = V2(vp.X, vp.Y)
                             local val
                             if Config.Aimbot.TargetMode == "Distance" then
                                 val = d3
                             else
-                                val = Util.D2(sp, aimPoint)
+                                val = Util.D2(sp, center)
                             end
 
                             if val <= Config.Aimbot.FOV and val < bestVal then
                                 if Config.Aimbot.WallCheck then
-                                    if Util.Visible(Camera.CFrame.Position, part.Position, p) then
+                                    if Util.Visible(cam.CFrame.Position, part.Position, p) then
                                         best = p; bestVal = val
                                     end
                                 else
@@ -1215,20 +1218,30 @@ function Aimbot.FindTarget()
 end
 
 function Aimbot.Predict(part)
-    if not Config.Aimbot.Prediction then return part.Position end
+    local targetPos = part.Position
+    -- If targeting Head, aim slightly lower at the actual face/jaw level so it doesn't overshoot upwards
+    if part.Name == "Head" then
+        targetPos = targetPos - V3(0, 0.25, 0)
+    end
+    if not Config.Aimbot.Prediction then return targetPos end
     local vel = V3(0,0,0)
     pcall(function() vel = part.AssemblyLinearVelocity end)
     if vel.Magnitude < 0.1 then pcall(function() vel = part.Velocity end) end
-    return part.Position + (vel * Config.Aimbot.PredictionMultiplier)
+    -- Only predict X and Z velocity to prevent vertical jumping over head
+    return targetPos + (V3(vel.X, 0, vel.Z) * Config.Aimbot.PredictionMultiplier)
 end
 
 function Aimbot.AimAt(worldPos)
     if not HAS_MOUSEMOVEREL then return end
-    local sp, on = Util.W2S(worldPos)
-    if not on then return end
+    local cam = Workspace.CurrentCamera
+    if not cam then return end
+    
+    local vp, on = cam:WorldToViewportPoint(worldPos)
+    if not on or vp.Z <= 0 then return end
 
-    local aimPoint = UserInputService:GetMouseLocation()
-    local delta = sp - aimPoint
+    local vpSize = cam.ViewportSize
+    local center = V2(vpSize.X / 2, vpSize.Y / 2)
+    local delta = V2(vp.X, vp.Y) - center
 
     -- v3: Adaptive smoothing
     local smooth
@@ -1243,8 +1256,8 @@ function Aimbot.AimAt(worldPos)
         smooth = Config.Aimbot.Smoothing
     end
 
-    local mx = delta.X / smooth
-    local my = delta.Y / smooth
+    local mx = delta.X / math.max(smooth, 1)
+    local my = delta.Y / math.max(smooth, 1)
 
     if Config.Aimbot.HumanizeJitter then
         local js = Config.Aimbot.JitterStrength
@@ -1254,12 +1267,13 @@ function Aimbot.AimAt(worldPos)
 
     mousemoverel(mx, my)
 
+    local sp = Util.W2S(worldPos)
     -- Target dot
     if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
 
     -- v3: Snap line
     if Config.Aimbot.ShowSnapLine and SnapLine then
-        SnapLine.From = center
+        SnapLine.From = Util.Center()
         SnapLine.To = sp
         SnapLine.Color = Config.Aimbot.SnapLineColor
         SnapLine.Visible = true
