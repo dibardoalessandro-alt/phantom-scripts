@@ -652,67 +652,31 @@ local _charConns = {}
 
 function ESP.Create()
     local d = {}
-    pcall(function()
-        -- Box
-        d.Box = Drawing.new("Square")
-        d.Box.Thickness = Config.ESP.BoxThickness; d.Box.Filled = false; d.Box.Visible = false
+    
+    local function safeNew(typ, props)
+        local ok, obj = pcall(function()
+            local item = Drawing.new(typ)
+            if props then
+                for k, v in pairs(props) do
+                    item[k] = v
+                end
+            end
+            return item
+        end)
+        return ok and obj or nil
+    end
 
-        d.BoxOutline = Drawing.new("Square")
-        d.BoxOutline.Thickness = Config.ESP.BoxThickness + 2; d.BoxOutline.Filled = false; d.BoxOutline.Visible = false
-        d.BoxOutline.Color = C3(0,0,0)
+    d.Box = safeNew("Square", {Thickness = Config.ESP.BoxThickness, Filled = false, Visible = false})
+    d.BoxOutline = safeNew("Square", {Thickness = Config.ESP.BoxThickness + 2, Filled = false, Visible = false, Color = C3(0,0,0)})
+    d.Name = safeNew("Text", {Size = Config.ESP.NameSize, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
+    d.Dist = safeNew("Text", {Size = 12, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
+    d.HealthBG = safeNew("Line", {Thickness = Config.ESP.HealthBarWidth + 2, Visible = false, Color = C3(20,20,20)})
+    d.Health = safeNew("Line", {Thickness = Config.ESP.HealthBarWidth, Visible = false})
+    d.HealthText = safeNew("Text", {Size = 10, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
+    d.Tracer = safeNew("Line", {Thickness = Config.ESP.TracerThickness, Visible = false})
+    d.HeadDot = safeNew("Circle", {Filled = true, NumSides = 12, Radius = Config.ESP.HeadDotSize, Visible = false})
+    d.Inventory = safeNew("Text", {Size = Config.InventoryESP.TextSize, Font = FONT, Outline = true, OutlineColor = C3(0,0,0), Visible = false})
 
-        -- Corner lines (8 lines for corner box)
-        d.Corners = {}
-        for i=1,8 do
-            d.Corners[i] = Drawing.new("Line")
-            d.Corners[i].Thickness = Config.ESP.BoxThickness; d.Corners[i].Visible = false
-        end
-        d.CornerOutlines = {}
-        for i=1,8 do
-            d.CornerOutlines[i] = Drawing.new("Line")
-            d.CornerOutlines[i].Thickness = Config.ESP.BoxThickness + 2; d.CornerOutlines[i].Visible = false
-            d.CornerOutlines[i].Color = C3(0,0,0)
-        end
-
-        d.Name = Drawing.new("Text")
-        d.Name.Size = Config.ESP.NameSize; d.Name.Font = FONT
-        d.Name.Outline = true; d.Name.OutlineColor = C3(0,0,0); d.Name.Visible = false
-
-        d.Dist = Drawing.new("Text")
-        d.Dist.Size = 12; d.Dist.Font = FONT
-        d.Dist.Outline = true; d.Dist.OutlineColor = C3(0,0,0); d.Dist.Visible = false
-
-        d.HealthBG = Drawing.new("Line")
-        d.HealthBG.Thickness = Config.ESP.HealthBarWidth + 2; d.HealthBG.Visible = false
-
-        d.Health = Drawing.new("Line")
-        d.Health.Thickness = Config.ESP.HealthBarWidth; d.Health.Visible = false
-
-        -- v3: Health text
-        d.HealthText = Drawing.new("Text")
-        d.HealthText.Size = 10; d.HealthText.Font = FONT
-        d.HealthText.Outline = true; d.HealthText.OutlineColor = C3(0,0,0); d.HealthText.Visible = false
-
-        d.Tracer = Drawing.new("Line")
-        d.Tracer.Thickness = Config.ESP.TracerThickness; d.Tracer.Visible = false
-
-        d.HeadDot = Drawing.new("Circle")
-        d.HeadDot.Filled = true; d.HeadDot.NumSides = 12
-        d.HeadDot.Radius = Config.ESP.HeadDotSize; d.HeadDot.Visible = false
-
-        d.Inventory = Drawing.new("Text")
-        d.Inventory.Size = Config.InventoryESP.TextSize; d.Inventory.Font = FONT
-        d.Inventory.Outline = true; d.Inventory.OutlineColor = C3(0,0,0); d.Inventory.Visible = false
-
-        -- v3: Skeleton lines (14 bones)
-        d.Skeleton = {}
-        for i=1, #SKELETON_BONES do
-            d.Skeleton[i] = Drawing.new("Line")
-            d.Skeleton[i].Thickness = Config.ESP.SkeletonThickness
-            d.Skeleton[i].Color = Config.ESP.SkeletonColor
-            d.Skeleton[i].Visible = false
-        end
-    end)
     return d
 end
 
@@ -2865,9 +2829,21 @@ end
 -- INIT
 -- ═══════════════════════════════════════════════════
 local function Init()
-    for _, p in ipairs(Players:GetPlayers()) do ESP.Register(p) end
+    task.spawn(function()
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then
+                ESP.Register(p)
+                task.wait(0.02)
+            end
+        end
+    end)
 
-    State.Connections.Added = Players.PlayerAdded:Connect(function(p) ESP.Register(p) end)
+    State.Connections.Added = Players.PlayerAdded:Connect(function(p)
+        task.spawn(function()
+            task.wait(0.1)
+            ESP.Register(p)
+        end)
+    end)
     State.Connections.Removing = Players.PlayerRemoving:Connect(function(p) ESP.Unregister(p) end)
     State.Connections.InputBegan = UserInputService.InputBegan:Connect(OnInputBegan)
     State.Connections.InputEnded = UserInputService.InputEnded:Connect(OnInputEnded)
