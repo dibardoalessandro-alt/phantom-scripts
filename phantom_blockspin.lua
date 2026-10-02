@@ -348,14 +348,8 @@ local Util = {}
 function Util.W2S(pos)
     local cam = Workspace.CurrentCamera
     if not cam then return V2(0,0), false, 0 end
-    local sp, on = cam:WorldToViewportPoint(pos)
-    local offsetY = 36
-    pcall(function()
-        if GuiService then
-            offsetY = GuiService:GetGuiInset().Y
-        end
-    end)
-    return V2(sp.X, sp.Y - offsetY), (on and sp.Z > 0), sp.Z
+    local sp, on = cam:WorldToScreenPoint(pos)
+    return V2(sp.X, sp.Y), (on and sp.Z > 0), sp.Z
 end
 
 function Util.D2(a, b)
@@ -901,7 +895,7 @@ function ESP.Update(player, d)
 
     local vpSize = cam.ViewportSize
 
-    -- 1. Get Head and Root screen positions via Util.W2S (which now correctly applies GuiInset)
+    -- 1. Get Head and Root screen positions
     local headPart = char:FindFirstChild("Head")
     local rootPart = char:FindFirstChild("HumanoidRootPart")
     if not rootPart then ESP.HideAll(d) return end
@@ -920,7 +914,7 @@ function ESP.Update(player, d)
     end
 
     local boxH = mFloor(mAbs(botScreen.Y - topScreen.Y))
-    local boxW = mFloor(boxH * 0.60)
+    local boxW = mFloor(boxH * 0.55)
     local boxX = mFloor(rootScreen.X - (boxW / 2))
     local boxY = mFloor(topScreen.Y)
     local boxCenterX = mFloor(boxX + (boxW / 2))
