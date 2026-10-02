@@ -924,8 +924,13 @@ function ESP.Update(player, d)
     local topVP, topOn   = cam:WorldToViewportPoint(topWorld)
     local botVP, botOn   = cam:WorldToViewportPoint(botWorld)
 
-    -- Controllo di visibilità rigoroso: devono essere davanti alla telecamera
-    if (not rootOn and not topOn and not botOn) or rootVP.Z <= 0 or topVP.Z <= 0 or botVP.Z <= 0 then
+    -- Controllo di visibilità rigoroso: root, top e bot DEVONO essere tutti visibili e davanti alla telecamera
+    if not rootOn or rootVP.Z <= 0 then
+        ESP.HideAll(d)
+        return
+    end
+
+    if not topOn or not botOn or topVP.Z <= 0 or botVP.Z <= 0 then
         ESP.HideAll(d)
         return
     end
@@ -936,7 +941,13 @@ function ESP.Update(player, d)
     local maxY = (topY < botY) and botY or topY
 
     local boxH = mAbs(maxY - minY)
-    if boxH < 4 then ESP.HideAll(d) return end
+    local vpSize = cam.ViewportSize
+
+    -- Sanity check: altezza minima e massima per evitare box enormi a bordo schermo
+    if boxH < 4 or boxH > (vpSize.Y * 0.85) then
+        ESP.HideAll(d)
+        return
+    end
 
     local boxW = boxH * 0.60
     local boxX = mFloor(rootVP.X - (boxW / 2))
@@ -944,8 +955,8 @@ function ESP.Update(player, d)
     local boxCenterX = mFloor(boxX + (boxW / 2))
     local boxBottomY = mFloor(boxY + boxH)
 
-    local vpSize = cam.ViewportSize
-    if (boxX + boxW < -20) or (boxX > vpSize.X + 20) or (boxY + boxH < -20) or (boxY > vpSize.Y + 20) then
+    -- Se il box è fuori dallo schermo, nascondi tutto
+    if (boxX + boxW < 0) or (boxX > vpSize.X) or (boxY + boxH < 0) or (boxY > vpSize.Y) then
         ESP.HideAll(d)
         return
     end
