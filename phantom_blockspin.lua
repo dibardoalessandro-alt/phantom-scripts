@@ -1,12 +1,11 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.8 · BlockSpin Stealth Suite                    ║
-    ║     Native Cyber UI Edition · Built for Xeno                  ║
+    ║     PHANTOM v4.0 · BlockSpin Ultra Curved Edition             ║
+    ║     Cyber-Neon Standalone Suite · Built for Xeno              ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v3.8: NATIVE CYBER UI — 100% Standalone (Zero HttpGet UI),  ║
-    ║        Ultra-fluid 60 FPS, Zero Bugs, Pure TweenService,      ║
-    ║        Native ESP Highlight + BillboardGui engine             ║
+    ║  v4.0: CURVED CYBER UI — 18px Rounding, Neon Glow Borders,    ║
+    ║        Spring Animated Toggles, Zero Lag, Zero HttpGet        ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -1729,13 +1728,13 @@ local function updateWatermark() end -- no-op
 
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
--- PHANTOM ELITE NATIVE GUI (100% Standalone · Zero HttpGet · Pure TweenService · 60 FPS Locked)
+-- ═══════════════════════════════════════════════════
+-- PHANTOM CYBER-NEON ULTRA GUI (v4.0 · Curvature 16px · Glow Stroke · Smooth Spring Tweens · 60 FPS)
 -- ═══════════════════════════════════════════════════
 local PhantomUI = {}
 local NativeGUI = nil
 
 local function BuildNativeGUI()
-    -- Rimuovi istanze precedenti se presenti
     local coreGui = game:GetService("CoreGui")
     local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
     local parentTarget = coreGui
@@ -1746,16 +1745,16 @@ local function BuildNativeGUI()
     end)
 
     pcall(function()
-        local old = parentTarget:FindFirstChild("PHANTOM_SUITE_GUI")
+        local old = parentTarget:FindFirstChild("PHANTOM_CYBER_GUI")
         if old then old:Destroy() end
         if playerGui then
-            local old2 = playerGui:FindFirstChild("PHANTOM_SUITE_GUI")
+            local old2 = playerGui:FindFirstChild("PHANTOM_CYBER_GUI")
             if old2 then old2:Destroy() end
         end
     end)
 
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "PHANTOM_SUITE_GUI"
+    ScreenGui.Name = "PHANTOM_CYBER_GUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.DisplayOrder = 999999
@@ -1765,51 +1764,64 @@ local function BuildNativeGUI()
 
     NativeGUI = ScreenGui
 
-    -- Colors & Palettes (Sleek Dark Cyber / Violet Accent)
-    local C_BG       = Color3.fromRGB(15, 15, 20)
-    local C_SIDEBAR  = Color3.fromRGB(20, 20, 28)
-    local C_CARD     = Color3.fromRGB(24, 24, 34)
-    local C_CARD_HOV = Color3.fromRGB(30, 30, 42)
-    local C_BORDER   = Color3.fromRGB(45, 45, 65)
-    local C_ACCENT   = Color3.fromRGB(168, 85, 247)
-    local C_ACCENT_D = Color3.fromRGB(126, 34, 206)
-    local C_TEXT     = Color3.fromRGB(240, 240, 245)
-    local C_SUBTEXT  = Color3.fromRGB(150, 150, 170)
-    local C_ON       = Color3.fromRGB(168, 85, 247)
-    local C_OFF      = Color3.fromRGB(40, 40, 55)
+    -- Premium Cyber Palette (Deep Glassmorphic Void + Radiant Neon Purple/Violet Gradient)
+    local C_MAIN_BG   = Color3.fromRGB(12, 12, 18)
+    local C_SIDE_BG   = Color3.fromRGB(16, 15, 25)
+    local C_CARD      = Color3.fromRGB(20, 20, 32)
+    local C_CARD_HOV  = Color3.fromRGB(26, 26, 42)
+    local C_BORDER    = Color3.fromRGB(58, 48, 88)
+    local C_GLOW      = Color3.fromRGB(192, 132, 252)
+    local C_NEON      = Color3.fromRGB(168, 85, 247)
+    local C_NEON_CYAN = Color3.fromRGB(56, 189, 248)
+    local C_TEXT      = Color3.fromRGB(245, 245, 252)
+    local C_MUTED     = Color3.fromRGB(140, 140, 168)
+    local C_TOGGLE_ON = Color3.fromRGB(168, 85, 247)
+    local C_TOGGLE_OFF= Color3.fromRGB(34, 34, 48)
 
-    -- Main Window Frame
-    local Main = Instance.new("Frame")
-    Main.Name = "MainFrame"
-    Main.Size = UDim2.new(0, 680, 0, 480)
-    Main.Position = UDim2.new(0.5, -340, 0.5, -240)
-    Main.BackgroundColor3 = C_BG
-    Main.BorderSizePixel = 0
-    Main.ClipsDescendants = true
-    Main.Parent = ScreenGui
+    -- Window Outer Glow Container (Curved Floating Window)
+    local Window = Instance.new("Frame")
+    Window.Name = "MainWindow"
+    Window.Size = UDim2.new(0, 700, 0, 490)
+    Window.Position = UDim2.new(0.5, -350, 0.5, -245)
+    Window.BackgroundColor3 = C_MAIN_BG
+    Window.BorderSizePixel = 0
+    Window.ClipsDescendants = true
+    Window.Parent = ScreenGui
 
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 12)
-    MainCorner.Parent = Main
+    -- Extra Smooth Curved Corners (18px)
+    local WindowCorner = Instance.new("UICorner")
+    WindowCorner.CornerRadius = UDim.new(0, 18)
+    WindowCorner.Parent = Window
 
-    local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = C_BORDER
-    MainStroke.Thickness = 1.2
-    MainStroke.Parent = Main
+    -- Glowing Neon Border Stroke
+    local WindowStroke = Instance.new("UIStroke")
+    WindowStroke.Color = C_BORDER
+    WindowStroke.Thickness = 1.5
+    WindowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    WindowStroke.Parent = Window
 
-    -- Dragging Logic
+    -- Subtle Gradient on the Main Background
+    local WinGrad = Instance.new("UIGradient")
+    WinGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 16, 28)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+    })
+    WinGrad.Rotation = 45
+    WinGrad.Parent = Window
+
+    -- Dragging Handler with inertia
     local dragging, dragInput, dragStart, startPos
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
-    Topbar.Size = UDim2.new(1, 0, 0, 48)
+    Topbar.Size = UDim2.new(1, 0, 0, 52)
     Topbar.BackgroundTransparency = 1
-    Topbar.Parent = Main
+    Topbar.Parent = Window
 
     Topbar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = Main.Position
+            startPos = Window.Position
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -1825,82 +1837,122 @@ local function BuildNativeGUI()
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            TweenService:Create(Window, TweenInfo.new(0.06, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            }):Play()
         end
     end)
 
-    -- Title & Badge
+    -- Brand Icon & Glowing Badge
+    local LogoBadge = Instance.new("Frame")
+    LogoBadge.Size = UDim2.new(0, 32, 0, 32)
+    LogoBadge.Position = UDim2.new(0, 16, 0.5, -16)
+    LogoBadge.BackgroundColor3 = C_NEON
+    LogoBadge.BorderSizePixel = 0
+    LogoBadge.Parent = Topbar
+
+    local LogoCorner = Instance.new("UICorner")
+    LogoCorner.CornerRadius = UDim.new(0, 10)
+    LogoCorner.Parent = LogoBadge
+
+    local LogoGrad = Instance.new("UIGradient")
+    LogoGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(192, 132, 252)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(126, 34, 206))
+    })
+    LogoGrad.Rotation = 90
+    LogoGrad.Parent = LogoBadge
+
     local LogoIcon = Instance.new("TextLabel")
-    LogoIcon.Size = UDim2.new(0, 26, 0, 26)
-    LogoIcon.Position = UDim2.new(0, 16, 0.5, -13)
-    LogoIcon.BackgroundColor3 = C_ACCENT
-    LogoIcon.Text = "⚡"
-    LogoIcon.TextSize = 14
+    LogoIcon.Size = UDim2.new(1, 0, 1, 0)
+    LogoIcon.BackgroundTransparency = 1
+    LogoIcon.Text = "✦"
+    LogoIcon.TextSize = 16
     LogoIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
     LogoIcon.Font = Enum.Font.GothamBold
-    LogoIcon.Parent = Topbar
-    local LCorner = Instance.new("UICorner")
-    LCorner.CornerRadius = UDim.new(0, 7)
-    LCorner.Parent = LogoIcon
+    LogoIcon.Parent = LogoBadge
 
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Position = UDim2.new(0, 50, 0, 8)
-    TitleLabel.Size = UDim2.new(0, 200, 0, 18)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "PHANTOM <font color=\"#c084fc\">v3.8</font>"
-    TitleLabel.RichText = true
-    TitleLabel.TextColor3 = C_TEXT
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextSize = 15
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = Topbar
+    local BrandTitle = Instance.new("TextLabel")
+    BrandTitle.Position = UDim2.new(0, 56, 0, 9)
+    BrandTitle.Size = UDim2.new(0, 220, 0, 20)
+    BrandTitle.BackgroundTransparency = 1
+    BrandTitle.Text = "PHANTOM <font color=\"#c084fc\">ULTRA</font>"
+    BrandTitle.RichText = true
+    BrandTitle.TextColor3 = C_TEXT
+    BrandTitle.Font = Enum.Font.GothamBold
+    BrandTitle.TextSize = 16
+    BrandTitle.TextXAlignment = Enum.TextXAlignment.Left
+    BrandTitle.Parent = Topbar
 
-    local SubLabel = Instance.new("TextLabel")
-    SubLabel.Position = UDim2.new(0, 50, 0, 26)
-    SubLabel.Size = UDim2.new(0, 250, 0, 14)
-    SubLabel.BackgroundTransparency = 1
-    SubLabel.Text = "BlockSpin Stealth Suite · 60 FPS Native"
-    SubLabel.TextColor3 = C_SUBTEXT
-    SubLabel.Font = Enum.Font.GothamMedium
-    SubLabel.TextSize = 11
-    SubLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SubLabel.Parent = Topbar
+    local BrandSub = Instance.new("TextLabel")
+    BrandSub.Position = UDim2.new(0, 56, 0, 28)
+    BrandSub.Size = UDim2.new(0, 250, 0, 14)
+    BrandSub.BackgroundTransparency = 1
+    BrandSub.Text = "BlockSpin Stealth · Cyber Curve Edition · 60 FPS"
+    BrandSub.TextColor3 = C_MUTED
+    BrandSub.Font = Enum.Font.GothamMedium
+    BrandSub.TextSize = 11
+    BrandSub.TextXAlignment = Enum.TextXAlignment.Left
+    BrandSub.Parent = Topbar
 
-    -- Window Controls (Minimize / Close)
+    -- Window Controls (Round Minimize & Close buttons)
+    local BtnBox = Instance.new("Frame")
+    BtnBox.Size = UDim2.new(0, 70, 0, 30)
+    BtnBox.Position = UDim2.new(1, -82, 0.5, -15)
+    BtnBox.BackgroundTransparency = 1
+    BtnBox.Parent = Topbar
+
+    local MinBtn = Instance.new("TextButton")
+    MinBtn.Size = UDim2.new(0, 28, 0, 28)
+    MinBtn.Position = UDim2.new(0, 0, 0, 1)
+    MinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
+    MinBtn.Text = "—"
+    MinBtn.TextColor3 = C_MUTED
+    MinBtn.Font = Enum.Font.GothamBold
+    MinBtn.TextSize = 12
+    MinBtn.Parent = BtnBox
+    local MCorner = Instance.new("UICorner")
+    MCorner.CornerRadius = UDim.new(0, 8)
+    MCorner.Parent = MinBtn
+
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-    CloseBtn.Position = UDim2.new(1, -38, 0.5, -14)
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(35, 25, 35)
+    CloseBtn.Position = UDim2.new(0, 36, 0, 1)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(45, 20, 30)
     CloseBtn.Text = "✕"
-    CloseBtn.TextColor3 = Color3.fromRGB(230, 100, 120)
+    CloseBtn.TextColor3 = Color3.fromRGB(244, 63, 94)
     CloseBtn.Font = Enum.Font.GothamBold
-    CloseBtn.TextSize = 13
-    CloseBtn.Parent = Topbar
-    local CBCorner = Instance.new("UICorner")
-    CBCorner.CornerRadius = UDim.new(0, 6)
-    CBCorner.Parent = CloseBtn
+    CloseBtn.TextSize = 12
+    CloseBtn.Parent = BtnBox
+    local CCorner = Instance.new("UICorner")
+    CCorner.CornerRadius = UDim.new(0, 8)
+    CCorner.Parent = CloseBtn
 
     CloseBtn.MouseButton1Click:Connect(function()
         State.GUIVisible = false
-        Main.Visible = false
+        Window.Visible = false
+    end)
+    MinBtn.MouseButton1Click:Connect(function()
+        State.GUIVisible = false
+        Window.Visible = false
     end)
 
-    -- Divider
+    -- Divider Line with subtle purple glow
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
-    TopDivider.Position = UDim2.new(0, 0, 0, 48)
+    TopDivider.Position = UDim2.new(0, 0, 0, 52)
     TopDivider.BackgroundColor3 = C_BORDER
     TopDivider.BorderSizePixel = 0
-    TopDivider.Parent = Main
+    TopDivider.Parent = Window
 
-    -- Sidebar (Tabs list)
+    -- Modern Curved Sidebar
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 170, 1, -49)
-    Sidebar.Position = UDim2.new(0, 0, 0, 49)
-    Sidebar.BackgroundColor3 = C_SIDEBAR
+    Sidebar.Size = UDim2.new(0, 175, 1, -53)
+    Sidebar.Position = UDim2.new(0, 0, 0, 53)
+    Sidebar.BackgroundColor3 = C_SIDE_BG
     Sidebar.BorderSizePixel = 0
-    Sidebar.Parent = Main
+    Sidebar.Parent = Window
 
     local SideLayout = Instance.new("UIListLayout")
     SideLayout.Padding = UDim.new(0, 6)
@@ -1915,15 +1967,15 @@ local function BuildNativeGUI()
     SidePad.PaddingRight = UDim.new(0, 10)
     SidePad.Parent = Sidebar
 
-    -- Content Area
+    -- Content Area with curved scroll view
     local ContentHolder = Instance.new("Frame")
     ContentHolder.Name = "ContentHolder"
-    ContentHolder.Size = UDim2.new(1, -170, 1, -49)
-    ContentHolder.Position = UDim2.new(0, 170, 0, 49)
+    ContentHolder.Size = UDim2.new(1, -175, 1, -53)
+    ContentHolder.Position = UDim2.new(0, 175, 0, 53)
     ContentHolder.BackgroundTransparency = 1
-    ContentHolder.Parent = Main
+    ContentHolder.Parent = Window
 
-    -- Tab Management
+    -- Tab System
     local Tabs = {}
     local TabButtons = {}
     local activeTab = nil
@@ -1934,10 +1986,30 @@ local function BuildNativeGUI()
             container.Visible = isTarget
             local btn = TabButtons[name]
             if btn then
-                TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    BackgroundColor3 = isTarget and C_ACCENT or Color3.fromRGB(26, 26, 36),
-                    TextColor3 = isTarget and Color3.fromRGB(255, 255, 255) or C_SUBTEXT
-                }):Play()
+                local pill = btn:FindFirstChild("IndicatorPill")
+                if isTarget then
+                    TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(32, 28, 50),
+                        TextColor3 = Color3.fromRGB(255, 255, 255)
+                    }):Play()
+                    if pill then
+                        TweenService:Create(pill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                            Size = UDim2.new(0, 4, 0.6, 0),
+                            BackgroundTransparency = 0
+                        }):Play()
+                    end
+                else
+                    TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(20, 20, 30),
+                        TextColor3 = C_MUTED
+                    }):Play()
+                    if pill then
+                        TweenService:Create(pill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                            Size = UDim2.new(0, 4, 0, 0),
+                            BackgroundTransparency = 1
+                        }):Play()
+                    end
+                end
             end
         end
         activeTab = tabName
@@ -1945,25 +2017,39 @@ local function BuildNativeGUI()
 
     local function CreateTab(name, icon)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 38)
-        btn.BackgroundColor3 = Color3.fromRGB(26, 26, 36)
+        btn.Size = UDim2.new(1, 0, 0, 40)
+        btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
         btn.BorderSizePixel = 0
-        btn.Text = "  " .. icon .. "  " .. name
-        btn.TextColor3 = C_SUBTEXT
+        btn.Text = "    " .. icon .. "   " .. name
+        btn.TextColor3 = C_MUTED
         btn.Font = Enum.Font.GothamMedium
         btn.TextSize = 13
         btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.AutoButtonColor = false
         btn.Parent = Sidebar
 
         local bCorner = Instance.new("UICorner")
-        bCorner.CornerRadius = UDim.new(0, 8)
+        bCorner.CornerRadius = UDim.new(0, 10)
         bCorner.Parent = btn
+
+        -- Neon Indicator on active tab
+        local pill = Instance.new("Frame")
+        pill.Name = "IndicatorPill"
+        pill.Size = UDim2.new(0, 4, 0, 0)
+        pill.Position = UDim2.new(0, 4, 0.2, 0)
+        pill.BackgroundColor3 = C_NEON
+        pill.BorderSizePixel = 0
+        pill.BackgroundTransparency = 1
+        pill.Parent = btn
+        local pCorner = Instance.new("UICorner")
+        pCorner.CornerRadius = UDim.new(1, 0)
+        pCorner.Parent = pill
 
         local Scroll = Instance.new("ScrollingFrame")
         Scroll.Name = name .. "_Page"
         Scroll.Size = UDim2.new(1, 0, 1, 0)
         Scroll.BackgroundTransparency = 1
-        Scroll.ScrollBarThickness = 3
+        Scroll.ScrollBarThickness = 4
         Scroll.ScrollBarImageColor3 = C_BORDER
         Scroll.BorderSizePixel = 0
         Scroll.Visible = false
@@ -1978,7 +2064,7 @@ local function BuildNativeGUI()
 
         local pPad = Instance.new("UIPadding")
         pPad.PaddingTop = UDim.new(0, 16)
-        pPad.PaddingBottom = UDim.new(0, 20)
+        pPad.PaddingBottom = UDim.new(0, 22)
         pPad.PaddingLeft = UDim.new(0, 18)
         pPad.PaddingRight = UDim.new(0, 18)
         pPad.Parent = Scroll
@@ -1992,32 +2078,45 @@ local function BuildNativeGUI()
 
         local tabMethods = {}
 
+        -- Section header with neon accent bar
         function tabMethods:AddSection(secName)
             local SecFrame = Instance.new("Frame")
-            SecFrame.Size = UDim2.new(1, 0, 0, 24)
+            SecFrame.Size = UDim2.new(1, 0, 0, 26)
             SecFrame.BackgroundTransparency = 1
             SecFrame.Parent = Scroll
 
+            local Bar = Instance.new("Frame")
+            Bar.Size = UDim2.new(0, 3, 0, 14)
+            Bar.Position = UDim2.new(0, 0, 0.5, -7)
+            Bar.BackgroundColor3 = C_NEON
+            Bar.BorderSizePixel = 0
+            Bar.Parent = SecFrame
+            local bCorner2 = Instance.new("UICorner")
+            bCorner2.CornerRadius = UDim.new(1, 0)
+            bCorner2.Parent = Bar
+
             local SecLabel = Instance.new("TextLabel")
-            SecLabel.Size = UDim2.new(1, 0, 1, 0)
+            SecLabel.Size = UDim2.new(1, -12, 1, 0)
+            SecLabel.Position = UDim2.new(0, 10, 0, 0)
             SecLabel.BackgroundTransparency = 1
             SecLabel.Text = string.upper(secName)
-            SecLabel.TextColor3 = C_ACCENT
+            SecLabel.TextColor3 = C_GLOW
             SecLabel.Font = Enum.Font.GothamBold
             SecLabel.TextSize = 11
             SecLabel.TextXAlignment = Enum.TextXAlignment.Left
             SecLabel.Parent = SecFrame
         end
 
+        -- Curvy Toggle Card (12px radius + sliding pill)
         function tabMethods:AddToggle(title, defaultVal, callback)
             local Card = Instance.new("Frame")
-            Card.Size = UDim2.new(1, 0, 0, 42)
+            Card.Size = UDim2.new(1, 0, 0, 44)
             Card.BackgroundColor3 = C_CARD
             Card.BorderSizePixel = 0
             Card.Parent = Scroll
 
             local cCorner = Instance.new("UICorner")
-            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.CornerRadius = UDim.new(0, 12)
             cCorner.Parent = Card
 
             local cStroke = Instance.new("UIStroke")
@@ -2026,8 +2125,8 @@ local function BuildNativeGUI()
             cStroke.Parent = Card
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -60, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -64, 1, 0)
+            Label.Position = UDim2.new(0, 16, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = title
             Label.TextColor3 = C_TEXT
@@ -2037,9 +2136,9 @@ local function BuildNativeGUI()
             Label.Parent = Card
 
             local Switch = Instance.new("TextButton")
-            Switch.Size = UDim2.new(0, 40, 0, 22)
-            Switch.Position = UDim2.new(1, -50, 0.5, -11)
-            Switch.BackgroundColor3 = defaultVal and C_ON or C_OFF
+            Switch.Size = UDim2.new(0, 44, 0, 24)
+            Switch.Position = UDim2.new(1, -54, 0.5, -12)
+            Switch.BackgroundColor3 = defaultVal and C_TOGGLE_ON or C_TOGGLE_OFF
             Switch.Text = ""
             Switch.AutoButtonColor = false
             Switch.Parent = Card
@@ -2049,8 +2148,8 @@ local function BuildNativeGUI()
             sCorner.Parent = Switch
 
             local Knob = Instance.new("Frame")
-            Knob.Size = UDim2.new(0, 16, 0, 16)
-            Knob.Position = defaultVal and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+            Knob.Size = UDim2.new(0, 18, 0, 18)
+            Knob.Position = defaultVal and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
             Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Knob.BorderSizePixel = 0
             Knob.Parent = Switch
@@ -2064,10 +2163,10 @@ local function BuildNativeGUI()
             local function updateToggle(val)
                 state = val
                 TweenService:Create(Switch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    BackgroundColor3 = state and C_ON or C_OFF
+                    BackgroundColor3 = state and C_TOGGLE_ON or C_TOGGLE_OFF
                 }):Play()
-                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Position = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
                 }):Play()
                 pcall(callback, state)
             end
@@ -2077,17 +2176,18 @@ local function BuildNativeGUI()
             end)
         end
 
+        -- Curvy Slider Card with live glow fill
         function tabMethods:AddSlider(title, min, max, defaultVal, suffix, step, callback)
             suffix = suffix or ""
             step = step or 1
             local Card = Instance.new("Frame")
-            Card.Size = UDim2.new(1, 0, 0, 56)
+            Card.Size = UDim2.new(1, 0, 0, 58)
             Card.BackgroundColor3 = C_CARD
             Card.BorderSizePixel = 0
             Card.Parent = Scroll
 
             local cCorner = Instance.new("UICorner")
-            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.CornerRadius = UDim.new(0, 12)
             cCorner.Parent = Card
 
             local cStroke = Instance.new("UIStroke")
@@ -2097,7 +2197,7 @@ local function BuildNativeGUI()
 
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(0.7, 0, 0, 24)
-            Label.Position = UDim2.new(0, 14, 0, 6)
+            Label.Position = UDim2.new(0, 16, 0, 8)
             Label.BackgroundTransparency = 1
             Label.Text = title
             Label.TextColor3 = C_TEXT
@@ -2108,19 +2208,19 @@ local function BuildNativeGUI()
 
             local ValLabel = Instance.new("TextLabel")
             ValLabel.Size = UDim2.new(0.3, -24, 0, 24)
-            ValLabel.Position = UDim2.new(0.7, 10, 0, 6)
+            ValLabel.Position = UDim2.new(0.7, 8, 0, 8)
             ValLabel.BackgroundTransparency = 1
             ValLabel.Text = tostring(defaultVal) .. suffix
-            ValLabel.TextColor3 = C_ACCENT
+            ValLabel.TextColor3 = C_NEON
             ValLabel.Font = Enum.Font.GothamBold
             ValLabel.TextSize = 12
             ValLabel.TextXAlignment = Enum.TextXAlignment.Right
             ValLabel.Parent = Card
 
             local Track = Instance.new("TextButton")
-            Track.Size = UDim2.new(1, -28, 0, 6)
-            Track.Position = UDim2.new(0, 14, 0, 36)
-            Track.BackgroundColor3 = Color3.fromRGB(38, 38, 52)
+            Track.Size = UDim2.new(1, -32, 0, 6)
+            Track.Position = UDim2.new(0, 16, 0, 38)
+            Track.BackgroundColor3 = Color3.fromRGB(36, 36, 50)
             Track.Text = ""
             Track.AutoButtonColor = false
             Track.Parent = Card
@@ -2132,7 +2232,7 @@ local function BuildNativeGUI()
             local curRatio = math.clamp((defaultVal - min) / (max - min), 0, 1)
             local Fill = Instance.new("Frame")
             Fill.Size = UDim2.new(curRatio, 0, 1, 0)
-            Fill.BackgroundColor3 = C_ACCENT
+            Fill.BackgroundColor3 = C_NEON
             Fill.BorderSizePixel = 0
             Fill.Parent = Track
 
@@ -2172,16 +2272,17 @@ local function BuildNativeGUI()
             end)
         end
 
+        -- Dropdown with smooth animated expansion
         function tabMethods:AddDropdown(title, options, defaultVal, callback)
             local Card = Instance.new("Frame")
-            Card.Size = UDim2.new(1, 0, 0, 44)
+            Card.Size = UDim2.new(1, 0, 0, 46)
             Card.BackgroundColor3 = C_CARD
             Card.BorderSizePixel = 0
             Card.ClipsDescendants = true
             Card.Parent = Scroll
 
             local cCorner = Instance.new("UICorner")
-            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.CornerRadius = UDim.new(0, 12)
             cCorner.Parent = Card
 
             local cStroke = Instance.new("UIStroke")
@@ -2190,8 +2291,8 @@ local function BuildNativeGUI()
             cStroke.Parent = Card
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(0.5, 0, 0, 44)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(0.5, 0, 0, 46)
+            Label.Position = UDim2.new(0, 16, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = title
             Label.TextColor3 = C_TEXT
@@ -2201,22 +2302,22 @@ local function BuildNativeGUI()
             Label.Parent = Card
 
             local DropBtn = Instance.new("TextButton")
-            DropBtn.Size = UDim2.new(0.48, -14, 0, 28)
-            DropBtn.Position = UDim2.new(0.52, 0, 0, 8)
-            DropBtn.BackgroundColor3 = Color3.fromRGB(34, 34, 48)
-            DropBtn.Text = tostring(defaultVal) .. "  ▼"
+            DropBtn.Size = UDim2.new(0.46, -16, 0, 30)
+            DropBtn.Position = UDim2.new(0.54, 0, 0, 8)
+            DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 44)
+            DropBtn.Text = tostring(defaultVal) .. "  ▾"
             DropBtn.TextColor3 = C_TEXT
             DropBtn.Font = Enum.Font.GothamMedium
             DropBtn.TextSize = 12
             DropBtn.Parent = Card
 
             local dCorner = Instance.new("UICorner")
-            dCorner.CornerRadius = UDim.new(0, 6)
+            dCorner.CornerRadius = UDim.new(0, 8)
             dCorner.Parent = DropBtn
 
             local dList = Instance.new("Frame")
-            dList.Size = UDim2.new(1, -28, 0, #options * 28 + 4)
-            dList.Position = UDim2.new(0, 14, 0, 48)
+            dList.Size = UDim2.new(1, -32, 0, #options * 28 + 6)
+            dList.Position = UDim2.new(0, 16, 0, 50)
             dList.BackgroundTransparency = 1
             dList.Parent = Card
 
@@ -2228,22 +2329,22 @@ local function BuildNativeGUI()
             for _, opt in ipairs(options) do
                 local oBtn = Instance.new("TextButton")
                 oBtn.Size = UDim2.new(1, 0, 0, 26)
-                oBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
-                oBtn.Text = "  " .. tostring(opt)
-                oBtn.TextColor3 = (opt == defaultVal) and C_ACCENT or C_SUBTEXT
+                oBtn.BackgroundColor3 = Color3.fromRGB(24, 24, 36)
+                oBtn.Text = "   " .. tostring(opt)
+                oBtn.TextColor3 = (opt == defaultVal) and C_NEON or C_MUTED
                 oBtn.Font = Enum.Font.Gotham
                 oBtn.TextSize = 12
                 oBtn.TextXAlignment = Enum.TextXAlignment.Left
                 oBtn.Parent = dList
                 local oCorner = Instance.new("UICorner")
-                oCorner.CornerRadius = UDim.new(0, 5)
+                oCorner.CornerRadius = UDim.new(0, 6)
                 oCorner.Parent = oBtn
 
                 oBtn.MouseButton1Click:Connect(function()
-                    DropBtn.Text = tostring(opt) .. "  ▼"
+                    DropBtn.Text = tostring(opt) .. "  ▾"
                     isOpen = false
                     TweenService:Create(Card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Size = UDim2.new(1, 0, 0, 44)
+                        Size = UDim2.new(1, 0, 0, 46)
                     }):Play()
                     pcall(callback, opt)
                 end)
@@ -2251,24 +2352,25 @@ local function BuildNativeGUI()
 
             DropBtn.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
-                local targetH = isOpen and (48 + #options * 29 + 6) or 44
-                TweenService:Create(Card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                local targetH = isOpen and (50 + #options * 29 + 8) or 46
+                TweenService:Create(Card, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Size = UDim2.new(1, 0, 0, targetH)
                 }):Play()
             end)
         end
 
+        -- Curvy Action Button
         function tabMethods:AddButton(title, desc, callback)
             local Card = Instance.new("TextButton")
-            Card.Size = UDim2.new(1, 0, 0, 42)
-            Card.BackgroundColor3 = Color3.fromRGB(30, 30, 44)
+            Card.Size = UDim2.new(1, 0, 0, 44)
+            Card.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
             Card.BorderSizePixel = 0
             Card.AutoButtonColor = false
             Card.Text = ""
             Card.Parent = Scroll
 
             local cCorner = Instance.new("UICorner")
-            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.CornerRadius = UDim.new(0, 12)
             cCorner.Parent = Card
 
             local cStroke = Instance.new("UIStroke")
@@ -2277,8 +2379,8 @@ local function BuildNativeGUI()
             cStroke.Parent = Card
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -28, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -32, 1, 0)
+            Label.Position = UDim2.new(0, 16, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = title
             Label.TextColor3 = C_TEXT
@@ -2288,23 +2390,24 @@ local function BuildNativeGUI()
             Label.Parent = Card
 
             Card.MouseButton1Click:Connect(function()
-                TweenService:Create(Card, TweenInfo.new(0.1), { BackgroundColor3 = C_ACCENT }):Play()
+                TweenService:Create(Card, TweenInfo.new(0.1), { BackgroundColor3 = C_NEON }):Play()
                 task.delay(0.15, function()
-                    TweenService:Create(Card, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(30, 30, 44) }):Play()
+                    TweenService:Create(Card, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(28, 28, 42) }):Play()
                 end)
                 pcall(callback)
             end)
         end
 
+        -- Palette Color Picker
         function tabMethods:AddColorPicker(title, defaultColor, callback)
             local Card = Instance.new("Frame")
-            Card.Size = UDim2.new(1, 0, 0, 42)
+            Card.Size = UDim2.new(1, 0, 0, 44)
             Card.BackgroundColor3 = C_CARD
             Card.BorderSizePixel = 0
             Card.Parent = Scroll
 
             local cCorner = Instance.new("UICorner")
-            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.CornerRadius = UDim.new(0, 12)
             cCorner.Parent = Card
 
             local cStroke = Instance.new("UIStroke")
@@ -2313,8 +2416,8 @@ local function BuildNativeGUI()
             cStroke.Parent = Card
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -70, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -74, 1, 0)
+            Label.Position = UDim2.new(0, 16, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = title
             Label.TextColor3 = C_TEXT
@@ -2324,25 +2427,24 @@ local function BuildNativeGUI()
             Label.Parent = Card
 
             local Preview = Instance.new("TextButton")
-            Preview.Size = UDim2.new(0, 38, 0, 22)
-            Preview.Position = UDim2.new(1, -50, 0.5, -11)
+            Preview.Size = UDim2.new(0, 42, 0, 24)
+            Preview.Position = UDim2.new(1, -54, 0.5, -12)
             Preview.BackgroundColor3 = defaultColor
             Preview.Text = ""
             Preview.AutoButtonColor = false
             Preview.Parent = Card
 
             local pCorner = Instance.new("UICorner")
-            pCorner.CornerRadius = UDim.new(0, 6)
+            pCorner.CornerRadius = UDim.new(0, 8)
             pCorner.Parent = Preview
 
-            -- Palette rapida al click
             local palette = {
-                Color3.fromRGB(255, 60, 60),
-                Color3.fromRGB(60, 255, 120),
-                Color3.fromRGB(60, 150, 255),
+                Color3.fromRGB(244, 63, 94),
+                Color3.fromRGB(34, 197, 94),
+                Color3.fromRGB(56, 189, 248),
                 Color3.fromRGB(168, 85, 247),
-                Color3.fromRGB(255, 220, 50),
-                Color3.fromRGB(255, 120, 30),
+                Color3.fromRGB(250, 204, 21),
+                Color3.fromRGB(249, 115, 22),
                 Color3.fromRGB(255, 255, 255)
             }
             local curIdx = 1
@@ -2535,19 +2637,18 @@ local function BuildNativeGUI()
         State.Running = false
     end)
 
-    -- Avvia sulla prima tab
     SwitchTab("ESP")
     State.GUIVisible = true
 
-    Notify.Send("PHANTOM v3.8 Native GUI Pronta! [G]", C3(168, 85, 247), 4)
+    Notify.Send("PHANTOM ULTRA Curved GUI Pronta! [G]", C3(168, 85, 247), 4)
 end
 
 PhantomUI.Build = BuildNativeGUI
 PhantomUI.Toggle = function()
-    if NativeGUI and NativeGUI:FindFirstChild("MainFrame") then
-        local main = NativeGUI.MainFrame
+    if NativeGUI and NativeGUI:FindFirstChild("MainWindow") then
+        local win = NativeGUI.MainWindow
         State.GUIVisible = not State.GUIVisible
-        main.Visible = State.GUIVisible
+        win.Visible = State.GUIVisible
     end
 end
 PhantomUI.Destroy = function()
@@ -2556,11 +2657,10 @@ PhantomUI.Destroy = function()
     end)
 end
 
--- Avvia GUI Nativa
 task.spawn(function()
     local ok, err = pcall(PhantomUI.Build)
     if not ok then
-        warn("[PHANTOM] Native GUI Error: " .. tostring(err))
+        warn("[PHANTOM] Ultra GUI Error: " .. tostring(err))
         Notify.Send("Errore GUI: " .. tostring(err), C3(255, 60, 60), 6)
     end
 end)
@@ -2884,9 +2984,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.8 Native Loaded!", C3(168, 85, 247), 4)
+    Notify.Send("PHANTOM v4.0 Ultra Loaded!", C3(192, 132, 252), 4)
     Notify.Send("Premi G per aprire/chiudere il menu", C3(200, 200, 200), 5)
-    Notify.Send("v3.8: Native Cyber UI — 60 FPS, Zero Bugs!", C3(60, 255, 120), 6)
+    Notify.Send("v4.0: Ultra Curved Cyber Edition — 60 FPS Locked!", C3(56, 189, 248), 6)
 end
 
 local ok, err = pcall(Init)
