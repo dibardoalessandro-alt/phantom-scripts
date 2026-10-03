@@ -1735,7 +1735,7 @@ local Window
 local Tabs = {}
 
 local guiOk, guiErr = pcall(function()
-    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dibardoalessandro-alt/phantom-scripts/main/fluent.lua"))()
     
     local SaveManager
     local InterfaceManager
