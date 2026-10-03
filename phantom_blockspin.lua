@@ -407,6 +407,27 @@ end
 
 -- v3.2: REWRITTEN - Smart tool name resolution for BlockSpin and similar games
 -- Searches multiple sources to find the REAL item name instead of numeric IDs
+function Util.IsGarbageName(str)
+    if not str or type(str) ~= "string" then return true end
+    local s = str:match("^%s*(.-)%s*$")
+    if #s <= 1 or #s > 35 then return true end
+    if s:match("^%d+$") then return true end
+    -- Check GUID / UUID: e.g. {8F3e494c-9D59-4548-9C0b-Ac04f9920eb9} or with dashes and hex
+    if s:find("%x%x%x%x%x%x%x%x%-%x%x%x%x") or s:find("^{?%x%x%x%x") then return true end
+    -- Check generic meaningless strings
+    local low = s:lower()
+    local genericWords = {
+        ["weapon"] = true, ["weapons"] = true, ["tool"] = true, ["tools"] = true,
+        ["item"] = true, ["items"] = true, ["uncommon"] = true, ["common"] = true,
+        ["rare"] = true, ["epic"] = true, ["legendary"] = true, ["handle"] = true,
+        ["part"] = true, ["mesh"] = true, ["model"] = true, ["gun"] = true,
+        ["sound"] = true, ["animation"] = true, ["config"] = true, ["default"] = true,
+        ["nil"] = true, ["none"] = true, ["null"] = true
+    }
+    if genericWords[low] then return true end
+    return false
+end
+
 function Util.CleanToolName(raw)
     if not raw or type(raw) ~= "string" then return nil end
     local name = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
@@ -416,126 +437,114 @@ function Util.CleanToolName(raw)
         return first:upper() .. rest:lower()
     end)
     name = name:match("^%s*(.-)%s*$")
-    if #name == 0 or name:match("^%d+$") then return nil end
+    if Util.IsGarbageName(name) then return nil end
     return name
 end
 
-function Util.ResolveToolName(tool)
-    if not tool then return "Item" end
-    local rawName = tool.Name
-    local found = nil
-
-    -- 1. If tool.Name is already a valid non-numeric string, use it
-    if not rawName:match("^%d+$") then
-        local cleaned = Util.CleanToolName(rawName)
-        if cleaned then return cleaned end
+function Util.MatchKnownWeapon(text)
+    if not text or type(text) ~= "string" then return nil end
+    local lower = text:lower()
+    for _, w in ipairs(WEAPON_DB) do
+        for _, k in ipairs(w.keys) do
+            if lower:find(k) then
+                return w.symbol, w
+            end
+        end
     end
+    return nil
+end
 
-    -- 2. Inspect ALL Attributes on the Tool
+function Util.ResolveToolName(tool)
+    if not tool then return nil end
+    local foundName = nil
+
+    -- Priority 1: Check if tool.Name directly matches a known weapon (e.g. "Glock", "H9", "Remington", "MP5", "G3", "RPG", "Uzi")
+    local match, matchObj = Util.MatchKnownWeapon(tool.Name)
+    if match then return match end
+
+    -- Priority 2: Check ToolTip property
+    pcall(function()
+        if tool.ToolTip and #tool.ToolTip > 0 then
+            local m = Util.MatchKnownWeapon(tool.ToolTip)
+            if m then foundName = m; return end
+            local c = Util.CleanToolName(tool.ToolTip)
+            if c then foundName = c; return end
+        end
+    end)
+    if foundName then return foundName end
+
+    -- Priority 3: Check tool descendants for known weapon names (Animations, MeshParts, Models, Modules, Sounds)
+    pcall(function()
+        for _, desc in ipairs(tool:GetDescendants()) do
+            local dn = desc.Name
+            local m = Util.MatchKnownWeapon(dn)
+            if m then
+                foundName = m
+                return
+            end
+            if desc:IsA("StringValue") and #desc.Value > 0 then
+                local mv = Util.MatchKnownWeapon(desc.Value)
+                if mv then
+                    foundName = mv
+                    return
+                end
+            end
+        end
+    end)
+    if foundName then return foundName end
+
+    -- Priority 4: Check ALL Attributes on Tool for known weapons or clean names
     pcall(function()
         for attr, v in pairs(tool:GetAttributes()) do
-            if type(v) == "string" and #v > 1 and not v:match("^%d+$") and not v:find("rbxasset") then
-                local low = attr:lower()
-                if low:find("name") or low:find("gun") or low:find("weapon") or low:find("item") or low:find("type") or low:find("title") or low:find("label") then
+            if type(v) == "string" and #v > 0 then
+                local m = Util.MatchKnownWeapon(v)
+                if m then foundName = m; return end
+                local ma = Util.MatchKnownWeapon(attr)
+                if ma then foundName = ma; return end
+                if not foundName and not Util.IsGarbageName(v) then
                     local c = Util.CleanToolName(v)
-                    if c then found = c; return end
+                    if c then foundName = c end
                 end
             end
         end
     end)
-    if found then return found end
+    if foundName then return foundName end
 
-    -- 3. Check direct children: Models, MeshParts, Folders, Modules (BlockSpin weapons store models/parts named after the gun)
-    pcall(function()
-        for _, child in ipairs(tool:GetChildren()) do
-            local cn = child.Name
-            if not cn:match("^%d+$") then
-                local ignored = {
-                    ["handle"] = true, ["parts"] = true, ["sounds"] = true, ["animations"] = true,
-                    ["settings"] = true, ["config"] = true, ["client"] = true, ["server"] = true,
-                    ["gunscript"] = true, ["hitbox"] = true, ["muzzle"] = true, ["flash"] = true,
-                    ["sound"] = true, ["particles"] = true, ["camera"] = true, ["visuals"] = true
-                }
-                if not ignored[cn:lower()] then
-                    local c = Util.CleanToolName(cn)
-                    if c then found = c; return end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 4. Check all StringValues in descendants
-    pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("StringValue") then
-                local v = desc.Value
-                if #v > 1 and not v:match("^%d+$") and not v:find("rbxasset") then
-                    local c = Util.CleanToolName(v)
-                    if c then found = c; return end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 5. Check Animation names inside Tool (e.g. "G3_Idle", "Remington_Shoot")
-    pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("Animation") then
-                local an = desc.Name
-                if an:find("_") then
-                    local prefix = an:split("_")[1]
-                    if prefix and #prefix > 1 and not prefix:match("^%d+$") then
-                        local c = Util.CleanToolName(prefix)
-                        if c then found = c; return end
-                    end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 6. Check ToolTip property
-    pcall(function()
-        if tool.ToolTip and #tool.ToolTip > 0 and not tool.ToolTip:match("^%d+$") then
-            local c = Util.CleanToolName(tool.ToolTip)
-            if c then found = c; return end
-        end
-    end)
-    if found then return found end
-
-    -- 7. Check ReplicatedStorage for matching item ID folder/model
+    -- Priority 5: Check ReplicatedStorage weapon registries
     pcall(function()
         local rep = game:GetService("ReplicatedStorage")
-        local match = rep:FindFirstChild(rawName, true)
+        local match = rep:FindFirstChild(tool.Name, true)
         if match then
-            if match.Parent and not match.Parent.Name:match("^%d+$") and match.Parent ~= rep then
-                local c = Util.CleanToolName(match.Parent.Name)
-                if c then found = c; return end
+            if match.Parent and match.Parent ~= rep then
+                local mp = Util.MatchKnownWeapon(match.Parent.Name)
+                if mp then foundName = mp; return end
             end
-            for _, val in pairs(match:GetAttributes()) do
-                if type(val) == "string" and not val:match("^%d+$") then
-                    local c = Util.CleanToolName(val)
-                    if c then found = c; return end
+            for attr, val in pairs(match:GetAttributes()) do
+                if type(val) == "string" then
+                    local mv = Util.MatchKnownWeapon(val)
+                    if mv then foundName = mv; return end
                 end
             end
         end
     end)
-    if found then return found end
+    if foundName then return foundName end
 
-    -- 8. Fallback: Intelligent classification based on tool damage/stats instead of printing random numbers!
+    -- Priority 6: Inspect tool damage characteristics if available
     local dmg = Util.GetToolDamage(tool)
     if dmg then
-        if dmg >= 90 then return "Sniper Rifle"
-        elseif dmg >= 35 then return "Shotgun"
-        elseif dmg >= 20 then return "Assault Rifle"
-        elseif dmg >= 10 then return "Handgun"
-        else return "Firearm"
+        if dmg >= 90 then return "AWP"
+        elseif dmg >= 35 then return "SG"
+        elseif dmg >= 20 then return "AR"
+        elseif dmg >= 10 then return "PST"
         end
     end
 
-    return "Weapon"
+    -- If the raw name isn't garbage/UUID, use it
+    if not Util.IsGarbageName(tool.Name) then
+        return Util.CleanToolName(tool.Name)
+    end
+
+    return nil
 end
 
 function Util.GetToolDamage(tool)
@@ -619,9 +628,12 @@ local WEAPON_DB = {
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
     local name = Util.ResolveToolName(tool)
-    if not name or name:match("^%d+$") then name = "Weapon" end
-    local lower = name:lower()
+    -- If name is nil, garbage, UUID, or generic "Weapon", skip it completely so it never clutters the screen!
+    if not name or Util.IsGarbageName(name) then
+        return nil
+    end
 
+    local lower = name:lower()
     local matched = nil
     for _, w in ipairs(WEAPON_DB) do
         for _, k in ipairs(w.keys) do
@@ -635,8 +647,7 @@ function Util.GetWeaponDetails(tool, isEquipped)
 
     local rarity = matched and matched.rarity or "Common"
     local color = matched and matched.color or C3(160, 160, 175)
-    local symbol = matched and matched.symbol or (name and #name > 0 and name:sub(1, 3):upper() or "ITM")
-
+    local symbol = matched and matched.symbol or name
     local dmg = Util.GetToolDamage(tool)
 
     return {
