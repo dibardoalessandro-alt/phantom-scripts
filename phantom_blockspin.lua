@@ -725,7 +725,7 @@ function ESP.Create(player)
     pcall(function()
         local hl = Instance.new("Highlight")
         hl.Name = "P_HL_" .. (player and player.UserId or mRandom(1000, 9999))
-        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.DepthMode = Enum.HighlightDepthMode.Occluded
         hl.FillTransparency = 0.85
         hl.OutlineTransparency = 0
         hl.Enabled = false
@@ -1111,9 +1111,9 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
-    -- 1. NATIVE HIGHLIGHT (Outline / Chams)
+    -- 1. NATIVE HIGHLIGHT (Outline / Chams - Depth Mode Occluded to prevent map flickering)
     if d.Highlight then
-        if Config.ESP.Chams or Config.ESP.Enabled then
+        if (Config.ESP.Chams or (Config.ESP.Enabled and Config.ESP.BoxStyle == "Highlight")) and dist < 350 then
             if d.Highlight.Parent ~= char then d.Highlight.Parent = char end
             if d.Highlight.Adornee ~= char then d.Highlight.Adornee = char end
             d.Highlight.OutlineColor = col
@@ -1993,8 +1993,10 @@ local function SetCursorState(active)
             cursorConnection:Disconnect()
             cursorConnection = nil
         end
+        -- Allow the game's camera script to manage cursor and mouse behavior naturally
         pcall(function()
-            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+            UserInputService.MouseIconEnabled = false
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
         end)
     end
 end
