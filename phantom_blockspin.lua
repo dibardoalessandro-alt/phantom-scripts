@@ -550,14 +550,32 @@ end
 -- v8: WEAPON DATABASE & RARITY SYSTEM (Visual ESP Badges)
 -- ═══════════════════════════════════════════════════
 local WEAPON_DB = {
-    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://6034685361" },
-    { keys = {"minigun", "railgun", "laser", "plasma", "gold"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "MINI", icon = "rbxassetid://6034685338" },
-    { keys = {"sniper", "awp", "barrett", "marksman"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://6034685338" },
-    { keys = {"deagle", "desert", "katana", "sword", "blade"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "EPIC", icon = "rbxassetid://6034685375" },
-    { keys = {"ak", "m4", "rifle", "ar", "shotgun", "spas", "pump"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "RARE", icon = "rbxassetid://6034685382" },
-    { keys = {"smg", "mp5", "uzi", "pistol", "glock", "revolver"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "GUN", icon = "rbxassetid://6034685368" },
-    { keys = {"medkit", "heal", "bandage", "potion"}, rarity = "Utilities", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
-    { keys = {"grenade", "c4", "bomb", "flash"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "BOMB", icon = "rbxassetid://6034685355" }
+    -- Explosive / Heavy (Legendary - Gold)
+    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://7072718362" },
+    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "rbxassetid://7072718362" },
+    
+    -- Sniper / Precision (Epic - Purple)
+    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://7072718362" },
+    
+    -- High Caliber / Melee (Epic - Purple)
+    { keys = {"deagle", "desert", "magnum", "python"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "rbxassetid://7072718362" },
+    { keys = {"katana", "sword", "blade", "machete", "axe", "scythe"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "rbxassetid://7072718362" },
+    
+    -- Shotguns (Rare - Cyan)
+    { keys = {"shotgun", "spas", "pump", "double", "scatter", "tactical"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "rbxassetid://7072718362" },
+    
+    -- Assault Rifles (Rare - Cyan)
+    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "rbxassetid://7072718362" },
+    
+    -- SMGs (Uncommon - Green)
+    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "rbxassetid://7072718362" },
+    
+    -- Handguns / Pistols (Uncommon - Green)
+    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "rbxassetid://7072718362" },
+    
+    -- Medical & Throwables
+    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utilities", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://7072718362" },
+    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "rbxassetid://7072718362" }
 }
 
 function Util.GetWeaponDetails(tool, isEquipped)
@@ -578,7 +596,7 @@ function Util.GetWeaponDetails(tool, isEquipped)
 
     local rarity = matched and matched.rarity or "Common"
     local color = matched and matched.color or C3(160, 160, 175)
-    local symbol = matched and matched.symbol or "TOOL"
+    local symbol = matched and matched.symbol or (name:sub(1, 3):upper())
     local icon = ""
 
     -- 1. Check Tool.TextureId
@@ -1328,15 +1346,19 @@ function ESP.Update(player, d)
                                     slotData.Frame.BackgroundColor3 = C3(16, 15, 25)
                                 end
 
-                                if item.icon and #item.icon > 5 then
+                                -- Prioritize authentic weapon textures; if generic Roblox crossed tool, show clean weapon acronym badge
+                                local hasValidTexture = item.icon and #item.icon > 5 and not item.icon:find("1088837") and not item.icon:find("6034685")
+                                if hasValidTexture then
                                     slotData.Image.Image = item.icon
                                     slotData.Image.Visible = true
                                     slotData.Text.Visible = false
                                 else
                                     slotData.Image.Visible = false
-                                    -- Use 3-letter weapon acronym instead of generic crossed tool
+                                    -- Display crisp weapon acronym (RPG, AWP, AR, SG, DGL, MED) with glowing rarity color!
                                     slotData.Text.Text = item.symbol
                                     slotData.Text.TextColor3 = item.color
+                                    slotData.Text.Font = Enum.Font.GothamBold
+                                    slotData.Text.TextSize = 8
                                     slotData.Text.Visible = true
                                 end
 
