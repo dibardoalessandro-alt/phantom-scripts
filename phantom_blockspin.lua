@@ -125,7 +125,7 @@ local Config = {
         DefaultColor    = C3(255, 40, 40),
         NameColor       = C3(255, 255, 255),
         DistanceColor   = C3(200, 200, 200),
-        MaxDistance      = 1000,
+        MaxDistance      = math.huge,
         TeamCheck        = false,
         ShowTeamColor    = false,
         -- v3: Skeleton ESP
@@ -1247,10 +1247,10 @@ function ESP.Create(player)
         local bb = Instance.new("BillboardGui")
         bb.Name = "P_ESP_" .. (player and player.UserId or mRandom(1000, 9999))
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 200, 0, 75)
-        bb.StudsOffset = V3(0, 3.2, 0)
+        bb.Size = UDim2.new(0, 220, 0, 120)
+        bb.StudsOffset = V3(0, 3.5, 0)
         bb.LightInfluence = 0
-        bb.MaxDistance = Config.ESP.MaxDistance
+        bb.MaxDistance = math.huge
         bb.Enabled = false
 
         -- Name & Distance Label
@@ -1309,14 +1309,17 @@ function ESP.Create(player)
         local invLbl = Instance.new("TextLabel")
         invLbl.Name = "InventoryLabel"
         invLbl.BackgroundTransparency = 1
-        invLbl.Size = UDim2.new(1, 0, 0, 13)
-        invLbl.Position = UDim2.new(0, 0, 0, 22)
+        invLbl.Size = UDim2.new(1, 0, 1, -20)
+        invLbl.Position = UDim2.new(0, 0, 0, 20)
         invLbl.Font = Enum.Font.GothamBold
         invLbl.RichText = true
         invLbl.TextSize = Config.InventoryESP.TextSize
-        invLbl.TextColor3 = Config.InventoryESP.TextColor
-        invLbl.TextStrokeTransparency = 0
+        invLbl.TextColor3 = C3(255, 255, 255)  -- MUST be white so RichText <font color> tags work
+        invLbl.TextStrokeTransparency = 0.2
         invLbl.TextStrokeColor3 = C3(0, 0, 0)
+        invLbl.TextXAlignment = Enum.TextXAlignment.Center
+        invLbl.TextYAlignment = Enum.TextYAlignment.Top
+        invLbl.TextWrapped = true
         invLbl.Text = ""
         invLbl.Visible = false
         invLbl.Parent = bb
@@ -1550,7 +1553,7 @@ function ESP.Update(player, d)
             local adorneePart = head or root
             if d.Billboard.Parent ~= char then d.Billboard.Parent = char end
             if d.Billboard.Adornee ~= adorneePart then d.Billboard.Adornee = adorneePart end
-            d.Billboard.MaxDistance = Config.ESP.MaxDistance
+            d.Billboard.MaxDistance = math.huge
             d.Billboard.Enabled = true
 
             -- Name & Distance
@@ -1599,7 +1602,7 @@ function ESP.Update(player, d)
                         -- Inventory ESP (RichText Colored Weapons by Rarity - Clean, 100% Readable, Zero Broken Images)
             if Config.InventoryESP.Enabled and d.InventoryLabel then
                 local now = Tick()
-                if not d._lastInvCheck or (now - d._lastInvCheck > 0.25) then
+                if not d._lastInvCheck or (now - d._lastInvCheck > 0.1) then
                     d._lastInvCheck = now
                     local formattedItems = {}
                     local itemCount = 0
@@ -1659,7 +1662,7 @@ function ESP.Update(player, d)
                         end
                     end
 
-                    d._lastInvText = (#formattedItems > 0) and tConcat(formattedItems, "  |  ") or ""
+                    d._lastInvText = (#formattedItems > 0) and tConcat(formattedItems, "\n") or ""
                 end
 
                 local text = d._lastInvText or ""
@@ -1667,8 +1670,8 @@ function ESP.Update(player, d)
                     if d.InventoryLabel.Text ~= text then
                         d.InventoryLabel.Text = text
                     end
-                    d.InventoryLabel.TextSize = Config.InventoryESP.TextSize or 11
-                    local yPos = (Config.ESP.HealthBar and (Config.ESP.HealthText and 35 or 25)) or (Config.ESP.Names and 18 or 0)
+                    d.InventoryLabel.TextSize = Config.InventoryESP.TextSize or 12
+                    local yPos = (Config.ESP.HealthBar and (Config.ESP.HealthText and 38 or 26)) or (Config.ESP.Names and 16 or 2)
                     d.InventoryLabel.Position = UDim2.new(0, 0, 0, yPos)
                     d.InventoryLabel.Visible = true
                 else
