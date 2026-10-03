@@ -442,84 +442,122 @@ end
 -- BLOCKSPIN OFFICIAL WEAPONS & RARITY SYSTEM
 -- Colors: Legendary = Gold, Epic = Purple, Rare = Cyan, Uncommon = Green, Utility = Mint, Common = Silver
 -- ═══════════════════════════════════════════════════
-local WEAPON_DB = {
-    -- ── MYTHIC (Crimson Red / #EF4444) ──
-    { name = "Anaconda", rarity = "Mythic", color = C3(239, 68, 68), keys = {"anaconda", "colt anaconda", "revolver", "python", "magnum"} },
-
-    -- ── LEGENDARY (Gold / #FFBE14) ──
-    { name = "Remington", rarity = "Legendary", color = C3(255, 190, 20), keys = {"remington", "r870", "870", "pump"} },
-    { name = "MP5", rarity = "Legendary", color = C3(255, 190, 20), keys = {"mp5sd", "mp5k", "mp5"} },
-    { name = "RPG", rarity = "Legendary", color = C3(255, 190, 20), keys = {"rpg", "rocket launcher", "missile launcher", "bazooka"} },
-    { name = "Minigun", rarity = "Legendary", color = C3(255, 190, 20), keys = {"minigun", "microgun"} },
-    { name = "Flamethrower", rarity = "Legendary", color = C3(255, 190, 20), keys = {"flamethrower", "lanciafiamme"} },
-
-    -- ── EPIC (Purple / #A855F7) ──
-    { name = "Double Barrel", rarity = "Epic", color = C3(168, 85, 247), keys = {"double barrel", "doublebarrel", "double-barrel", "db"} },
-    { name = "G3", rarity = "Epic", color = C3(168, 85, 247), keys = {"g3a3", "hk g3", "g3"} },
-    { name = "Barrett .50 Cal", rarity = "Epic", color = C3(168, 85, 247), keys = {"barrett", "50cal", "50 cal", "m82"} },
-    { name = "Sniper Rifle", rarity = "Epic", color = C3(168, 85, 247), keys = {"sniper rifle", "sniper", "dragunov", "svd", "r700", "hunting rifle"} },
-    { name = "Quantum Hack Tool", rarity = "Epic", color = C3(168, 85, 247), keys = {"quantum hack", "hack tool", "hacker tool", "quantum", "atm hack"} },
-
-    -- ── RARE (Cyan / #38BDF8) ──
-    { name = "Sawed-Off", rarity = "Rare", color = C3(56, 189, 248), keys = {"sawed-off", "sawed off", "sawedoff", "sawn off", "sawn-off", "sawed", "sawn"} },
-    { name = "Frying Pan", rarity = "Rare", color = C3(56, 189, 248), keys = {"frying pan", "frying", "tactical pan", "padella", "pan"} },
-    { name = "AK-47", rarity = "Rare", color = C3(56, 189, 248), keys = {"ak-47", "ak47", "akm", "ak", "draco"} },
-    { name = "M16", rarity = "Rare", color = C3(56, 189, 248), keys = {"m16a4", "m16a2", "m16"} },
-    { name = "AC-9", rarity = "Rare", color = C3(56, 189, 248), keys = {"ac-9", "ac9"} },
-    { name = "M4A1", rarity = "Rare", color = C3(56, 189, 248), keys = {"m4a1", "m4", "ar-15", "ar15", "hk416", "416"} },
-    { name = "SCAR", rarity = "Rare", color = C3(56, 189, 248), keys = {"scar-l", "scar-h", "scar"} },
-    { name = "Vector", rarity = "Rare", color = C3(56, 189, 248), keys = {"kriss vector", "vector"} },
-    { name = "P90", rarity = "Rare", color = C3(56, 189, 248), keys = {"p90"} },
-    { name = "Fishing Rod", rarity = "Rare", color = C3(56, 189, 248), keys = {"fishing rod", "fishing", "canna da pesca", "pesca"} },
-    { name = "Energy Shot", rarity = "Rare", color = C3(250, 204, 21), keys = {"energy shot", "energy drink", "energy", "booster", "stim"} },
-
-    -- ── UNCOMMON (Green / #22C55E) ──
-    { name = "H9", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"hudson h9", "h9", "hudson"} },
-    { name = "Glock", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"glock 17", "glock 18", "glock 19", "glock", "g17", "g18", "g19"} },
-    { name = "P226", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"sig p226", "p226", "sig sauer", "226"} },
-    { name = "Uzi", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"micro uzi", "uzi"} },
-    { name = "MAC-10", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"mac-10", "mac10", "mac 10"} },
-    { name = "TEC-9", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"tec-9", "tec9"} },
-    { name = "Lockpick", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"lockpick", "grimaldello"} },
-    { name = "C4", rarity = "Uncommon", color = C3(251, 146, 60), keys = {"c4", "grenade", "granata", "pipe bomb", "dynamite", "molotov"} },
-
-    -- ── UTILITY / MEDICAL (Mint / #34D399) ──
-    { name = "Blood Bag", rarity = "Utility", color = C3(52, 211, 153), keys = {"blood bag", "bloodbag", "sacca di sangue", "blood"} },
-    { name = "Medkit", rarity = "Utility", color = C3(52, 211, 153), keys = {"medkit", "medical kit", "first aid"} },
-    { name = "Bandage", rarity = "Utility", color = C3(52, 211, 153), keys = {"bandage", "bende", "benda"} },
-
-    -- ── COMMON / MELEE (Silver / #D1D5DB) ──
-    { name = "Machete", rarity = "Common", color = C3(209, 213, 219), keys = {"machete", "katana", "sword"} },
-    { name = "Tactical Axe", rarity = "Common", color = C3(209, 213, 219), keys = {"tactical axe", "ascia tattica", "axe", "ascia", "hatchet"} },
-    { name = "Combat Knife", rarity = "Common", color = C3(209, 213, 219), keys = {"combat knife", "tactical knife", "coltello tattico", "coltello da combattimento", "knife", "coltello", "dagger"} },
-    { name = "Baseball Bat", rarity = "Common", color = C3(209, 213, 219), keys = {"baseball bat", "baseball", "bat", "mazza"} },
-    { name = "Crowbar", rarity = "Common", color = C3(209, 213, 219), keys = {"crowbar", "piede di porco"} },
+-- ═══════════════════════════════════════════════════
+-- BLOCKSPIN DIRECT ITEM & RARITY RESOLVER (100% Faithful In-Game Reader)
+-- ═══════════════════════════════════════════════════
+-- Standard Rarity Color Palette
+local RARITY_COLORS = {
+    Mythic    = C3(239, 68, 68),   -- Rosso Fuoco / Cremisi (#EF4444)
+    Legendary = C3(255, 190, 20),  -- Oro (#FFBE14)
+    Epic      = C3(168, 85, 247),  -- Viola (#A855F7)
+    Rare      = C3(56, 189, 248),   -- Blu / Ciano (#38BDF8)
+    Uncommon  = C3(34, 197, 94),   -- Verde (#22C55E)
+    Utility   = C3(52, 211, 153),  -- Verde Acqua / Menta (#34D399)
+    Common    = C3(209, 213, 219)  -- Argento / Grigio (#D1D5DB)
 }
 
-function Util.MatchKnownWeapon(text)
-    if not text or type(text) ~= "string" then return nil, nil end
-    local lower = text:lower()
+-- Canonical BlockSpin Rarity Mappings for Exact In-Game Names
+local BLOCKSPIN_RARITIES = {
+    -- Mythic (Rosso)
+    ["anaconda"]      = { rarity = "Mythic", color = RARITY_COLORS.Mythic },
 
-    -- Special BlockSpin Shotgun disambiguation:
-    -- In BlockSpin, there are only 3 shotguns: Double Barrel (Epic), Sawed-Off (Rare), Remington (Legendary)
-    if lower == "shotgun" or lower:find("shotgun", 1, true) then
-        if lower:find("double") or lower:find("barrel") or lower:find("db") then
-            return "Double Barrel", { name = "Double Barrel", rarity = "Epic", color = C3(168, 85, 247) }
-        elseif lower:find("sawed") or lower:find("sawn") then
-            return "Sawed-Off", { name = "Sawed-Off", rarity = "Rare", color = C3(56, 189, 248) }
-        else
-            return "Remington", { name = "Remington", rarity = "Legendary", color = C3(255, 190, 20) }
-        end
-    end
+    -- Legendary (Oro)
+    ["remington"]     = { rarity = "Legendary", color = RARITY_COLORS.Legendary },
+    ["mp5"]           = { rarity = "Legendary", color = RARITY_COLORS.Legendary },
+    ["rpg"]           = { rarity = "Legendary", color = RARITY_COLORS.Legendary },
+    ["minigun"]       = { rarity = "Legendary", color = RARITY_COLORS.Legendary },
+    ["flamethrower"]  = { rarity = "Legendary", color = RARITY_COLORS.Legendary },
 
-    for _, w in ipairs(WEAPON_DB) do
-        for _, k in ipairs(w.keys) do
-            if lower == k or lower:find(k, 1, true) then
-                return w.name, w
+    -- Epic (Viola)
+    ["double barrel"] = { rarity = "Epic", color = RARITY_COLORS.Epic },
+    ["machete"]       = { rarity = "Epic", color = RARITY_COLORS.Epic },
+    ["barrett .50 cal"] = { rarity = "Epic", color = RARITY_COLORS.Epic },
+    ["barrett"]       = { rarity = "Epic", color = RARITY_COLORS.Epic },
+    ["sniper rifle"]  = { rarity = "Epic", color = RARITY_COLORS.Epic },
+    ["quantum hack tool"] = { rarity = "Epic", color = RARITY_COLORS.Epic },
+
+    -- Rare (Blu / Ciano)
+    ["sawed-off"]     = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["sawed off"]     = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["sawn-off"]      = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["frying pan"]    = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["pan"]           = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["glock"]         = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["p226"]          = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["ak-47"]         = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["ak47"]          = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["m16"]           = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["m4a1"]          = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["scar"]          = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["vector"]        = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["p90"]           = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["fishing rod"]   = { rarity = "Rare", color = RARITY_COLORS.Rare },
+    ["energy shot"]   = { rarity = "Rare", color = RARITY_COLORS.Rare },
+
+    -- Uncommon (Verde)
+    ["ac-9"]          = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["ac9"]           = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["g3"]            = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["uzi"]           = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["mac-10"]        = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["mac10"]         = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["tec-9"]         = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["lockpick"]      = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+    ["c4"]            = { rarity = "Uncommon", color = RARITY_COLORS.Uncommon },
+
+    -- Utility / Medical (Verde Acqua)
+    ["blood bag"]     = { rarity = "Utility", color = RARITY_COLORS.Utility },
+    ["medkit"]        = { rarity = "Utility", color = RARITY_COLORS.Utility },
+    ["bandage"]       = { rarity = "Utility", color = RARITY_COLORS.Utility },
+
+    -- Common / Melee (Argento)
+    ["tactical axe"]  = { rarity = "Common", color = RARITY_COLORS.Common },
+    ["combat knife"]  = { rarity = "Common", color = RARITY_COLORS.Common },
+    ["baseball bat"]  = { rarity = "Common", color = RARITY_COLORS.Common },
+    ["crowbar"]       = { rarity = "Common", color = RARITY_COLORS.Common },
+}
+
+-- Detect rarity directly from tool attributes, properties, or database
+function Util.GetItemRarity(tool, itemName)
+    if not itemName then return "Common", RARITY_COLORS.Common end
+    local lower = itemName:lower():match("^%s*(.-)%s*$")
+
+    -- 1. Check Tool Attributes for explicit rarity (BlockSpin items often carry Rarity attribute)
+    if tool then
+        local explicitRarity = nil
+        pcall(function()
+            local rAttr = tool:GetAttribute("Rarity") or tool:GetAttribute("Tier") or tool:GetAttribute("ItemRarity")
+            if rAttr and type(rAttr) == "string" then
+                explicitRarity = rAttr
             end
+        end)
+        if explicitRarity then
+            local erLow = explicitRarity:lower()
+            if erLow:find("mythic") then return "Mythic", RARITY_COLORS.Mythic end
+            if erLow:find("legend") then return "Legendary", RARITY_COLORS.Legendary end
+            if erLow:find("epic") then return "Epic", RARITY_COLORS.Epic end
+            if erLow:find("rare") or erLow:find("blue") then return "Rare", RARITY_COLORS.Rare end
+            if erLow:find("uncommon") or erLow:find("green") then return "Uncommon", RARITY_COLORS.Uncommon end
+            if erLow:find("utility") or erLow:find("med") then return "Utility", RARITY_COLORS.Utility end
+            if erLow:find("common") or erLow:find("white") or erLow:find("gray") then return "Common", RARITY_COLORS.Common end
         end
     end
-    return nil, nil
+
+    -- 2. Check canonical BlockSpin mapping
+    local direct = BLOCKSPIN_RARITIES[lower]
+    if direct then
+        return direct.rarity, direct.color
+    end
+
+    -- 3. Check partial match in database
+    for k, v in pairs(BLOCKSPIN_RARITIES) do
+        if lower:find(k, 1, true) or k:find(lower, 1, true) then
+            return v.rarity, v.color
+        end
+    end
+
+    -- 4. Default: Common Silver
+    return "Common", RARITY_COLORS.Common
 end
 
 function Util.GetToolDamage(tool)
@@ -538,165 +576,117 @@ function Util.GetToolDamage(tool)
                 end
             end
         end
-        local cfg = tool:FindFirstChild("Configuration") or tool:FindFirstChild("Config") or tool:FindFirstChild("Settings")
-        if cfg then
-            for _, child in ipairs(cfg:GetChildren()) do
-                if (child:IsA("NumberValue") or child:IsA("IntValue")) then
-                    local n = child.Name:lower()
-                    if n:find("damage") or n:find("dmg") then
-                        dmg = child.Value
-                        return
-                    end
-                end
-            end
-        end
     end)
     return dmg
 end
 
+-- DIRECT BLOCKSPIN READER: Reads the tool's actual in-game name directly (Copy & Paste from the tool itself)
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
-    -- Check if tool is generic "Shotgun": inspect descendants first to find which of the 3 shotguns it is!
-    local rawLower = (type(tool.Name) == "string") and tool.Name:lower() or ""
-    if rawLower == "shotgun" or rawLower:find("shotgun") then
-        local foundType = nil
+    local rawName = tool.Name
+    local realName = nil
+
+    -- 1. If tool.Name is already a valid human-readable name, USE IT DIRECTLY!
+    if not Util.IsGarbageName(rawName) then
+        local cleaned = Util.CleanToolName(rawName)
+        if cleaned and not Util.IsGarbageName(cleaned) then
+            realName = cleaned
+        end
+    end
+
+    -- 2. If tool is named "Shotgun", find which of the 3 BlockSpin shotguns it actually is
+    if realName and realName:lower() == "shotgun" then
+        local found = nil
         pcall(function()
             for _, desc in ipairs(tool:GetDescendants()) do
                 local dn = desc.Name:lower()
-                if dn:find("sawed") or dn:find("sawn") then
-                    foundType = "Sawed-Off"
-                    return
-                elseif dn:find("double") or dn:find("db") then
-                    foundType = "Double Barrel"
-                    return
-                elseif dn:find("remington") or dn:find("870") then
-                    foundType = "Remington"
-                    return
-                end
+                if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
+                if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
+                if dn:find("remington") or dn:find("870") then found = "Remington"; return end
             end
         end)
-        if foundType == "Sawed-Off" then
-            return "Sawed-Off", "Rare", C3(56, 189, 248)
-        elseif foundType == "Double Barrel" then
-            return "Double Barrel", "Epic", C3(168, 85, 247)
-        else
-            return "Remington", "Legendary", C3(255, 190, 20)
-        end
+        realName = found or "Remington"
     end
 
-    -- Priority 1: Check tool.Name directly if it's a valid string
-    if not Util.IsGarbageName(tool.Name) then
-        local matchName, matchObj = Util.MatchKnownWeapon(tool.Name)
-        if matchName and matchObj then
-            return matchName, matchObj.rarity, matchObj.color
+    -- 3. If tool.Name is an ID/UUID or garbage, inspect the tool's contents for the real name!
+    if not realName or Util.IsGarbageName(realName) then
+        -- ToolTip
+        if tool.ToolTip and #tool.ToolTip > 0 and not Util.IsGarbageName(tool.ToolTip) then
+            realName = Util.CleanToolName(tool.ToolTip)
         end
-        local cleaned = Util.CleanToolName(tool.Name)
-        if cleaned then
-            local cm, co = Util.MatchKnownWeapon(cleaned)
-            if cm and co then
-                return cm, co.rarity, co.color
-            end
-            return cleaned, "Common", C3(209, 213, 219)
-        end
-    end
 
-    -- Priority 2: Check ToolTip property
-    local tt = tool.ToolTip
-    if tt and #tt > 0 and not Util.IsGarbageName(tt) then
-        local tm, to = Util.MatchKnownWeapon(tt)
-        if tm and to then return tm, to.rarity, to.color end
-        local c = Util.CleanToolName(tt)
-        if c then return c, "Common", C3(209, 213, 219) end
-    end
-
-    -- Priority 3: Check Attributes on Tool
-    local attrMatch = nil
-    pcall(function()
-        for _, attrKey in ipairs({"DisplayName", "ItemName", "WeaponName", "Weapon", "Item", "Name"}) do
-            local val = tool:GetAttribute(attrKey)
-            if type(val) == "string" and #val > 0 and not Util.IsGarbageName(val) then
-                local m, o = Util.MatchKnownWeapon(val)
-                if m and o then attrMatch = {name = m, rarity = o.rarity, color = o.color}; return end
-                local c = Util.CleanToolName(val)
-                if c then attrMatch = {name = c, rarity = "Common", color = C3(209, 213, 219)}; return end
-            end
-        end
-        for attr, v in pairs(tool:GetAttributes()) do
-            if type(v) == "string" and #v > 0 and not Util.IsGarbageName(v) then
-                local m, o = Util.MatchKnownWeapon(v)
-                if m and o then attrMatch = {name = m, rarity = o.rarity, color = o.color}; return end
-            end
-        end
-    end)
-    if attrMatch then return attrMatch.name, attrMatch.rarity, attrMatch.color end
-
-    -- Priority 4: Check Tool children (Models, MeshParts, Parts named after the gun)
-    local childMatch = nil
-    pcall(function()
-        for _, desc in ipairs(tool:GetChildren()) do
-            local dn = desc.Name
-            if not dn:match("^%d+$") then
-                local ignored = {
-                    ["handle"] = true, ["parts"] = true, ["sounds"] = true, ["animations"] = true,
-                    ["settings"] = true, ["config"] = true, ["client"] = true, ["server"] = true,
-                    ["gunscript"] = true, ["hitbox"] = true, ["muzzle"] = true, ["flash"] = true,
-                    ["sound"] = true, ["particles"] = true, ["camera"] = true, ["visuals"] = true,
-                    ["meshpart"] = true, ["part"] = true, ["model"] = true, ["body"] = true
-                }
-                if not ignored[dn:lower()] then
-                    local m, o = Util.MatchKnownWeapon(dn)
-                    if m and o then
-                        childMatch = {name = m, rarity = o.rarity, color = o.color}
+        -- Tool Attributes (DisplayName, ItemName, WeaponName, etc.)
+        if not realName then
+            pcall(function()
+                for _, attrKey in ipairs({"DisplayName", "ItemName", "WeaponName", "Weapon", "Item", "Name"}) do
+                    local val = tool:GetAttribute(attrKey)
+                    if type(val) == "string" and #val > 0 and not Util.IsGarbageName(val) then
+                        realName = Util.CleanToolName(val)
                         return
                     end
-                    local c = Util.CleanToolName(dn)
-                    if c then
-                        childMatch = {name = c, rarity = "Common", color = C3(209, 213, 219)}
+                end
+                for _, v in pairs(tool:GetAttributes()) do
+                    if type(v) == "string" and #v > 0 and not Util.IsGarbageName(v) then
+                        realName = Util.CleanToolName(v)
+                        return
                     end
                 end
-            end
+            end)
         end
-    end)
-    if childMatch then return childMatch.name, childMatch.rarity, childMatch.color end
 
-    -- Priority 5: Check Animation names inside Tool (e.g. "Remington_Shoot", "DoubleBarrel_Idle")
-    local animMatch = nil
-    pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("Animation") then
-                local an = desc.Name
-                if an:find("_") then
-                    local prefix = an:split("_")[1]
-                    if prefix and #prefix > 1 and not prefix:match("^%d+$") then
-                        local m, o = Util.MatchKnownWeapon(prefix)
-                        if m and o then
-                            animMatch = {name = m, rarity = o.rarity, color = o.color}
-                            return
+        -- Child Models, MeshParts, or Folders named after the item
+        if not realName then
+            pcall(function()
+                for _, desc in ipairs(tool:GetChildren()) do
+                    local dn = desc.Name
+                    if not dn:match("^%d+$") then
+                        local ignored = {
+                            ["handle"] = true, ["parts"] = true, ["sounds"] = true, ["animations"] = true,
+                            ["settings"] = true, ["config"] = true, ["client"] = true, ["server"] = true,
+                            ["gunscript"] = true, ["hitbox"] = true, ["muzzle"] = true, ["flash"] = true,
+                            ["sound"] = true, ["particles"] = true, ["camera"] = true, ["visuals"] = true,
+                            ["meshpart"] = true, ["part"] = true, ["model"] = true, ["body"] = true
+                        }
+                        if not ignored[dn:lower()] then
+                            local c = Util.CleanToolName(dn)
+                            if c and not Util.IsGarbageName(c) then
+                                realName = c
+                                return
+                            end
                         end
                     end
                 end
-            end
+            end)
         end
-    end)
-    if animMatch then return animMatch.name, animMatch.rarity, animMatch.color end
 
-    -- Priority 6: Check StringValues inside Tool
-    local strValMatch = nil
-    pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("StringValue") and #desc.Value > 0 and not Util.IsGarbageName(desc.Value) then
-                local m, o = Util.MatchKnownWeapon(desc.Value)
-                if m and o then
-                    strValMatch = {name = m, rarity = o.rarity, color = o.color}
-                    return
+        -- Child Animations (e.g. Remington_Shoot, DoubleBarrel_Idle)
+        if not realName then
+            pcall(function()
+                for _, desc in ipairs(tool:GetDescendants()) do
+                    if desc:IsA("Animation") and desc.Name:find("_") then
+                        local prefix = desc.Name:split("_")[1]
+                        if prefix and #prefix > 1 and not prefix:match("^%d+$") then
+                            local c = Util.CleanToolName(prefix)
+                            if c and not Util.IsGarbageName(c) then
+                                realName = c
+                                return
+                            end
+                        end
+                    end
                 end
-            end
+            end)
         end
-    end)
-    if strValMatch then return strValMatch.name, strValMatch.rarity, strValMatch.color end
+    end
 
-    return nil, nil, nil
+    -- If still nothing valid, discard so we never show random numbers or garbage
+    if not realName or Util.IsGarbageName(realName) then
+        return nil, nil, nil
+    end
+
+    -- Determine exact rarity and color
+    local rarity, color = Util.GetItemRarity(tool, realName)
+    return realName, rarity, color
 end
 
 function Util.ResolveToolName(tool)
@@ -715,7 +705,7 @@ function Util.GetWeaponDetails(tool, isEquipped)
     return {
         name = name,
         rarity = rarity or "Common",
-        color = color or C3(209, 213, 219),
+        color = color or RARITY_COLORS.Common,
         isEquipped = isEquipped,
         damage = dmg
     }
