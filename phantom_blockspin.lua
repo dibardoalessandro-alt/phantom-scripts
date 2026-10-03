@@ -885,18 +885,179 @@ local function BuildRSWeaponMap()
 end
 
 -- ═══════════════════════════════════════════════════
--- MASTER RESOLVER v10.0
+-- PLAYERGUI WEAPON NAME SCANNER (XENO-SAFE)
+-- BlockSpin mostra il nome specifico dell'arma nella HUD del player
+-- Lo leggiamo dai TextLabel nel PlayerGui del target
+-- ═══════════════════════════════════════════════════
+local _guiWeaponCache = {}   -- [player] = {name=str, t=tick}
+local GUI_CACHE_TTL = 1.5    -- secondi
+
+local function ScanPlayerGuiForWeapon(player)
+    -- Cache check
+    local cached = _guiWeaponCache[player]
+    if cached and (Tick() - cached.t < GUI_CACHE_TTL) then
+        return cached.name
+    end
+
+    local found = nil
+    pcall(function()
+        local pg = player:FindFirstChildOfClass("PlayerGui")
+        if not pg then return end
+
+        -- Scansiona tutti i TextLabel/TextButton nel PlayerGui
+        -- BlockSpin mostra il nome dell'arma equipaggiata nella sua HUD
+        for _, desc in ipairs(pg:GetDescendants()) do
+            if found then return end
+            if desc:IsA("TextLabel") or desc:IsA("TextButton") then
+                local txt = desc.Text
+                if type(txt) == "string" and #txt > 1 and #txt < 50 then
+                    local trimmed = txt:match("^%s*(.-)%s*$")
+                    local lower = trimmed:lower()
+                    -- Rimuovi tag RichText se presenti
+                    local clean = trimmed:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
+                    local cleanLow = clean:lower()
+                    if KNOWN_WEAPONS[cleanLow] or BLOCKSPIN_RARITIES[cleanLow] then
+                        found = clean
+                        return
+                    end
+                    -- Anche: controlla se il parent/antenato ha un nome che suggerisce
+                    -- che questo label è per l'arma (HUD, Weapon, Gun, Inventory, Item, ecc.)
+                    local parentName = desc.Parent and desc.Parent.Name:lower() or ""
+                    local grandName = (desc.Parent and desc.Parent.Parent) and desc.Parent.Parent.Name:lower() or ""
+                    local isWeaponUI = parentName:find("weapon") or parentName:find("gun") or
+                                      parentName:find("item") or parentName:find("inventory") or
+                                      parentName:find("hud") or parentName:find("equip") or
+                                      grandName:find("weapon") or grandName:find("inventory") or
+                                      grandName:find("hud")
+                    if isWeaponUI and not Util.IsGarbageName(clean) and #clean > 2 then
+                        found = clean
+                        return
+                    end
+                end
+            end
+        end
+    end)
+
+    _guiWeaponCache[player] = {name = found, t = Tick()}
+    return found
+end
+
+-- ═══════════════════════════════════════════════════
+-- AGGRESSIVE TOOL VALUE SCANNER (XENO-SAFE)
+-- Scansiona TUTTI i valori dentro il tool senza filtri
+-- Cerca qualsiasi stringa che assomiglia a un nome d'arma
+-- ═══════════════════════════════════════════════════
+local function AggressiveToolScan(tool)
+    local found = nil
+    pcall(function()
+        -- Scan 1: TUTTI gli attributi del tool (nessun filtro sul nome chiave)
+        local attrs = tool:GetAttributes()
+        for attrName, attrVal in pairs(attrs) do
+            if found then return end
+            if type(attrVal) == "string" and #attrVal > 1 and #attrVal < 50 then
+                local v = attrVal:match("^%s*(.-)%s*$")
+                local vLow = v:lower()
+                if (KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow]) then
+                    found = v; return
+                end
+                if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+                    -- Accetta stringhe che sembrano nomi propri (iniziano con maiuscola o contengono spazi)
+                    if v:match("^%u") or v:find(" ") or v:find("%-") then
+                        found = v; return
+                    end
+                end
+            end
+        end
+
+        -- Scan 2: TUTTI i figli del tool — ogni tipo di valore
+        for _, child in ipairs(tool:GetChildren()) do
+            if found then return end
+            -- StringValue
+            if child:IsA("StringValue") then
+                local v = child.Value:match("^%s*(.-)%s*$")
+                local vLow = v:lower()
+                if #v > 1 and #v < 50 then
+                    if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
+                    if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+                        found = v; return
+                    end
+                end
+            end
+            -- Configuration/Folder: cerca dentro
+            if child:IsA("Configuration") or child:IsA("Folder") or child:IsA("ModuleScript") then
+                for _, sub in ipairs(child:GetChildren()) do
+                    if found then return end
+                    if sub:IsA("StringValue") then
+                        local v = sub.Value:match("^%s*(.-)%s*$")
+                        local vLow = v:lower()
+                        if #v > 1 and #v < 50 then
+                            if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
+                            -- Il nome del child dà un hint su cosa contiene
+                            local subNameLow = sub.Name:lower()
+                            if (subNameLow:find("name") or subNameLow:find("weapon") or
+                                subNameLow:find("gun") or subNameLow:find("type") or
+                                subNameLow:find("id") or subNameLow:find("label")) then
+                                if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+                                    found = v; return
+                                end
+                            end
+                        end
+                    end
+                    -- Attributi dei child
+                    local subAttrs = sub:GetAttributes()
+                    for _, sv in pairs(subAttrs) do
+                        if found then return end
+                        if type(sv) == "string" and #sv > 1 and #sv < 50 then
+                            local vTrim = sv:match("^%s*(.-)%s*$")
+                            local vLow = vTrim:lower()
+                            if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then
+                                found = vTrim; return
+                            end
+                        end
+                    end
+                end
+                -- Anche attributi della Configuration/Folder stessa
+                local cfAttrs = child:GetAttributes()
+                for cfK, cfV in pairs(cfAttrs) do
+                    if found then return end
+                    if type(cfV) == "string" and #cfV > 1 and #cfV < 50 then
+                        local v = cfV:match("^%s*(.-)%s*$")
+                        local vLow = v:lower()
+                        if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
+                        if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+                            if v:match("^%u") or v:find(" ") or v:find("%-") then
+                                found = v; return
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Scan 3: ToolTip (spesso ignorato ma può contenere il nome)
+        local tt = tool.ToolTip
+        if not found and tt and type(tt) == "string" and #tt > 1 and #tt < 60 then
+            local v = tt:match("^%s*(.-)%s*$")
+            local vLow = v:lower()
+            if (KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow]) then
+                found = v
+            elseif not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+                found = v
+            end
+        end
+    end)
+    return found
+end
+
+-- ═══════════════════════════════════════════════════
+-- MASTER RESOLVER v11.0
 -- Resolution order:
+--   0. PlayerGui HUD scan (BlockSpin mostra il nome nella HUD)
+--   0b. AggressiveToolScan (tutti i valori dentro il tool)
 --   1. RS cache lookup by tool.Name
---   2. Known weapon whitelist check
---   3. tool.Name if human-readable
---   4. Attributes (DisplayName, ItemName, etc.)
---   5. ToolTip
---   6. String attribute scan (known weapons only)
---   7. RS cross-reference by attribute IDs
---   8. Child name scan (known weapons first, then valid 4+ char names)
---   9. Animation prefix scan
---  10. StringValue scan (known weapons only)
+--   2. Known weapon whitelist check (NON per nomi generici)
+--   3. tool.Name se non generico
+--   4-10. Deep inspection standard
 -- ═══════════════════════════════════════════════════
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
@@ -904,12 +1065,30 @@ function Util.ResolveToolInfo(tool)
     local rawName = tool.Name
     local realName = nil
 
+    -- ── STEP 0: AggressiveToolScan — scansione totale di tutti i valori del tool
+    -- Questo è il primo passo perché è il più diretto per BlockSpin
+    -- Legge TUTTI gli attributi, StringValue, Configuration, ToolTip senza filtri
+    local aggressiveHit = AggressiveToolScan(tool)
+    if aggressiveHit and not Util.IsGarbageName(aggressiveHit) then
+        local agLow = aggressiveHit:lower():match("^%s*(.-)%s*$")
+        -- Accetta solo se è nella whitelist O se è un nome plausibile (non categoria generica)
+        local GENERIC_CHECK = {
+            ["pistol"]=true,["shotgun"]=true,["rifle"]=true,["smg"]=true,
+            ["sniper"]=true,["gun"]=true,["weapon"]=true,["melee"]=true,
+        }
+        if not GENERIC_CHECK[agLow] then
+            realName = aggressiveHit
+        end
+    end
+
     -- ── 1. ReplicatedStorage cache lookup ──
-    local rsMap = BuildRSWeaponMap()
-    if rsMap and rawName then
-        local rsHit = rsMap[rawName:lower()]
-        if rsHit and not Util.IsGarbageName(rsHit) then
-            realName = rsHit
+    if not realName then
+        local rsMap = BuildRSWeaponMap()
+        if rsMap and rawName then
+            local rsHit = rsMap[rawName:lower()]
+            if rsHit and not Util.IsGarbageName(rsHit) then
+                realName = rsHit
+            end
         end
     end
 
