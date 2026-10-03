@@ -1101,9 +1101,28 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ── Final gate ──
+    -- ── Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ──
     if not realName or Util.IsGarbageName(realName) then
-        return nil, nil, nil
+        -- Ultimo tentativo: pulisci il nome grezzo e mostralo comunque
+        -- Questo garantisce che OGNI tool venga mostrato, anche se non in whitelist
+        local rawFallback = rawName
+        -- Rimuovi prefissi comuni e underscore
+        rawFallback = rawFallback:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
+        rawFallback = rawFallback:gsub("^Melee_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
+        rawFallback = rawFallback:gsub("^%d+_", ""):gsub("_%d+$", "")
+        rawFallback = rawFallback:gsub("_", " "):match("^%s*(.-)%s*$")
+        -- Blocca solo UUID, path e nomi puramente numerici
+        local rfLow = rawFallback:lower()
+        local isPath = rawFallback:find("/") or rawFallback:find("\\")
+        local isUUID = rawFallback:match("^%x%x%x%x%x%x%x%x%-")
+        local isNum  = rawFallback:match("^%d+$")
+        local tooShort = #rawFallback <= 1
+        local hasLetter = rawFallback:match("%a")
+        if not isPath and not isUUID and not isNum and not tooShort and hasLetter and #rawFallback <= 48 then
+            realName = rawFallback
+        else
+            return nil, nil, nil
+        end
     end
 
     -- Clean capitalization
@@ -1636,7 +1655,7 @@ function ESP.Update(player, d)
                         -- Inventory ESP (RichText Colored Weapons by Rarity - Clean, 100% Readable, Zero Broken Images)
             if Config.InventoryESP.Enabled and d.InventoryLabel then
                 local now = Tick()
-                if not d._lastInvCheck or (now - d._lastInvCheck > 0.1) then
+                if not d._lastInvCheck or (now - d._lastInvCheck > 0.5) then
                     d._lastInvCheck = now
                     local formattedItems = {}
                     local itemCount = 0
@@ -2826,7 +2845,11 @@ local function BuildNativeGUI()
         Scroll.ScrollBarImageColor3 = C_BORDER
         Scroll.BorderSizePixel = 0
         Scroll.Visible = false
-        Scroll.CanvasSize = UDim2.new(0, 0, 0, 1600)
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, 2400)
+        Scroll.ScrollingEnabled = true
+        Scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+        Scroll.ElasticBehavior = Enum.ElasticBehavior.Never
+        Scroll.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Right
         Scroll.Parent = ContentHolder
 
         local pLayout = Instance.new("UIListLayout")
@@ -2835,7 +2858,7 @@ local function BuildNativeGUI()
         pLayout.Parent = Scroll
 
         pLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            Scroll.CanvasSize = UDim2.new(0, 0, 0, pLayout.AbsoluteContentSize.Y + 40)
+            Scroll.CanvasSize = UDim2.new(0, 0, 0, pLayout.AbsoluteContentSize.Y + 60)
         end)
 
         local pPad = Instance.new("UIPadding")
@@ -3339,9 +3362,24 @@ local function BuildNativeGUI()
         tAim:AddSlider("FOV Radius", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
         tAim:AddToggle("Show FOV Circle", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
         tAim:AddColorPicker("FOV Circle Color", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
-        tAim:AddSlider("Smoothing (Fluidity)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
-        tAim:AddToggle("Humanize Movement", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
+        tAim:AddSlider("Smoothing (Fluidity)", 1, 20, Config.Aimbot.Smoothing, "", 0.5, function(v) Config.Aimbot.Smoothing = v end)
+        tAim:AddToggle("Humanize Jitter", Config.Aimbot.HumanizeJitter, function(v) Config.Aimbot.HumanizeJitter = v end)
+        tAim:AddSlider("Jitter Strength", 0.1, 2, Config.Aimbot.JitterStrength, "", 0.1, function(v) Config.Aimbot.JitterStrength = v end)
         tAim:AddToggle("Movement Prediction", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
+        tAim:AddSlider("Prediction Strength", 0.05, 0.5, Config.Aimbot.PredictionMultiplier, "", 0.01, function(v) Config.Aimbot.PredictionMultiplier = v end)
+        tAim:AddSlider("Max Lock Distance", 50, 1000, Config.Aimbot.MaxDistance, " studs", 25, function(v) Config.Aimbot.MaxDistance = v end)
+
+        tAim:AddSection("Visuals & Extra")
+        tAim:AddToggle("Adaptive Smoothing", Config.Aimbot.AdaptiveSmoothing, function(v) Config.Aimbot.AdaptiveSmoothing = v end)
+        tAim:AddSlider("Adaptive Min Speed", 1, 10, Config.Aimbot.AdaptiveMin, "", 0.5, function(v) Config.Aimbot.AdaptiveMin = v end)
+        tAim:AddSlider("Adaptive Max Speed", 5, 30, Config.Aimbot.AdaptiveMax, "", 0.5, function(v) Config.Aimbot.AdaptiveMax = v end)
+        tAim:AddToggle("Show Snap Line", Config.Aimbot.ShowSnapLine, function(v) Config.Aimbot.ShowSnapLine = v end)
+        tAim:AddColorPicker("Snap Line Color", Config.Aimbot.SnapLineColor, function(v) Config.Aimbot.SnapLineColor = v end)
+        tAim:AddToggle("Show Lock Indicator", Config.Aimbot.ShowLockIndicator, function(v) Config.Aimbot.ShowLockIndicator = v end)
+        tAim:AddColorPicker("Lock Indicator Color", Config.Aimbot.LockIndicatorColor, function(v) Config.Aimbot.LockIndicatorColor = v end)
+        tAim:AddToggle("Auto Switch Target", Config.Aimbot.AutoSwitch, function(v) Config.Aimbot.AutoSwitch = v end)
+        tAim:AddToggle("Sticky Aim (Lock-On)", Config.Aimbot.StickyAim, function(v) Config.Aimbot.StickyAim = v end)
+        tAim:AddToggle("Show Target Info", Config.Aimbot.ShowTargetInfo, function(v) Config.Aimbot.ShowTargetInfo = v end)
     end)
 
     -- ──────────────────────────────────────────
