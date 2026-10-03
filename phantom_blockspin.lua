@@ -1,12 +1,12 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.6 · BlockSpin Stealth Suite                    ║
-    ║     Full GUI Edition · Built for Xeno                         ║
+    ║     PHANTOM v3.7 · BlockSpin Stealth Suite                    ║
+    ║     Fluent UI Edition · Built for Xeno                        ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v3.6: NATIVE ESP REWRITE — Highlight + BillboardGui engine,  ║
-    ║        100% immune to Xeno ImGui lag & edge-sticking glitches ║
-    ║        Roblox native 3D rendering with zero frame drop        ║
+    ║  v3.7: FLUENT UI UPGRADE — Windows 11 Modern Acrylic Style,   ║
+    ║        Ultra-fluid 60 FPS, Zero Frame Drops, Lucide Icons,    ║
+    ║        Native ESP Highlight + BillboardGui engine             ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -1728,772 +1728,799 @@ local _wm = {}
 local function updateWatermark() end -- no-op
 
 -- ═══════════════════════════════════════════════════
--- LOAD RAYFIELD GUI
+-- LOAD FLUENT UI (Modern, Ultra-Fluid, Zero-Lag)
 -- ═══════════════════════════════════════════════════
-local Rayfield
+local Fluent
 local Window
+local Tabs = {}
 
 local guiOk, guiErr = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    
+    local SaveManager
+    local InterfaceManager
+    pcall(function()
+        SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+        InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+    end)
 
-    Window = Rayfield:CreateWindow({
-        Name = "PHANTOM v3.6 (Fixed ESP)",
-        LoadingTitle = "PHANTOM v3.6",
-        LoadingSubtitle = "BlockSpin Stealth Suite",
-        Theme = "Amethyst",
-        DisableRayfieldPrompts = true,
-        DisableBuildWarnings = true,
-        ConfigurationSaving = { Enabled = false },
-        KeySystem = false,
+    Window = Fluent:CreateWindow({
+        Title = "PHANTOM v3.7",
+        SubTitle = "BlockSpin Stealth Suite",
+        TabWidth = 160,
+        Size = UDim2.fromOffset(590, 470),
+        Acrylic = false, -- false di default per garantire 60 FPS senza cali su qualsiasi executor (anche Xeno)
+        Theme = "Dark",
+        MinimizeKey = Config.Misc.GUIToggleKey or Enum.KeyCode.G
     })
 
     -- ╔═══════════════════════════════════════╗
-    -- ║           TAB: ESP                     ║
+    -- ║              TABS SETUP               ║
     -- ╚═══════════════════════════════════════╝
-    local TabESP = Window:CreateTab("ESP", 4483362458)
+    Tabs = {
+        ESP        = Window:AddTab({ Title = "ESP", Icon = "eye" }),
+        Inventory  = Window:AddTab({ Title = "Inventario", Icon = "box" }),
+        Aimbot     = Window:AddTab({ Title = "Aimbot", Icon = "crosshair" }),
+        Triggerbot = Window:AddTab({ Title = "Triggerbot", Icon = "target" }),
+        Player     = Window:AddTab({ Title = "Player", Icon = "user" }),
+        Settings   = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    }
 
-    TabESP:CreateSection("Generale")
+    -- ═══════════════════════════════════════
+    -- TAB: ESP
+    -- ═══════════════════════════════════════
+    Tabs.ESP:AddSection("Generale")
 
-    TabESP:CreateToggle({
-        Name = "Abilita ESP",
-        CurrentValue = Config.ESP.Enabled,
-        Callback = function(v) Config.ESP.Enabled = v end,
+    Tabs.ESP:AddToggle("ESPToggle", {
+        Title = "Abilita ESP",
+        Default = Config.ESP.Enabled,
+        Callback = function(v) Config.ESP.Enabled = v end
     })
 
-    TabESP:CreateDropdown({
-        Name = "Stile Box",
-        Options = {"Full", "Corner"},
-        CurrentOption = {Config.ESP.BoxStyle},
-        Callback = function(v) Config.ESP.BoxStyle = v[1] or v end,
+    Tabs.ESP:AddDropdown("ESPBoxStyle", {
+        Title = "Stile Box",
+        Values = {"Full", "Corner"},
+        Default = Config.ESP.BoxStyle,
+        Multi = false,
+        Callback = function(v) Config.ESP.BoxStyle = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Spessore Box",
-        Range = {1, 5},
-        Increment = 0.1,
-        CurrentValue = Config.ESP.BoxThickness,
-        Callback = function(v) Config.ESP.BoxThickness = v end,
+    Tabs.ESP:AddSlider("ESPBoxThickness", {
+        Title = "Spessore Box",
+        Min = 1,
+        Max = 5,
+        Default = Config.ESP.BoxThickness,
+        Rounding = 1,
+        Callback = function(v) Config.ESP.BoxThickness = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Contorno Box (Outline)",
-        CurrentValue = Config.ESP.BoxOutline,
-        Callback = function(v) Config.ESP.BoxOutline = v end,
+    Tabs.ESP:AddToggle("ESPBoxOutline", {
+        Title = "Contorno Box (Outline)",
+        Default = Config.ESP.BoxOutline,
+        Callback = function(v) Config.ESP.BoxOutline = v end
     })
 
-    TabESP:CreateSection("Informazioni")
+    Tabs.ESP:AddSection("Informazioni Bersaglio")
 
-    TabESP:CreateToggle({
-        Name = "Mostra Nomi",
-        CurrentValue = Config.ESP.Names,
-        Callback = function(v) Config.ESP.Names = v end,
+    Tabs.ESP:AddToggle("ESPNames", {
+        Title = "Mostra Nomi",
+        Default = Config.ESP.Names,
+        Callback = function(v) Config.ESP.Names = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Dimensione Nome",
-        Range = {10, 24},
-        Increment = 1,
-        CurrentValue = Config.ESP.NameSize,
-        Callback = function(v) Config.ESP.NameSize = v end,
+    Tabs.ESP:AddSlider("ESPNameSize", {
+        Title = "Dimensione Nome",
+        Min = 10,
+        Max = 24,
+        Default = Config.ESP.NameSize,
+        Rounding = 0,
+        Callback = function(v) Config.ESP.NameSize = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Mostra Distanza",
-        CurrentValue = Config.ESP.Distance,
-        Callback = function(v) Config.ESP.Distance = v end,
+    Tabs.ESP:AddToggle("ESPDistance", {
+        Title = "Mostra Distanza",
+        Default = Config.ESP.Distance,
+        Callback = function(v) Config.ESP.Distance = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Barra Vita",
-        CurrentValue = Config.ESP.HealthBar,
-        Callback = function(v) Config.ESP.HealthBar = v end,
+    Tabs.ESP:AddToggle("ESPHealthBar", {
+        Title = "Barra Vita",
+        Default = Config.ESP.HealthBar,
+        Callback = function(v) Config.ESP.HealthBar = v end
     })
 
-    TabESP:CreateDropdown({
-        Name = "Posizione Barra Vita",
-        Options = {"Left", "Right"},
-        CurrentOption = {Config.ESP.HealthBarPos},
-        Callback = function(v) Config.ESP.HealthBarPos = v[1] or v end,
+    Tabs.ESP:AddDropdown("ESPHealthBarPos", {
+        Title = "Posizione Barra Vita",
+        Values = {"Left", "Right"},
+        Default = Config.ESP.HealthBarPos,
+        Multi = false,
+        Callback = function(v) Config.ESP.HealthBarPos = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Mostra HP Numerico",
-        CurrentValue = Config.ESP.HealthText,
-        Callback = function(v) Config.ESP.HealthText = v end,
+    Tabs.ESP:AddToggle("ESPHealthText", {
+        Title = "Mostra HP Numerico",
+        Default = Config.ESP.HealthText,
+        Callback = function(v) Config.ESP.HealthText = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Punto sulla Testa (Head Dot)",
-        CurrentValue = Config.ESP.HeadDot,
-        Callback = function(v) Config.ESP.HeadDot = v end,
+    Tabs.ESP:AddToggle("ESPLookVector", {
+        Title = "Mostra Angolo Visuale",
+        Default = Config.ESP.LookVector,
+        Callback = function(v) Config.ESP.LookVector = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Dimensione Head Dot",
-        Range = {1, 8},
-        Increment = 0.5,
-        CurrentValue = Config.ESP.HeadDotSize,
-        Callback = function(v) Config.ESP.HeadDotSize = v end,
+    Tabs.ESP:AddSlider("ESPLookVectorLen", {
+        Title = "Lunghezza Linea Sguardo",
+        Min = 5,
+        Max = 30,
+        Default = Config.ESP.LookVectorLength,
+        Rounding = 0,
+        Callback = function(v) Config.ESP.LookVectorLength = v end
     })
 
-    TabESP:CreateSection("Tracers")
+    Tabs.ESP:AddSection("Tracers")
 
-    TabESP:CreateToggle({
-        Name = "Mostra Tracers",
-        CurrentValue = Config.ESP.Tracers,
-        Callback = function(v) Config.ESP.Tracers = v end,
+    Tabs.ESP:AddToggle("ESPTracers", {
+        Title = "Abilita Tracers",
+        Default = Config.ESP.Tracers,
+        Callback = function(v) Config.ESP.Tracers = v end
     })
 
-    TabESP:CreateDropdown({
-        Name = "Origine Tracer",
-        Options = {"Bottom", "Center", "Top", "Mouse"},
-        CurrentOption = {Config.ESP.TracerOrigin},
-        Callback = function(v) Config.ESP.TracerOrigin = v[1] or v end,
+    Tabs.ESP:AddDropdown("ESPTracerOrigin", {
+        Title = "Origine Tracers",
+        Values = {"Bottom", "Center", "Mouse"},
+        Default = Config.ESP.TracerOrigin,
+        Multi = false,
+        Callback = function(v) Config.ESP.TracerOrigin = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Spessore Tracer",
-        Range = {1, 5},
-        Increment = 0.5,
-        CurrentValue = Config.ESP.TracerThickness,
-        Callback = function(v) Config.ESP.TracerThickness = v end,
+    Tabs.ESP:AddSlider("ESPTracerThickness", {
+        Title = "Spessore Tracers",
+        Min = 1,
+        Max = 4,
+        Default = Config.ESP.TracerThickness,
+        Rounding = 1,
+        Callback = function(v) Config.ESP.TracerThickness = v end
     })
 
-    -- v3: Skeleton ESP
-    TabESP:CreateSection("Skeleton ESP")
+    Tabs.ESP:AddSection("Skeleton ESP")
 
-    TabESP:CreateToggle({
-        Name = "Mostra Scheletro",
-        CurrentValue = Config.ESP.Skeleton,
-        Callback = function(v) Config.ESP.Skeleton = v end,
+    Tabs.ESP:AddToggle("ESPSkeleton", {
+        Title = "Abilita Scheletro",
+        Default = Config.ESP.Skeleton,
+        Callback = function(v) Config.ESP.Skeleton = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Scheletro",
-        Color = Config.ESP.SkeletonColor,
-        Callback = function(v) Config.ESP.SkeletonColor = v end,
+    Tabs.ESP:AddColorpicker("ESPSkeletonColor", {
+        Title = "Colore Scheletro",
+        Default = Config.ESP.SkeletonColor,
+        Callback = function(v) Config.ESP.SkeletonColor = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Spessore Scheletro",
-        Range = {0.5, 4},
-        Increment = 0.5,
-        CurrentValue = Config.ESP.SkeletonThickness,
-        Callback = function(v) Config.ESP.SkeletonThickness = v end,
+    Tabs.ESP:AddSlider("ESPSkeletonThickness", {
+        Title = "Spessore Scheletro",
+        Min = 1,
+        Max = 4,
+        Default = Config.ESP.SkeletonThickness,
+        Rounding = 1,
+        Callback = function(v) Config.ESP.SkeletonThickness = v end
     })
 
-    -- v3: Chams
-    TabESP:CreateSection("Chams (Highlight)")
+    Tabs.ESP:AddSection("Chams (Highlight)")
 
-    TabESP:CreateToggle({
-        Name = "Abilita Chams",
-        CurrentValue = Config.ESP.Chams,
+    Tabs.ESP:AddToggle("ESPChams", {
+        Title = "Abilita Chams",
+        Default = Config.ESP.Chams,
         Callback = function(v)
             Config.ESP.Chams = v
             if not v then
-                -- Remove all chams
-                for p, hl in pairs(State.ChamsCache) do
-                    pcall(function() hl:Destroy() end)
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character then
+                        local h = p.Character:FindFirstChild("PHANTOM_Highlight")
+                        if h then h:Destroy() end
+                    end
                 end
-                tClear(State.ChamsCache)
             end
-        end,
+        end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Chams (Visibile)",
-        Color = Config.ESP.ChamsVisibleColor,
-        Callback = function(v) Config.ESP.ChamsVisibleColor = v end,
+    Tabs.ESP:AddColorpicker("ESPChamsVisColor", {
+        Title = "Colore Chams (Visibile)",
+        Default = Config.ESP.ChamsVisibleColor,
+        Callback = function(v) Config.ESP.ChamsVisibleColor = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Chams (Nascosto)",
-        Color = Config.ESP.ChamsHiddenColor,
-        Callback = function(v) Config.ESP.ChamsHiddenColor = v end,
+    Tabs.ESP:AddColorpicker("ESPChamsHidColor", {
+        Title = "Colore Chams (Nascosto)",
+        Default = Config.ESP.ChamsHiddenColor,
+        Callback = function(v) Config.ESP.ChamsHiddenColor = v end
     })
 
-    TabESP:CreateSlider({
-        Name = "Trasparenza Chams",
-        Range = {0, 0.9},
-        Increment = 0.05,
-        CurrentValue = Config.ESP.ChamsTransparency,
-        Callback = function(v) Config.ESP.ChamsTransparency = v end,
+    Tabs.ESP:AddSlider("ESPChamsTrans", {
+        Title = "Trasparenza Chams",
+        Min = 0,
+        Max = 0.9,
+        Default = Config.ESP.ChamsTransparency,
+        Rounding = 2,
+        Callback = function(v) Config.ESP.ChamsTransparency = v end
     })
 
-    TabESP:CreateSection("Colori & Visibilita")
+    Tabs.ESP:AddSection("Colori & Visibilita")
 
-    TabESP:CreateToggle({
-        Name = "Check Visibilita (verde/rosso)",
-        CurrentValue = Config.ESP.VisibilityCheck,
-        Callback = function(v) Config.ESP.VisibilityCheck = v end,
+    Tabs.ESP:AddToggle("ESPVisCheck", {
+        Title = "Check Visibilita (verde/rosso)",
+        Default = Config.ESP.VisibilityCheck,
+        Callback = function(v) Config.ESP.VisibilityCheck = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Mostra Colore Squadra",
-        CurrentValue = Config.ESP.ShowTeamColor,
-        Callback = function(v) Config.ESP.ShowTeamColor = v end,
+    Tabs.ESP:AddToggle("ESPShowTeamColor", {
+        Title = "Mostra Colore Squadra",
+        Default = Config.ESP.ShowTeamColor,
+        Callback = function(v) Config.ESP.ShowTeamColor = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Visibile",
-        Color = Config.ESP.VisibleColor,
-        Callback = function(v) Config.ESP.VisibleColor = v end,
+    Tabs.ESP:AddColorpicker("ESPVisibleColor", {
+        Title = "Colore Visibile",
+        Default = Config.ESP.VisibleColor,
+        Callback = function(v) Config.ESP.VisibleColor = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Non Visibile",
-        Color = Config.ESP.NotVisibleColor,
-        Callback = function(v) Config.ESP.NotVisibleColor = v end,
+    Tabs.ESP:AddColorpicker("ESPNotVisibleColor", {
+        Title = "Colore Non Visibile",
+        Default = Config.ESP.NotVisibleColor,
+        Callback = function(v) Config.ESP.NotVisibleColor = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Default",
-        Color = Config.ESP.DefaultColor,
-        Callback = function(v) Config.ESP.DefaultColor = v end,
+    Tabs.ESP:AddColorpicker("ESPDefaultColor", {
+        Title = "Colore Default",
+        Default = Config.ESP.DefaultColor,
+        Callback = function(v) Config.ESP.DefaultColor = v end
     })
 
-    TabESP:CreateColorPicker({
-        Name = "Colore Nome",
-        Color = Config.ESP.NameColor,
-        Callback = function(v) Config.ESP.NameColor = v end,
+    Tabs.ESP:AddColorpicker("ESPNameColor", {
+        Title = "Colore Nome",
+        Default = Config.ESP.NameColor,
+        Callback = function(v) Config.ESP.NameColor = v end
     })
 
-    TabESP:CreateSection("Limiti")
+    Tabs.ESP:AddSection("Limiti")
 
-    TabESP:CreateSlider({
-        Name = "Distanza Massima (studs)",
-        Range = {100, 2000},
-        Increment = 50,
-        Suffix = "m",
-        CurrentValue = Config.ESP.MaxDistance,
-        Callback = function(v) Config.ESP.MaxDistance = v end,
+    Tabs.ESP:AddSlider("ESPMaxDist", {
+        Title = "Distanza Massima (studs)",
+        Min = 100,
+        Max = 2000,
+        Default = Config.ESP.MaxDistance,
+        Rounding = 0,
+        Callback = function(v) Config.ESP.MaxDistance = v end
     })
 
-    TabESP:CreateToggle({
-        Name = "Ignora Squadra",
-        CurrentValue = Config.ESP.TeamCheck,
-        Callback = function(v) Config.ESP.TeamCheck = v end,
+    Tabs.ESP:AddToggle("ESPTeamCheck", {
+        Title = "Ignora Squadra",
+        Default = Config.ESP.TeamCheck,
+        Callback = function(v) Config.ESP.TeamCheck = v end
     })
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║      TAB: INVENTORY ESP (v3: IMPROVED)  ║
-    -- ╚═══════════════════════════════════════╝
-    local TabInv = Window:CreateTab("Inventario", 4483362458)
+    -- ═══════════════════════════════════════
+    -- TAB: INVENTARIO
+    -- ═══════════════════════════════════════
+    Tabs.Inventory:AddSection("Generale")
 
-    TabInv:CreateSection("Generale")
-
-    TabInv:CreateToggle({
-        Name = "Abilita Inventory ESP",
-        CurrentValue = Config.InventoryESP.Enabled,
-        Callback = function(v) Config.InventoryESP.Enabled = v end,
+    Tabs.Inventory:AddToggle("InvEnabled", {
+        Title = "Abilita Inventory ESP",
+        Default = Config.InventoryESP.Enabled,
+        Callback = function(v) Config.InventoryESP.Enabled = v end
     })
 
-    TabInv:CreateToggle({
-        Name = "Mostra Tool Equipaggiati (⚔)",
-        CurrentValue = Config.InventoryESP.ShowEquipped,
-        Callback = function(v) Config.InventoryESP.ShowEquipped = v end,
+    Tabs.Inventory:AddToggle("InvShowEquipped", {
+        Title = "Mostra Tool Equipaggiati (⚔)",
+        Default = Config.InventoryESP.ShowEquipped,
+        Callback = function(v) Config.InventoryESP.ShowEquipped = v end
     })
 
-    TabInv:CreateToggle({
-        Name = "Mostra Tool nello Zaino (📦)",
-        CurrentValue = Config.InventoryESP.ShowBackpack,
-        Callback = function(v) Config.InventoryESP.ShowBackpack = v end,
+    Tabs.Inventory:AddToggle("InvShowBackpack", {
+        Title = "Mostra Tool nello Zaino (📦)",
+        Default = Config.InventoryESP.ShowBackpack,
+        Callback = function(v) Config.InventoryESP.ShowBackpack = v end
     })
 
-    TabInv:CreateSection("Visualizzazione")
+    Tabs.Inventory:AddSection("Visualizzazione")
 
-    TabInv:CreateToggle({
-        Name = "Mostra ToolTip/Descrizione",
-        CurrentValue = Config.InventoryESP.ShowToolTip,
-        Callback = function(v) Config.InventoryESP.ShowToolTip = v end,
+    Tabs.Inventory:AddToggle("InvShowToolTip", {
+        Title = "Mostra ToolTip / Descrizione",
+        Default = Config.InventoryESP.ShowToolTip,
+        Callback = function(v) Config.InventoryESP.ShowToolTip = v end
     })
 
-    TabInv:CreateToggle({
-        Name = "Mostra Danno (se rilevato)",
-        CurrentValue = Config.InventoryESP.ShowDamage,
-        Callback = function(v) Config.InventoryESP.ShowDamage = v end,
+    Tabs.Inventory:AddToggle("InvShowDamage", {
+        Title = "Mostra Danno (se rilevato)",
+        Default = Config.InventoryESP.ShowDamage,
+        Callback = function(v) Config.InventoryESP.ShowDamage = v end
     })
 
-    TabInv:CreateToggle({
-        Name = "Pulisci Nomi (rimuovi prefissi)",
-        CurrentValue = Config.InventoryESP.CleanNames,
-        Callback = function(v) Config.InventoryESP.CleanNames = v end,
+    Tabs.Inventory:AddToggle("InvCleanNames", {
+        Title = "Pulisci Nomi (rimuovi prefissi)",
+        Default = Config.InventoryESP.CleanNames,
+        Callback = function(v) Config.InventoryESP.CleanNames = v end
     })
 
-    TabInv:CreateSlider({
-        Name = "Max Items Mostrati",
-        Range = {3, 15},
-        Increment = 1,
-        CurrentValue = Config.InventoryESP.MaxItems,
-        Callback = function(v) Config.InventoryESP.MaxItems = v end,
+    Tabs.Inventory:AddSlider("InvMaxItems", {
+        Title = "Max Items Mostrati",
+        Min = 3,
+        Max = 15,
+        Default = Config.InventoryESP.MaxItems,
+        Rounding = 0,
+        Callback = function(v) Config.InventoryESP.MaxItems = v end
     })
 
-    TabInv:CreateSection("Colori")
+    Tabs.Inventory:AddSection("Colori & Font")
 
-    TabInv:CreateColorPicker({
-        Name = "Colore Testo",
-        Color = Config.InventoryESP.TextColor,
-        Callback = function(v) Config.InventoryESP.TextColor = v end,
+    Tabs.Inventory:AddColorpicker("InvTextColor", {
+        Title = "Colore Testo",
+        Default = Config.InventoryESP.TextColor,
+        Callback = function(v) Config.InventoryESP.TextColor = v end
     })
 
-    TabInv:CreateColorPicker({
-        Name = "Colore Equipaggiato",
-        Color = Config.InventoryESP.EquippedColor,
-        Callback = function(v) Config.InventoryESP.EquippedColor = v end,
+    Tabs.Inventory:AddColorpicker("InvEquippedColor", {
+        Title = "Colore Equipaggiato",
+        Default = Config.InventoryESP.EquippedColor,
+        Callback = function(v) Config.InventoryESP.EquippedColor = v end
     })
 
-    TabInv:CreateSlider({
-        Name = "Dimensione Testo",
-        Range = {8, 24},
-        Increment = 1,
-        CurrentValue = Config.InventoryESP.TextSize,
-        Callback = function(v) Config.InventoryESP.TextSize = v end,
+    Tabs.Inventory:AddSlider("InvTextSize", {
+        Title = "Dimensione Testo",
+        Min = 8,
+        Max = 24,
+        Default = Config.InventoryESP.TextSize,
+        Rounding = 0,
+        Callback = function(v) Config.InventoryESP.TextSize = v end
     })
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║        TAB: AIMBOT (v3: EXPANDED)      ║
-    -- ╚═══════════════════════════════════════╝
-    local TabAim = Window:CreateTab("Aimbot", 4483362458)
+    -- ═══════════════════════════════════════
+    -- TAB: AIMBOT
+    -- ═══════════════════════════════════════
+    Tabs.Aimbot:AddSection("Generale")
 
-    TabAim:CreateSection("Generale")
-
-    TabAim:CreateToggle({
-        Name = "Abilita Aimbot",
-        CurrentValue = Config.Aimbot.Enabled,
-        Callback = function(v) Config.Aimbot.Enabled = v end,
+    Tabs.Aimbot:AddToggle("AimEnabled", {
+        Title = "Abilita Aimbot",
+        Default = Config.Aimbot.Enabled,
+        Callback = function(v) Config.Aimbot.Enabled = v end
     })
 
-    TabAim:CreateDropdown({
-        Name = "Modalita Attivazione",
-        Options = {"Hold", "Toggle"},
-        CurrentOption = {Config.Aimbot.ActivationMode},
+    Tabs.Aimbot:AddDropdown("AimActivationMode", {
+        Title = "Modalita Attivazione",
+        Values = {"Hold", "Toggle"},
+        Default = Config.Aimbot.ActivationMode,
+        Multi = false,
         Callback = function(v)
-            Config.Aimbot.ActivationMode = v[1] or v
+            Config.Aimbot.ActivationMode = v
             State.AimbotToggled = false
-        end,
+        end
     })
 
-    -- v3: Keybind picker
-    TabAim:CreateDropdown({
-        Name = "🔑 Tasto Aimbot",
-        Options = KeybindOptions,
-        CurrentOption = {Config.Aimbot.KeybindName},
+    Tabs.Aimbot:AddDropdown("AimKeybind", {
+        Title = "🔑 Tasto Aimbot",
+        Values = KeybindOptions,
+        Default = Config.Aimbot.KeybindName,
+        Multi = false,
         Callback = function(v)
-            local name = v[1] or v
-            Config.Aimbot.KeybindName = name
-            local bind = KeybindMap[name]
+            Config.Aimbot.KeybindName = v
+            local bind = KeybindMap[v]
             if bind then
                 Config.Aimbot.ActivationKey = bind.Value
                 Config.Aimbot.ActivationKeyType = bind.Type
-                Notify.Send("Aimbot Key: " .. name, C3(255, 200, 50), 2)
+                Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
             end
-        end,
+        end
     })
 
-    TabAim:CreateToggle({
-        Name = "Aim Assist (piu leggero)",
-        CurrentValue = Config.Aimbot.AimAssist,
-        Callback = function(v) Config.Aimbot.AimAssist = v end,
+    Tabs.Aimbot:AddToggle("AimAssistToggle", {
+        Title = "Aim Assist (piu leggero)",
+        Default = Config.Aimbot.AimAssist,
+        Callback = function(v) Config.Aimbot.AimAssist = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Forza Aim Assist",
-        Range = {4, 30},
-        Increment = 1,
-        CurrentValue = Config.Aimbot.AssistStrength,
-        Callback = function(v) Config.Aimbot.AssistStrength = v end,
+    Tabs.Aimbot:AddSlider("AimAssistStrength", {
+        Title = "Forza Aim Assist",
+        Min = 4,
+        Max = 30,
+        Default = Config.Aimbot.AssistStrength,
+        Rounding = 0,
+        Callback = function(v) Config.Aimbot.AssistStrength = v end
     })
 
-    -- v3: Silent Aim
-    TabAim:CreateToggle({
-        Name = "🔇 Silent Aim (sperimentale)",
-        CurrentValue = Config.Aimbot.SilentAim,
-        Callback = function(v) Config.Aimbot.SilentAim = v end,
+    Tabs.Aimbot:AddToggle("AimSilentAim", {
+        Title = "🔇 Silent Aim (sperimentale)",
+        Default = Config.Aimbot.SilentAim,
+        Callback = function(v) Config.Aimbot.SilentAim = v end
     })
 
-    TabAim:CreateSection("Targeting")
+    Tabs.Aimbot:AddSection("Targeting")
 
-    TabAim:CreateDropdown({
-        Name = "Parte del Corpo",
-        Options = {"Head", "UpperTorso", "HumanoidRootPart", "LowerTorso"},
-        CurrentOption = {Config.Aimbot.TargetPart},
-        Callback = function(v) Config.Aimbot.TargetPart = v[1] or v end,
+    Tabs.Aimbot:AddDropdown("AimTargetPart", {
+        Title = "Parte del Corpo",
+        Values = {"Head", "UpperTorso", "HumanoidRootPart", "LowerTorso"},
+        Default = Config.Aimbot.TargetPart,
+        Multi = false,
+        Callback = function(v) Config.Aimbot.TargetPart = v end
     })
 
-    -- v3: Bone priority
-    TabAim:CreateToggle({
-        Name = "🦴 Auto Bone Priority (visibile)",
-        CurrentValue = Config.Aimbot.BonePriority,
-        Callback = function(v) Config.Aimbot.BonePriority = v end,
+    Tabs.Aimbot:AddToggle("AimBonePriority", {
+        Title = "🦴 Auto Bone Priority (visibile)",
+        Default = Config.Aimbot.BonePriority,
+        Callback = function(v) Config.Aimbot.BonePriority = v end
     })
 
-    TabAim:CreateDropdown({
-        Name = "Modalita Target",
-        Options = {"Crosshair", "Distance"},
-        CurrentOption = {Config.Aimbot.TargetMode},
-        Callback = function(v) Config.Aimbot.TargetMode = v[1] or v end,
+    Tabs.Aimbot:AddDropdown("AimTargetMode", {
+        Title = "Modalita Target",
+        Values = {"Crosshair", "Distance"},
+        Default = Config.Aimbot.TargetMode,
+        Multi = false,
+        Callback = function(v) Config.Aimbot.TargetMode = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Distanza Massima",
-        Range = {100, 1000},
-        Increment = 25,
-        Suffix = "m",
-        CurrentValue = Config.Aimbot.MaxDistance,
-        Callback = function(v) Config.Aimbot.MaxDistance = v end,
+    Tabs.Aimbot:AddSlider("AimMaxDist", {
+        Title = "Distanza Massima",
+        Min = 100,
+        Max = 1000,
+        Default = Config.Aimbot.MaxDistance,
+        Rounding = 0,
+        Callback = function(v) Config.Aimbot.MaxDistance = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Wall Check",
-        CurrentValue = Config.Aimbot.WallCheck,
-        Callback = function(v) Config.Aimbot.WallCheck = v end,
+    Tabs.Aimbot:AddToggle("AimWallCheck", {
+        Title = "Wall Check (controllo ostacoli)",
+        Default = Config.Aimbot.WallCheck,
+        Callback = function(v) Config.Aimbot.WallCheck = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Sticky Aim",
-        CurrentValue = Config.Aimbot.StickyAim,
-        Callback = function(v) Config.Aimbot.StickyAim = v end,
+    Tabs.Aimbot:AddToggle("AimVisibleCheck", {
+        Title = "Check Visibilita",
+        Default = Config.Aimbot.VisibleCheck,
+        Callback = function(v) Config.Aimbot.VisibleCheck = v end
     })
 
-    -- v3: Auto switch
-    TabAim:CreateToggle({
-        Name = "🔄 Auto Switch (target muore)",
-        CurrentValue = Config.Aimbot.AutoSwitch,
-        Callback = function(v) Config.Aimbot.AutoSwitch = v end,
+    Tabs.Aimbot:AddToggle("AimTeamCheck", {
+        Title = "Ignora Squadra",
+        Default = Config.Aimbot.TeamCheck,
+        Callback = function(v) Config.Aimbot.TeamCheck = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Ignora Squadra",
-        CurrentValue = Config.Aimbot.TeamCheck,
-        Callback = function(v) Config.Aimbot.TeamCheck = v end,
+    Tabs.Aimbot:AddToggle("AimIgnoreKnocked", {
+        Title = "Ignora Knockati / Morti",
+        Default = Config.Aimbot.IgnoreKnocked,
+        Callback = function(v) Config.Aimbot.IgnoreKnocked = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Mostra Info Target",
-        CurrentValue = Config.Aimbot.ShowTargetInfo,
-        Callback = function(v) Config.Aimbot.ShowTargetInfo = v end,
+    Tabs.Aimbot:AddToggle("AimForcefieldCheck", {
+        Title = "Bypass / Ignora Forcefield",
+        Default = Config.Aimbot.ForcefieldCheck,
+        Callback = function(v) Config.Aimbot.ForcefieldCheck = v end
     })
 
-    TabAim:CreateSection("FOV")
+    Tabs.Aimbot:AddSection("FOV")
 
-    TabAim:CreateSlider({
-        Name = "Raggio FOV",
-        Range = {30, 500},
-        Increment = 5,
-        Suffix = "px",
-        CurrentValue = Config.Aimbot.FOV,
-        Callback = function(v) Config.Aimbot.FOV = v end,
+    Tabs.Aimbot:AddSlider("AimFOVRadius", {
+        Title = "Raggio FOV",
+        Min = 20,
+        Max = 500,
+        Default = Config.Aimbot.FOV,
+        Rounding = 0,
+        Callback = function(v) Config.Aimbot.FOV = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Mostra Cerchio FOV",
-        CurrentValue = Config.Aimbot.ShowFOV,
-        Callback = function(v) Config.Aimbot.ShowFOV = v end,
+    Tabs.Aimbot:AddToggle("AimShowFOV", {
+        Title = "Mostra Cerchio FOV",
+        Default = Config.Aimbot.ShowFOV,
+        Callback = function(v) Config.Aimbot.ShowFOV = v end
     })
 
-    TabAim:CreateColorPicker({
-        Name = "Colore FOV",
-        Color = Config.Aimbot.FOVColor,
-        Callback = function(v) Config.Aimbot.FOVColor = v end,
+    Tabs.Aimbot:AddColorpicker("AimFOVColor", {
+        Title = "Colore Cerchio FOV",
+        Default = Config.Aimbot.FOVColor,
+        Callback = function(v) Config.Aimbot.FOVColor = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Trasparenza FOV",
-        Range = {0, 1},
-        Increment = 0.05,
-        CurrentValue = Config.Aimbot.FOVTransparency,
-        Callback = function(v) Config.Aimbot.FOVTransparency = v end,
+    Tabs.Aimbot:AddSlider("AimFOVSides", {
+        Title = "Lati Cerchio FOV (qualita)",
+        Min = 12,
+        Max = 64,
+        Default = Config.Aimbot.FOVSides,
+        Rounding = 0,
+        Callback = function(v) Config.Aimbot.FOVSides = v end
     })
 
-    TabAim:CreateSection("Smoothing & Umanizzazione")
+    Tabs.Aimbot:AddSection("Smoothing & Umanizzazione")
 
-    TabAim:CreateSlider({
-        Name = "Smoothing (1=instant, 25=lento)",
-        Range = {1, 25},
-        Increment = 0.5,
-        CurrentValue = Config.Aimbot.Smoothing,
-        Callback = function(v) Config.Aimbot.Smoothing = v end,
+    Tabs.Aimbot:AddSlider("AimSmoothing", {
+        Title = "Smoothing",
+        Min = 1,
+        Max = 20,
+        Default = Config.Aimbot.Smoothness,
+        Rounding = 1,
+        Callback = function(v) Config.Aimbot.Smoothness = v end
     })
 
-    -- v3: Adaptive smoothing
-    TabAim:CreateToggle({
-        Name = "📐 Smoothing Adattivo (distanza)",
-        CurrentValue = Config.Aimbot.AdaptiveSmoothing,
-        Callback = function(v) Config.Aimbot.AdaptiveSmoothing = v end,
+    Tabs.Aimbot:AddToggle("AimDynamicSmoothing", {
+        Title = "Dynamic Smoothing (distanza)",
+        Default = Config.Aimbot.DynamicSmoothing,
+        Callback = function(v) Config.Aimbot.DynamicSmoothing = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Smooth Min (vicino)",
-        Range = {1, 10},
-        Increment = 0.5,
-        CurrentValue = Config.Aimbot.AdaptiveMin,
-        Callback = function(v) Config.Aimbot.AdaptiveMin = v end,
+    Tabs.Aimbot:AddSlider("AimMinSmoothing", {
+        Title = "Smoothing Minimo",
+        Min = 1,
+        Max = 10,
+        Default = Config.Aimbot.MinSmoothing,
+        Rounding = 1,
+        Callback = function(v) Config.Aimbot.MinSmoothing = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Smooth Max (lontano)",
-        Range = {5, 25},
-        Increment = 0.5,
-        CurrentValue = Config.Aimbot.AdaptiveMax,
-        Callback = function(v) Config.Aimbot.AdaptiveMax = v end,
+    Tabs.Aimbot:AddSlider("AimMaxSmoothing", {
+        Title = "Smoothing Massimo",
+        Min = 5,
+        Max = 30,
+        Default = Config.Aimbot.MaxSmoothing,
+        Rounding = 0,
+        Callback = function(v) Config.Aimbot.MaxSmoothing = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Jitter Umano",
-        CurrentValue = Config.Aimbot.HumanizeJitter,
-        Callback = function(v) Config.Aimbot.HumanizeJitter = v end,
+    Tabs.Aimbot:AddToggle("AimHumanize", {
+        Title = "Humanize (movimento naturale)",
+        Default = Config.Aimbot.Humanize,
+        Callback = function(v) Config.Aimbot.Humanize = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Forza Jitter",
-        Range = {0.1, 2.0},
-        Increment = 0.05,
-        CurrentValue = Config.Aimbot.JitterStrength,
-        Callback = function(v) Config.Aimbot.JitterStrength = v end,
+    Tabs.Aimbot:AddSlider("AimHumanizeFactor", {
+        Title = "Intensita Humanize",
+        Min = 0.5,
+        Max = 5,
+        Default = Config.Aimbot.HumanizeFactor,
+        Rounding = 1,
+        Callback = function(v) Config.Aimbot.HumanizeFactor = v end
     })
 
-    TabAim:CreateSection("Predizione Movimento")
+    Tabs.Aimbot:AddSection("Predizione Movimento")
 
-    TabAim:CreateToggle({
-        Name = "Predizione",
-        CurrentValue = Config.Aimbot.Prediction,
-        Callback = function(v) Config.Aimbot.Prediction = v end,
+    Tabs.Aimbot:AddToggle("AimPrediction", {
+        Title = "Predizione Attiva",
+        Default = Config.Aimbot.Prediction,
+        Callback = function(v) Config.Aimbot.Prediction = v end
     })
 
-    TabAim:CreateSlider({
-        Name = "Forza Predizione",
-        Range = {0.05, 0.3},
-        Increment = 0.005,
-        CurrentValue = Config.Aimbot.PredictionMultiplier,
-        Callback = function(v) Config.Aimbot.PredictionMultiplier = v end,
+    Tabs.Aimbot:AddSlider("AimPredictionAmount", {
+        Title = "Intensita Predizione",
+        Min = 0.05,
+        Max = 0.5,
+        Default = Config.Aimbot.PredictionAmount,
+        Rounding = 2,
+        Callback = function(v) Config.Aimbot.PredictionAmount = v end
     })
 
-    -- v3: Visual feedback
-    TabAim:CreateSection("Indicatori Visivi")
+    Tabs.Aimbot:AddSection("Indicatori Visivi")
 
-    TabAim:CreateToggle({
-        Name = "Mostra Snap Line",
-        CurrentValue = Config.Aimbot.ShowSnapLine,
-        Callback = function(v) Config.Aimbot.ShowSnapLine = v end,
+    Tabs.Aimbot:AddToggle("AimTargetDot", {
+        Title = "Punto sul Bersaglio",
+        Default = Config.Aimbot.TargetDot,
+        Callback = function(v) Config.Aimbot.TargetDot = v end
     })
 
-    TabAim:CreateColorPicker({
-        Name = "Colore Snap Line",
-        Color = Config.Aimbot.SnapLineColor,
-        Callback = function(v) Config.Aimbot.SnapLineColor = v end,
+    Tabs.Aimbot:AddColorpicker("AimTargetDotColor", {
+        Title = "Colore Punto Bersaglio",
+        Default = Config.Aimbot.TargetDotColor,
+        Callback = function(v) Config.Aimbot.TargetDotColor = v end
     })
 
-    TabAim:CreateToggle({
-        Name = "Mostra Lock Indicator",
-        CurrentValue = Config.Aimbot.ShowLockIndicator,
-        Callback = function(v) Config.Aimbot.ShowLockIndicator = v end,
+    Tabs.Aimbot:AddToggle("AimSnapLine", {
+        Title = "Snap Line (linea al bersaglio)",
+        Default = Config.Aimbot.SnapLine,
+        Callback = function(v) Config.Aimbot.SnapLine = v end
     })
 
-    TabAim:CreateColorPicker({
-        Name = "Colore Lock Indicator",
-        Color = Config.Aimbot.LockIndicatorColor,
-        Callback = function(v) Config.Aimbot.LockIndicatorColor = v end,
+    Tabs.Aimbot:AddColorpicker("AimSnapLineColor", {
+        Title = "Colore Snap Line",
+        Default = Config.Aimbot.SnapLineColor,
+        Callback = function(v) Config.Aimbot.SnapLineColor = v end
     })
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║     TAB: TRIGGERBOT (v3.3: REWRITTEN)     ║
-    -- ╚═══════════════════════════════════════╝
-    local TabTrig = Window:CreateTab("Triggerbot", 4483362458)
+    -- ═══════════════════════════════════════
+    -- TAB: TRIGGERBOT
+    -- ═══════════════════════════════════════
+    Tabs.Triggerbot:AddSection("Generale")
 
-    TabTrig:CreateSection("Generale")
-
-    TabTrig:CreateToggle({
-        Name = "Abilita Triggerbot",
-        CurrentValue = Config.Triggerbot.Enabled,
-        Callback = function(v) Config.Triggerbot.Enabled = v end,
+    Tabs.Triggerbot:AddToggle("TrigEnabled", {
+        Title = "Abilita Triggerbot",
+        Default = Config.Triggerbot.Enabled,
+        Callback = function(v) Config.Triggerbot.Enabled = v end
     })
 
-    TabTrig:CreateDropdown({
-        Name = "Modalita Attivazione",
-        Options = {"Always", "Hold"},
-        CurrentOption = {Config.Triggerbot.ActivationMode},
-        Callback = function(v) Config.Triggerbot.ActivationMode = v[1] or v end,
+    Tabs.Triggerbot:AddDropdown("TrigActivationMode", {
+        Title = "Modalita Attivazione",
+        Values = {"Hold", "Toggle", "Always"},
+        Default = Config.Triggerbot.ActivationMode,
+        Multi = false,
+        Callback = function(v) Config.Triggerbot.ActivationMode = v end
     })
 
-    TabTrig:CreateDropdown({
-        Name = "Tasto Triggerbot",
-        Options = KeybindOptions,
-        CurrentOption = {Config.Triggerbot.KeybindName},
+    Tabs.Triggerbot:AddDropdown("TrigKeybind", {
+        Title = "🔑 Tasto Triggerbot",
+        Values = KeybindOptions,
+        Default = Config.Triggerbot.KeybindName,
+        Multi = false,
         Callback = function(v)
-            local name = v[1] or v
-            Config.Triggerbot.KeybindName = name
-            local bind = KeybindMap[name]
+            Config.Triggerbot.KeybindName = v
+            local bind = KeybindMap[v]
             if bind then
                 Config.Triggerbot.ActivationKey = bind.Value
                 Config.Triggerbot.ActivationKeyType = bind.Type
-                Notify.Send("Triggerbot Key: " .. name, C3(255, 200, 50), 2)
+                Notify.Send("Triggerbot Key: " .. v, C3(255, 200, 50), 2)
             end
-        end,
+        end
     })
 
-    TabTrig:CreateSection("Fire Mode")
+    Tabs.Triggerbot:AddSection("Fire Mode")
 
-    TabTrig:CreateToggle({
-        Name = "INSTANT FIRE (0 delay, spara subito)",
-        CurrentValue = Config.Triggerbot.InstantFire,
-        Callback = function(v) Config.Triggerbot.InstantFire = v end,
+    Tabs.Triggerbot:AddToggle("TrigAutoShoot", {
+        Title = "Auto Shoot (sparo continuo)",
+        Default = Config.Triggerbot.AutoShoot,
+        Callback = function(v) Config.Triggerbot.AutoShoot = v end
     })
 
-    TabTrig:CreateToggle({
-        Name = "AUTO SPRAY (raffica continua)",
-        CurrentValue = Config.Triggerbot.AutoSpray,
-        Callback = function(v) Config.Triggerbot.AutoSpray = v end,
+    Tabs.Triggerbot:AddToggle("TrigSpray", {
+        Title = "Spray Mode (full auto simulato)",
+        Default = Config.Triggerbot.Spray,
+        Callback = function(v) Config.Triggerbot.Spray = v end
     })
 
-    TabTrig:CreateSlider({
-        Name = "Spray Rate (delay tra colpi)",
-        Range = {0, 0.1},
-        Increment = 0.005,
-        Suffix = "s",
-        CurrentValue = Config.Triggerbot.SprayRate,
-        Callback = function(v) Config.Triggerbot.SprayRate = v end,
+    Tabs.Triggerbot:AddSlider("TrigSprayRate", {
+        Title = "Spray Rate (delay tra colpi)",
+        Min = 0,
+        Max = 0.1,
+        Default = Config.Triggerbot.SprayRate,
+        Rounding = 3,
+        Callback = function(v) Config.Triggerbot.SprayRate = v end
     })
 
-    TabTrig:CreateSection("FOV Triggerbot")
+    Tabs.Triggerbot:AddSection("FOV Triggerbot")
 
-    TabTrig:CreateToggle({
-        Name = "Usa FOV (spara se nemico nel cerchio)",
-        CurrentValue = Config.Triggerbot.UseFOV,
-        Callback = function(v) Config.Triggerbot.UseFOV = v end,
+    Tabs.Triggerbot:AddToggle("TrigUseFOV", {
+        Title = "Usa FOV (spara se nemico nel cerchio)",
+        Default = Config.Triggerbot.UseFOV,
+        Callback = function(v) Config.Triggerbot.UseFOV = v end
     })
 
-    TabTrig:CreateSlider({
-        Name = "FOV Raggio",
-        Range = {20, 300},
-        Increment = 5,
-        Suffix = "px",
-        CurrentValue = Config.Triggerbot.FOV,
-        Callback = function(v) Config.Triggerbot.FOV = v end,
+    Tabs.Triggerbot:AddSlider("TrigFOVRadius", {
+        Title = "FOV Raggio",
+        Min = 20,
+        Max = 300,
+        Default = Config.Triggerbot.FOV,
+        Rounding = 0,
+        Callback = function(v) Config.Triggerbot.FOV = v end
     })
 
-    TabTrig:CreateToggle({
-        Name = "Mostra Cerchio FOV",
-        CurrentValue = Config.Triggerbot.ShowFOV,
-        Callback = function(v) Config.Triggerbot.ShowFOV = v end,
+    Tabs.Triggerbot:AddToggle("TrigShowFOV", {
+        Title = "Mostra Cerchio FOV",
+        Default = Config.Triggerbot.ShowFOV,
+        Callback = function(v) Config.Triggerbot.ShowFOV = v end
     })
 
-    TabTrig:CreateColorPicker({
-        Name = "Colore FOV Triggerbot",
-        Color = Config.Triggerbot.FOVColor,
-        Callback = function(v) Config.Triggerbot.FOVColor = v end,
+    Tabs.Triggerbot:AddColorpicker("TrigFOVColor", {
+        Title = "Colore FOV Triggerbot",
+        Default = Config.Triggerbot.FOVColor,
+        Callback = function(v) Config.Triggerbot.FOVColor = v end
     })
 
-    TabTrig:CreateSection("Targeting")
+    Tabs.Triggerbot:AddSection("Targeting")
 
-    TabTrig:CreateSlider({
-        Name = "Distanza Massima",
-        Range = {50, 500},
-        Increment = 25,
-        Suffix = "m",
-        CurrentValue = Config.Triggerbot.MaxDistance,
-        Callback = function(v) Config.Triggerbot.MaxDistance = v end,
+    Tabs.Triggerbot:AddSlider("TrigMaxDist", {
+        Title = "Distanza Massima",
+        Min = 50,
+        Max = 500,
+        Default = Config.Triggerbot.MaxDistance,
+        Rounding = 0,
+        Callback = function(v) Config.Triggerbot.MaxDistance = v end
     })
 
-    TabTrig:CreateSlider({
-        Name = "Hit Chance",
-        Range = {1, 100},
-        Increment = 1,
-        Suffix = "%",
-        CurrentValue = Config.Triggerbot.HitChance,
-        Callback = function(v) Config.Triggerbot.HitChance = v end,
+    Tabs.Triggerbot:AddSlider("TrigHitChance", {
+        Title = "Hit Chance (% probabilita)",
+        Min = 1,
+        Max = 100,
+        Default = Config.Triggerbot.HitChance,
+        Rounding = 0,
+        Callback = function(v) Config.Triggerbot.HitChance = v end
     })
 
-    TabTrig:CreateToggle({
-        Name = "Solo Headshot",
-        CurrentValue = Config.Triggerbot.HeadshotOnly,
-        Callback = function(v) Config.Triggerbot.HeadshotOnly = v end,
+    Tabs.Triggerbot:AddToggle("TrigHeadshotOnly", {
+        Title = "Solo Headshot",
+        Default = Config.Triggerbot.HeadshotOnly,
+        Callback = function(v) Config.Triggerbot.HeadshotOnly = v end
     })
 
-    TabTrig:CreateToggle({
-        Name = "Ignora Squadra",
-        CurrentValue = Config.Triggerbot.TeamCheck,
-        Callback = function(v) Config.Triggerbot.TeamCheck = v end,
+    Tabs.Triggerbot:AddToggle("TrigTeamCheck", {
+        Title = "Ignora Squadra",
+        Default = Config.Triggerbot.TeamCheck,
+        Callback = function(v) Config.Triggerbot.TeamCheck = v end
     })
 
-    TabTrig:CreateSection("Burst Mode")
+    Tabs.Triggerbot:AddSection("Burst Mode")
 
-    TabTrig:CreateToggle({
-        Name = "Burst Mode",
-        CurrentValue = Config.Triggerbot.BurstMode,
-        Callback = function(v) Config.Triggerbot.BurstMode = v end,
+    Tabs.Triggerbot:AddToggle("TrigBurstMode", {
+        Title = "Burst Mode",
+        Default = Config.Triggerbot.BurstMode,
+        Callback = function(v) Config.Triggerbot.BurstMode = v end
     })
 
-    TabTrig:CreateSlider({
-        Name = "Colpi per Burst",
-        Range = {2, 8},
-        Increment = 1,
-        CurrentValue = Config.Triggerbot.BurstCount,
-        Callback = function(v) Config.Triggerbot.BurstCount = v end,
+    Tabs.Triggerbot:AddSlider("TrigBurstCount", {
+        Title = "Colpi per Burst",
+        Min = 2,
+        Max = 8,
+        Default = Config.Triggerbot.BurstCount,
+        Rounding = 0,
+        Callback = function(v) Config.Triggerbot.BurstCount = v end
     })
 
-    TabTrig:CreateSlider({
-        Name = "Delay tra Colpi",
-        Range = {0.01, 0.15},
-        Increment = 0.01,
-        Suffix = "s",
-        CurrentValue = Config.Triggerbot.BurstDelay,
-        Callback = function(v) Config.Triggerbot.BurstDelay = v end,
+    Tabs.Triggerbot:AddSlider("TrigBurstDelay", {
+        Title = "Delay tra Colpi",
+        Min = 0.01,
+        Max = 0.15,
+        Default = Config.Triggerbot.BurstDelay,
+        Rounding = 2,
+        Callback = function(v) Config.Triggerbot.BurstDelay = v end
     })
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║       TAB: PLAYER (v3: NEW)            ║
-    -- ╚═══════════════════════════════════════╝
-    local TabPlayer = Window:CreateTab("Player", 4483362458)
+    -- ═══════════════════════════════════════
+    -- TAB: PLAYER
+    -- ═══════════════════════════════════════
+    Tabs.Player:AddSection("Velocita")
 
-    TabPlayer:CreateSection("Velocita")
-
-    TabPlayer:CreateToggle({
-        Name = "🏃 Speed Hack",
-        CurrentValue = Config.Player.SpeedEnabled,
-        Callback = function(v) Config.Player.SpeedEnabled = v end,
+    Tabs.Player:AddToggle("PlayerSpeedToggle", {
+        Title = "🏃 Speed Hack",
+        Default = Config.Player.SpeedEnabled,
+        Callback = function(v) Config.Player.SpeedEnabled = v end
     })
 
-    TabPlayer:CreateSlider({
-        Name = "WalkSpeed",
-        Range = {16, 200},
-        Increment = 1,
-        CurrentValue = Config.Player.WalkSpeed,
-        Callback = function(v) Config.Player.WalkSpeed = v end,
+    Tabs.Player:AddSlider("PlayerSpeedSlider", {
+        Title = "WalkSpeed",
+        Min = 16,
+        Max = 200,
+        Default = Config.Player.WalkSpeed,
+        Rounding = 0,
+        Callback = function(v) Config.Player.WalkSpeed = v end
     })
 
-    TabPlayer:CreateSection("Salto")
+    Tabs.Player:AddSection("Salto")
 
-    TabPlayer:CreateToggle({
-        Name = "🦘 Jump Hack",
-        CurrentValue = Config.Player.JumpEnabled,
-        Callback = function(v) Config.Player.JumpEnabled = v end,
+    Tabs.Player:AddToggle("PlayerJumpToggle", {
+        Title = "🦘 Jump Hack",
+        Default = Config.Player.JumpEnabled,
+        Callback = function(v) Config.Player.JumpEnabled = v end
     })
 
-    TabPlayer:CreateSlider({
-        Name = "JumpPower",
-        Range = {50, 300},
-        Increment = 5,
-        CurrentValue = Config.Player.JumpPower,
-        Callback = function(v) Config.Player.JumpPower = v end,
+    Tabs.Player:AddSlider("PlayerJumpSlider", {
+        Title = "JumpPower",
+        Min = 50,
+        Max = 300,
+        Default = Config.Player.JumpPower,
+        Rounding = 0,
+        Callback = function(v) Config.Player.JumpPower = v end
     })
 
-    TabPlayer:CreateToggle({
-        Name = "∞ Infinite Jump",
-        CurrentValue = Config.Player.InfiniteJump,
-        Callback = function(v) Config.Player.InfiniteJump = v end,
+    Tabs.Player:AddToggle("PlayerInfJumpToggle", {
+        Title = "∞ Infinite Jump",
+        Default = Config.Player.InfiniteJump,
+        Callback = function(v) Config.Player.InfiniteJump = v end
     })
 
-    TabPlayer:CreateSection("Movimento Speciale")
+    Tabs.Player:AddSection("Movimento Speciale")
 
-    TabPlayer:CreateToggle({
-        Name = "👻 Noclip (attraversa muri)",
-        CurrentValue = Config.Player.NoclipEnabled,
-        Callback = function(v) Config.Player.NoclipEnabled = v end,
+    Tabs.Player:AddToggle("PlayerNoclipToggle", {
+        Title = "👻 Noclip (attraversa muri)",
+        Default = Config.Player.NoclipEnabled,
+        Callback = function(v) Config.Player.NoclipEnabled = v end
     })
 
-    TabPlayer:CreateToggle({
-        Name = "🦅 Fly (WASD + Space/Shift)",
-        CurrentValue = Config.Player.FlyEnabled,
+    Tabs.Player:AddToggle("PlayerFlyToggle", {
+        Title = "🦅 Fly (WASD + Space/Shift)",
+        Default = Config.Player.FlyEnabled,
         Callback = function(v)
             Config.Player.FlyEnabled = v
             PlayerMods.SetupFly()
@@ -2502,97 +2529,113 @@ local guiOk, guiErr = pcall(function()
             else
                 Notify.Send("FLY OFF", C3(200, 200, 200), 2)
             end
-        end,
+        end
     })
 
-    TabPlayer:CreateSlider({
-        Name = "Velocita Volo",
-        Range = {10, 200},
-        Increment = 5,
-        CurrentValue = Config.Player.FlySpeed,
-        Callback = function(v) Config.Player.FlySpeed = v end,
+    Tabs.Player:AddSlider("PlayerFlySpeed", {
+        Title = "Velocita Volo",
+        Min = 10,
+        Max = 200,
+        Default = Config.Player.FlySpeed,
+        Rounding = 0,
+        Callback = function(v) Config.Player.FlySpeed = v end
     })
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║        TAB: SETTINGS (v3: EXPANDED)    ║
-    -- ╚═══════════════════════════════════════╝
-    local TabSettings = Window:CreateTab("Settings", 4483362458)
+    -- ═══════════════════════════════════════
+    -- TAB: SETTINGS
+    -- ═══════════════════════════════════════
+    Tabs.Settings:AddSection("Interfaccia & HUD")
 
-    TabSettings:CreateSection("Interfaccia")
-
-    TabSettings:CreateToggle({
-        Name = "Mostra Watermark",
-        CurrentValue = Config.Misc.ShowWatermark,
-        Callback = function(v) Config.Misc.ShowWatermark = v end,
+    Tabs.Settings:AddToggle("MiscWatermark", {
+        Title = "Mostra Watermark",
+        Default = Config.Misc.ShowWatermark,
+        Callback = function(v) Config.Misc.ShowWatermark = v end
     })
 
-    TabSettings:CreateToggle({
-        Name = "Mostra Kill Feed",
-        CurrentValue = Config.Misc.ShowKillFeed,
-        Callback = function(v) Config.Misc.ShowKillFeed = v end,
+    Tabs.Settings:AddToggle("MiscKillFeed", {
+        Title = "Mostra Kill Feed",
+        Default = Config.Misc.ShowKillFeed,
+        Callback = function(v) Config.Misc.ShowKillFeed = v end
     })
 
-    TabSettings:CreateLabel("Premi G per aprire/chiudere il menu")
-
-    TabSettings:CreateSection("Audio & Effetti")
-
-    TabSettings:CreateToggle({
-        Name = "🔊 Hit Sound",
-        CurrentValue = Config.Misc.HitSound,
-        Callback = function(v) Config.Misc.HitSound = v end,
+    Tabs.Settings:AddParagraph({
+        Title = "Comandi Menu",
+        Content = "Premi G per aprire o nascondere il menu.\nInterfaccia Fluent ultra-leggera, 60fps locked."
     })
 
-    TabSettings:CreateSection("Utilita")
+    Tabs.Settings:AddSection("Audio & Effetti")
 
-    TabSettings:CreateToggle({
-        Name = "🛡️ Anti-AFK",
-        CurrentValue = Config.Misc.AntiAFK,
+    Tabs.Settings:AddToggle("MiscHitSound", {
+        Title = "🔊 Hit Sound",
+        Default = Config.Misc.HitSound,
+        Callback = function(v) Config.Misc.HitSound = v end
+    })
+
+    Tabs.Settings:AddSection("Utilita & Protezione")
+
+    Tabs.Settings:AddToggle("MiscAntiAFK", {
+        Title = "🛡️ Anti-AFK",
+        Default = Config.Misc.AntiAFK,
         Callback = function(v)
             Config.Misc.AntiAFK = v
             PlayerMods.SetupAntiAFK()
-        end,
+        end
     })
 
-    TabSettings:CreateToggle({
-        Name = "💡 Fullbright (rimuovi ombre)",
-        CurrentValue = Config.Misc.Fullbright,
+    Tabs.Settings:AddToggle("MiscFullbright", {
+        Title = "💡 Fullbright (rimuovi ombre)",
+        Default = Config.Misc.Fullbright,
         Callback = function(v)
             Config.Misc.Fullbright = v
             PlayerMods.SetupFullbright()
-        end,
+        end
     })
 
-    TabSettings:CreateSection("Statistiche Sessione")
+    Tabs.Settings:AddSection("Statistiche Sessione")
 
-    TabSettings:CreateLabel("Le stats sono nel watermark (K:kills H:hits)")
-
-    TabSettings:CreateButton({
-        Name = "🔄 Reset Stats",
+    Tabs.Settings:AddButton({
+        Title = "🔄 Reset Stats",
+        Description = "Azzera contatore Kills e Hits",
         Callback = function()
             State.KillCount = 0
             State.HitCount = 0
             State.SessionStart = Tick()
             Notify.Send("Stats resettate!", C3(200, 200, 200), 2)
-        end,
+        end
     })
 
-    TabSettings:CreateSection("Pericolo")
+    Tabs.Settings:AddSection("Pericolo / Unload")
 
-    TabSettings:CreateButton({
-        Name = "UNLOAD (Rimuovi Cheat)",
+    Tabs.Settings:AddButton({
+        Title = "❌ UNLOAD (Rimuovi Phantom)",
+        Description = "Chiude il menu e rimuove tutti i componenti di gioco",
         Callback = function()
             State.Running = false
-        end,
+        end
     })
 
-    Notify.Send("GUI Caricata! Premi G per toggle", C3(180, 80, 255), 3)
+    -- Config & Interface Addons (Fluent)
+    pcall(function()
+        if InterfaceManager and SaveManager then
+            InterfaceManager:SetLibrary(Fluent)
+            SaveManager:SetLibrary(Fluent)
+            SaveManager:IgnoreThemeSettings()
+            SaveManager:SetIgnoreIndexes({})
+            InterfaceManager:SetFolder("PhantomSuite")
+            SaveManager:SetFolder("PhantomSuite/BlockSpin")
+            InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+            SaveManager:BuildConfigSection(Tabs.Settings)
+        end
+    end)
+
+    Window:SelectTab(1)
+    Notify.Send("Fluent GUI Caricata! Premi G", C3(180, 80, 255), 3)
 end)
 
 if not guiOk then
-    warn("[PHANTOM] GUI Error: " .. tostring(guiErr))
+    warn("[PHANTOM] Fluent GUI Error: " .. tostring(guiErr))
     Notify.Send("GUI Error - vedi console (F9)", C3(255, 0, 0), 5)
 end
-
 -- ═══════════════════════════════════════════════════
 -- INPUT HANDLER (v3: updated for custom keybinds)
 -- ═══════════════════════════════════════════════════
@@ -2620,18 +2663,9 @@ local function OnInputBegan(input, gp)
         return
     end
 
-    -- G = Toggle GUI
+    -- G = Toggle GUI (Fluent handles MinimizeKey natively)
     if input.KeyCode == Config.Misc.GUIToggleKey then
-        if Rayfield and Window then
-            pcall(function()
-                State.GUIVisible = not State.GUIVisible
-                if State.GUIVisible then
-                    Rayfield:Show()
-                else
-                    Rayfield:Hide()
-                end
-            end)
-        end
+        State.GUIVisible = not State.GUIVisible
         return
     end
 
@@ -2880,8 +2914,8 @@ local function Unload()
     for _, d in pairs(_wm) do pcall(function() d:Remove() end) end
     for _, n in ipairs(State.Notifications) do pcall(function() n.Drawing:Remove() end) end
 
-    -- Destroy Rayfield
-    pcall(function() Rayfield:Destroy() end)
+    -- Destroy Fluent
+    pcall(function() Fluent:Destroy() end)
 
     Notify.Send("PHANTOM Unloaded!", C3(255, 80, 80), 2)
 end
@@ -2922,9 +2956,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.6 Loaded!", C3(180, 80, 255), 4)
-    Notify.Send("Premi G per il menu", C3(200, 200, 200), 5)
-    Notify.Send("v3.6: Native Highlight & BillboardGui ESP — 100% Xeno Immune!", C3(50, 255, 100), 6)
+    Notify.Send("PHANTOM v3.7 Loaded!", C3(180, 80, 255), 4)
+    Notify.Send("Premi G per il menu Fluent", C3(200, 200, 200), 5)
+    Notify.Send("v3.7: Fluent UI — 60 FPS, Fluido, Zero Lag!", C3(50, 255, 100), 6)
 end
 
 local ok, err = pcall(Init)
