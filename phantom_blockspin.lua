@@ -1,18 +1,18 @@
---[[
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
-    ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
-    ╠═══════════════════════════════════════════════════════════════╣
-    ║  Premi K per aprire/chiudere il menu                          ║
-    ║  v6.0: SBLOCCO MOUSE AUTOMATICO — Cursore visibile e libero,   ║
-    ║        Triggerbot, Player & Settings scrollabili al 100%,     ║
-    ║        Sidebar scorrevole, Logo Pill flottante drag & touch   ║
-    ╚═══════════════════════════════════════════════════════════════╝
+﻿--[[
+    ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
+    Ôòæ     PRV SERVICE v8.5 ┬À BlockSpin Master Cyber Edition             Ôòæ
+    Ôòæ     Mouse Unlock ┬À Tab Fix ┬À Floating Pill ┬À Built for Xeno   Ôòæ
+    ÔòáÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòú
+    Ôòæ  Premi K per aprire/chiudere il menu                          Ôòæ
+    Ôòæ  v6.0: SBLOCCO MOUSE AUTOMATICO ÔÇö Cursore visibile e libero,   Ôòæ
+    Ôòæ        Triggerbot, Player & Settings scrollabili al 100%,     Ôòæ
+    Ôòæ        Sidebar scorrevole, Logo Pill flottante drag & touch   Ôòæ
+    ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ
 --]]
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- SAFE FONT DETECTION
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function getFont()
     local ok, fonts = pcall(function() return Drawing.Fonts end)
     if ok and fonts then
@@ -28,9 +28,9 @@ local FONT = getFont()
 local HAS_MOUSEMOVEREL = pcall(function() return typeof(mousemoverel) == "function" end)
 local HAS_MOUSE1CLICK  = pcall(function() return typeof(mouse1click) == "function" end)
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- SERVICES
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -66,9 +66,9 @@ local tWait   = task.wait
 local tSpawn  = task.spawn
 local tDefer  = task.defer
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- KEYBIND MAPS (for GUI dropdown selection)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local KeybindMap = {
     -- Mouse
     ["Mouse2 (RMB)"]  = {Type = "Mouse", Value = Enum.UserInputType.MouseButton2},
@@ -97,11 +97,11 @@ local KeybindOptions = {}
 for name, _ in pairs(KeybindMap) do tInsert(KeybindOptions, name) end
 table.sort(KeybindOptions)
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- CONFIGURATION
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Config = {
-    -- ── ESP ──
+    -- ÔöÇÔöÇ ESP ÔöÇÔöÇ
     ESP = {
         Enabled         = false,
         BoxStyle        = "Full",       -- "Full" / "Corner"
@@ -139,10 +139,10 @@ local Config = {
         ChamsTransparency   = 0.3,
     },
 
-    -- ── INVENTORY ESP ──
+    -- ÔöÇÔöÇ INVENTORY ESP ÔöÇÔöÇ
     InventoryESP = {
         Enabled       = false,
-        VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarità
+        VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarit├á
         ShowRarityGlow = true,        -- v8: Contorno Leggendario dorato (RPG, Minigun)
         BadgeSize     = 20,           -- v8.1: Dimensione badge compatta (20px)
         ShowEquipped  = true,
@@ -156,7 +156,7 @@ local Config = {
         MaxItems      = 8,           -- v3: limit display
     },
 
-    -- ── AIMBOT ──
+    -- ÔöÇÔöÇ AIMBOT ÔöÇÔöÇ
     Aimbot = {
         Enabled              = false,
         ActivationMode       = "Hold",     -- "Hold" / "Toggle"
@@ -196,7 +196,7 @@ local Config = {
         BonePriority         = false,       -- auto-pick best bone
     },
 
-    -- ── TRIGGERBOT ──
+    -- ÔöÇÔöÇ TRIGGERBOT ÔöÇÔöÇ
     Triggerbot = {
         Enabled        = false,
         ActivationMode = "Always",      -- "Hold" / "Always"
@@ -232,7 +232,7 @@ local Config = {
         StableFrames   = 3,
     },
 
-    -- ── PLAYER ── (v3: NEW TAB)
+    -- ÔöÇÔöÇ PLAYER ÔöÇÔöÇ (v3: NEW TAB)
     Player = {
         SpeedEnabled   = false,
         WalkSpeed      = 16,        -- default roblox
@@ -244,7 +244,7 @@ local Config = {
         InfiniteJump   = false,
     },
 
-    -- ── MISC ──
+    -- ÔöÇÔöÇ MISC ÔöÇÔöÇ
     Misc = {
         ShowWatermark  = false,
         GUIToggleKey   = Enum.KeyCode.G,
@@ -257,9 +257,9 @@ local Config = {
     },
 }
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- STATE
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local State = {
     Running         = true,
     AimbotHeld      = false,
@@ -291,9 +291,9 @@ local State = {
     OriginalBrightness = nil,
 }
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- ANTI-DETECTION v3 (hardened)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 pcall(function()
     if not hookmetamethod or not newcclosure or not getnamecallmethod then return end
 
@@ -343,9 +343,9 @@ pcall(function()
     -- Only apply to our own waits (don't hook globally, too risky)
 end)
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- UTILITIES
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Util = {}
 
 function Util.W2S(pos)
@@ -405,15 +405,15 @@ function Util.MousePos()
     return UserInputService:GetMouseLocation()
 end
 
--- ═══════════════════════════════════════════════════
--- v10.0: INVENTORY ESP RESOLVER — FINAL REWRITE
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- v10.0: INVENTORY ESP RESOLVER ÔÇö FINAL REWRITE
 -- Xeno-safe, no require(), no false positives
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 -- WEAPON NAME WHITELIST (lowercase)
--- If a string matches here, it's ALWAYS valid — skip garbage checks
--- ───────────────────────────────────────────────────
+-- If a string matches here, it's ALWAYS valid ÔÇö skip garbage checks
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 local KNOWN_WEAPONS = {
     -- BlockSpin confirmed weapons
     ["anaconda"]=true, ["remington"]=true, ["mp5"]=true, ["rpg"]=true,
@@ -467,9 +467,9 @@ local KNOWN_WEAPONS = {
 
 }
 
--- ───────────────────────────────────────────────────
--- GARBAGE WORDS — never display these as weapon names
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- GARBAGE WORDS ÔÇö never display these as weapon names
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 local GARBAGE_WORDS = {
     ["weapon"]=true, ["weapons"]=true, ["tool"]=true, ["tools"]=true,
     ["item"]=true, ["items"]=true, ["uncommon"]=true, ["common"]=true,
@@ -504,9 +504,9 @@ local GARBAGE_WORDS = {
     ["terrain"]=true, ["seat"]=true,
 }
 
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 -- CHILD NAMES TO ALWAYS IGNORE IN TOOL SCAN
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 local IGNORED_CHILDREN = {
     ["handle"]=true, ["parts"]=true, ["sounds"]=true, ["animations"]=true,
     ["settings"]=true, ["config"]=true, ["client"]=true, ["server"]=true,
@@ -526,9 +526,9 @@ local IGNORED_CHILDREN = {
     ["accessory"]=true, ["hat"]=true, ["shirt"]=true, ["pants"]=true,
 }
 
--- ───────────────────────────────────────────────────
--- IsGarbageName — returns true if a string is NOT a valid weapon name
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- IsGarbageName ÔÇö returns true if a string is NOT a valid weapon name
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function Util.IsGarbageName(str)
     if not str or type(str) ~= "string" then return true end
     local s = str:match("^%s*(.-)%s*$")
@@ -537,13 +537,13 @@ function Util.IsGarbageName(str)
     -- Pure numeric = garbage
     if s:match("^%d+$") then return true end
 
-    -- Whitelist check — always valid
+    -- Whitelist check ÔÇö always valid
     if KNOWN_WEAPONS[s:lower()] then return false end
 
     -- FILE PATHS: anything with / or \ is a mesh/model path (e.g. "Pistols/bloodbag", "Meshes/new Melees")
     if s:find("/") or s:find("\\") then return true end
 
-    -- BLENDER MESH NAMES: "Cube.001", "Cube.003", "Weapon.002" — word + dot + 3 digits
+    -- BLENDER MESH NAMES: "Cube.001", "Cube.003", "Weapon.002" ÔÇö word + dot + 3 digits
     if s:match("%a+%.%d%d%d") then return true end
     -- Also catch single dot-number like "Part.1", "Mesh.5"
     if s:match("^[%a%d_]+%.[%d]+$") then return true end
@@ -581,13 +581,13 @@ function Util.IsGarbageName(str)
     return false
 end
 
--- ───────────────────────────────────────────────────
--- CleanToolName — strips prefixes/suffixes, normalizes
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- CleanToolName ÔÇö strips prefixes/suffixes, normalizes
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function Util.CleanToolName(raw)
     if not raw or type(raw) ~= "string" then return nil end
 
-    -- Whitelist shortcut — return immediately for known names
+    -- Whitelist shortcut ÔÇö return immediately for known names
     local trimmed = raw:match("^%s*(.-)%s*$")
     if KNOWN_WEAPONS[trimmed:lower()] then return trimmed end
 
@@ -597,7 +597,7 @@ function Util.CleanToolName(raw)
     name = name:gsub("^Melee_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
     -- Strip leading/trailing numeric IDs separated by underscore
     name = name:gsub("^%d+_", ""):gsub("_%d+$", "")
-    -- Underscores → spaces
+    -- Underscores ÔåÆ spaces
     name = name:gsub("_", " ")
     name = name:match("^%s*(.-)%s*$")
 
@@ -606,11 +606,11 @@ function Util.CleanToolName(raw)
     return name
 end
 
--- ───────────────────────────────────────────────────
--- CapitalizeName — proper display casing
--- Handles: "ak-47" → "AK-47", "double barrel" → "Double Barrel",
---          "mp5" → "MP5", "combat knife" → "Combat Knife"
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- CapitalizeName ÔÇö proper display casing
+-- Handles: "ak-47" ÔåÆ "AK-47", "double barrel" ÔåÆ "Double Barrel",
+--          "mp5" ÔåÆ "MP5", "combat knife" ÔåÆ "Combat Knife"
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 local function CapitalizeName(name)
     if not name then return name end
 
@@ -649,7 +649,7 @@ local function CapitalizeName(name)
             -- If part starts with a digit, keep as-is
             if part:match("^%d") then
                 tInsert(parts, part)
-            -- Short parts (1-2 chars) that are letters only → uppercase (likely acronym)
+            -- Short parts (1-2 chars) that are letters only ÔåÆ uppercase (likely acronym)
             elseif #part <= 2 and part:match("^%a+$") then
                 tInsert(parts, part:upper())
             else
@@ -662,9 +662,9 @@ local function CapitalizeName(name)
     return tConcat(result, " ")
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- RARITY SYSTEM
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local RARITY_COLORS = {
     Mythic    = C3(239, 68, 68),
     Legendary = C3(255, 190, 20),
@@ -733,9 +733,9 @@ local BLOCKSPIN_RARITIES = {
     ["baton"]             = { r = "Common",    c = RARITY_COLORS.Common },
 }
 
--- ───────────────────────────────────────────────────
--- GetItemRarity — exact match first, then safe partial
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- GetItemRarity ÔÇö exact match first, then safe partial
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function Util.GetItemRarity(tool, itemName)
     if not itemName then return "Common", RARITY_COLORS.Common end
     local lower = itemName:lower():match("^%s*(.-)%s*$")
@@ -778,9 +778,9 @@ function Util.GetItemRarity(tool, itemName)
     return "Common", RARITY_COLORS.Common
 end
 
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 -- GetToolDamage
--- ───────────────────────────────────────────────────
+-- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function Util.GetToolDamage(tool)
     local dmg = nil
     pcall(function()
@@ -801,208 +801,10 @@ function Util.GetToolDamage(tool)
     return dmg
 end
 
--- ═══════════════════════════════════════════════════
--- BLOCKSPIN ATTRIBUTE-BASED RESOLVER
--- BlockSpin usa nomi numerici per i tool (es. 405805, 694008)
--- Il nome specifico è server-side solo in un ModuleScript (inaccessibile da Xeno)
--- Categorizziamo dal contenuto degli attributi:
---   automatic / ReloadMultiplierOffset  → arma da fuoco
---   HealthRestoreAmount                 → oggetto medico
---   SpeedMultiplier / StaminaConsume    → armor / speed boost
---   Durability (senza reload)           → melee
---   RarityName                          → rarità diretta
--- ═══════════════════════════════════════════════════
-function Util.BlockSpinResolveFromAttributes(tool)
-    local attrs = {}
-    pcall(function() attrs = tool:GetAttributes() end)
-
-    -- Estrai valori chiave
-    local rarityName     = attrs["RarityName"] or attrs["rarityName"] or attrs["Rarity"] or attrs["rarity"]
-    local healthRestore  = attrs["HealthRestoreAmount"] or attrs["HealthRestore"] or attrs["Health"]
-    local durability     = attrs["Durability"] or attrs["durability"]
-    local automatic      = attrs["automatic"] or attrs["Automatic"] or attrs["isAutomatic"]
-    local reloadOffset   = attrs["ReloadMultiplierOffset"] or attrs["ReloadSpeed"] or attrs["reloadSpeed"]
-    local speedMult      = attrs["SpeedMultiplier"] or attrs["speedMultiplier"]
-    local staminaMult    = attrs["StaminaConsumeMultiplier"] or attrs["StaminaMultiplier"]
-    local damage         = attrs["Damage"] or attrs["BaseDamage"] or attrs["AttackDamage"]
-    local rarityPrice    = attrs["RarityPrice"] or attrs["Price"]
-    local ammo           = attrs["MaxAmmo"] or attrs["Ammo"] or attrs["ammo"]
-
-    -- Determina categoria
-    local category = nil
-    local detail   = ""
-
-    -- 1. Oggetto medico
-    if type(healthRestore) == "number" and healthRestore > 0 then
-        category = "Medkit"
-        detail   = "+" .. math.floor(healthRestore) .. " HP"
-
-    -- 2. Arma da fuoco (ha automatic o reload attr)
-    elseif automatic ~= nil or reloadOffset ~= nil or type(ammo) == "number" then
-        if automatic == true then
-            category = "Auto Weapon"
-        elseif automatic == false then
-            category = "Weapon"
-        else
-            category = "Weapon"
-        end
-        if type(damage) == "number" and damage > 0 then
-            detail = math.floor(damage) .. " DMG"
-        end
-
-    -- 3. Speed/Armor item
-    elseif type(speedMult) == "number" then
-        if speedMult >= 1.3 then
-            category = "Speed Boost"
-        elseif type(staminaMult) == "number" then
-            category = "Armor"
-        else
-            category = "Boost"
-        end
-        detail = "x" .. string.format("%.1f", speedMult)
-
-    -- 4. Melee (solo durabilità, niente reload/automatic)
-    elseif type(durability) == "number" and durability > 0 then
-        category = "Melee"
-        detail   = math.floor(durability) .. " DUR"
-
-    -- 5. Item generico con prezzo rarità (è un oggetto ma non sappiamo cosa)
-    elseif type(rarityPrice) == "number" then
-        category = "Item"
-    end
-
-    if not category then return nil, nil, nil end
-
-    -- Determina colore/rarità
-    local rColor = RARITY_COLORS.Common
-    local rName  = "Common"
-    if type(rarityName) == "string" and #rarityName > 0 then
-        local rLow = rarityName:lower():match("^%s*(.-)%s*$")
-        if rLow:find("mythic")    then rName = "Mythic";    rColor = RARITY_COLORS.Mythic
-        elseif rLow:find("legend") then rName = "Legendary"; rColor = RARITY_COLORS.Legendary
-        elseif rLow:find("epic")   then rName = "Epic";      rColor = RARITY_COLORS.Epic
-        elseif rLow:find("rare")   then rName = "Rare";      rColor = RARITY_COLORS.Rare
-        elseif rLow:find("uncommon") then rName = "Uncommon"; rColor = RARITY_COLORS.Uncommon
-        elseif rLow:find("common") then rName = "Common";    rColor = RARITY_COLORS.Common
-        end
-    end
-
-    -- Costruisci nome display
-    local display = category
-    if detail ~= "" then
-        display = display .. " [" .. detail .. "]"
-    end
-
-    return display, rName, rColor
-end
-
--- ═══════════════════════════════════════════════════
--- GETSENV WEAPON NAME INTERCEPTOR
--- Legge le variabili interne degli script di BlockSpin
--- tramite getsenv() — supportato da Xeno
--- Costruisce una cache [numericID] = "WeaponName"
--- ═══════════════════════════════════════════════════
-local _getsenvCache   = {}   -- ["405805"] = "Glock"
-local _getsenvDone    = false
-local _remoteIntDone  = false
-
--- Keywords che indicano un script con dati arma
-local WEAPON_SCRIPT_HINTS = {
-    "weapon","gun","item","inventory","shop","tool","equip",
-    "loadout","arsenal","armory","backpack","store","catalog",
-}
-local function looksWeaponScript(name)
-    local low = name:lower()
-    for _, h in ipairs(WEAPON_SCRIPT_HINTS) do
-        if low:find(h, 1, true) then return true end
-    end
-    return false
-end
-
--- Prova a estrarre [numericID] = "Name" da una qualsiasi tabella
-local function extractIDNameMap(tbl, depth)
-    if depth > 3 then return end
-    if type(tbl) ~= "table" then return end
-    for k, v in pairs(tbl) do
-        -- Pattern 1: tbl[number] = "WeaponName"
-        if type(k) == "number" and type(v) == "string" and #v > 1 and #v < 35 then
-            local vLow = v:lower()
-            if not _getsenvCache[tostring(k)] and not vLow:find("nuthing") and
-               not vLow:find("nothing") and not vLow:find("i have") then
-                _getsenvCache[tostring(k)] = v
-            end
-        end
-        -- Pattern 2: tbl[number] = { Name="WeaponName", ... } or { name=... }
-        if type(k) == "number" and type(v) == "table" then
-            local nameVal = v.Name or v.name or v.DisplayName or v.displayName or
-                            v.WeaponName or v.weaponName or v.ItemName or v.itemName or
-                            v.Label or v.label or v.Title or v.title
-            if type(nameVal) == "string" and #nameVal > 1 and #nameVal < 35 then
-                local nLow = nameVal:lower()
-                if not nLow:find("nuthing") and not nLow:find("nothing") and not nLow:find("i have") then
-                    _getsenvCache[tostring(k)] = nameVal
-                end
-            end
-            extractIDNameMap(v, depth + 1)
-        end
-        -- Pattern 3: tbl["405805"] = "WeaponName" (stringa numerica come chiave)
-        if type(k) == "string" and k:match("^%d+$") and type(v) == "string" and #v > 1 and #v < 35 then
-            local vLow = v:lower()
-            if not _getsenvCache[k] and not vLow:find("nuthing") and not vLow:find("nothing") then
-                _getsenvCache[k] = v
-            end
-        end
-    end
-end
-
-local function RunGetsenvScan()
-    if _getsenvDone then return end
-    _getsenvDone = true
-    pcall(function()
-        for _, desc in ipairs(game:GetDescendants()) do
-            local ok = pcall(function()
-                if (desc:IsA("LocalScript") or desc:IsA("ModuleScript")) and looksWeaponScript(desc.Name) then
-                    local envOk, env = pcall(getsenv, desc)
-                    if envOk and type(env) == "table" then
-                        extractIDNameMap(env, 0)
-                        -- Cerca anche variabili locali chiamate weapons/items/tools
-                        for varName, varVal in pairs(env) do
-                            if type(varName) == "string" then
-                                local vn = varName:lower()
-                                if (vn:find("weapon") or vn:find("item") or vn:find("tool") or
-                                    vn:find("gun") or vn:find("catalog") or vn:find("data")) then
-                                    extractIDNameMap(varVal, 1)
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-end
-
--- Avvia la scan in background dopo 2s (aspetta che il gioco sia caricato)
-task.delay(2, function()
-    RunGetsenvScan()
-end)
-
--- Funzione di lookup per tool con nome numerico
-function Util.LookupWeaponIDName(toolName)
-    -- Prova la cache getsenv prima
-    local cached = _getsenvCache[toolName]
-    if cached then return cached end
-    -- Se la scan non è ancora partita, la avvia ora
-    if not _getsenvDone then
-        task.spawn(RunGetsenvScan)
-    end
-    return nil
-end
-
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- REPLICATED STORAGE SCANNER (XENO-SAFE)
--- NO require() — only reads Tool instances and their properties
--- ═══════════════════════════════════════════════════
+-- NO require() ÔÇö only reads Tool instances and their properties
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local _rsCache = nil
 local _rsCacheTime = 0
 local _rsScanFailed = false
@@ -1082,196 +884,38 @@ local function BuildRSWeaponMap()
     return map
 end
 
--- ═══════════════════════════════════════════════════
--- PLAYERGUI WEAPON NAME SCANNER (XENO-SAFE)
--- BlockSpin mostra il nome specifico dell'arma nella HUD del player
--- Lo leggiamo dai TextLabel nel PlayerGui del target
--- ═══════════════════════════════════════════════════
-local _guiWeaponCache = {}   -- [player] = {name=str, t=tick}
-local GUI_CACHE_TTL = 1.5    -- secondi
-
-local function ScanPlayerGuiForWeapon(player)
-    -- Cache check
-    local cached = _guiWeaponCache[player]
-    if cached and (Tick() - cached.t < GUI_CACHE_TTL) then
-        return cached.name
-    end
-
-    local found = nil
-    pcall(function()
-        local pg = player:FindFirstChildOfClass("PlayerGui")
-        if not pg then return end
-
-        -- Scansiona tutti i TextLabel/TextButton nel PlayerGui
-        -- BlockSpin mostra il nome dell'arma equipaggiata nella sua HUD
-        for _, desc in ipairs(pg:GetDescendants()) do
-            if found then return end
-            if desc:IsA("TextLabel") or desc:IsA("TextButton") then
-                local txt = desc.Text
-                if type(txt) == "string" and #txt > 1 and #txt < 50 then
-                    local trimmed = txt:match("^%s*(.-)%s*$")
-                    local lower = trimmed:lower()
-                    -- Rimuovi tag RichText se presenti
-                    local clean = trimmed:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
-                    local cleanLow = clean:lower()
-                    if KNOWN_WEAPONS[cleanLow] or BLOCKSPIN_RARITIES[cleanLow] then
-                        found = clean
-                        return
-                    end
-                    -- Anche: controlla se il parent/antenato ha un nome che suggerisce
-                    -- che questo label è per l'arma (HUD, Weapon, Gun, Inventory, Item, ecc.)
-                    local parentName = desc.Parent and desc.Parent.Name:lower() or ""
-                    local grandName = (desc.Parent and desc.Parent.Parent) and desc.Parent.Parent.Name:lower() or ""
-                    local isWeaponUI = parentName:find("weapon") or parentName:find("gun") or
-                                      parentName:find("item") or parentName:find("inventory") or
-                                      parentName:find("hud") or parentName:find("equip") or
-                                      grandName:find("weapon") or grandName:find("inventory") or
-                                      grandName:find("hud")
-                    if isWeaponUI and not Util.IsGarbageName(clean) and #clean > 2 then
-                        found = clean
-                        return
-                    end
-                end
-            end
-        end
-    end)
-
-    _guiWeaponCache[player] = {name = found, t = Tick()}
-    return found
-end
-
--- ═══════════════════════════════════════════════════
--- AGGRESSIVE TOOL VALUE SCANNER (XENO-SAFE)
--- Scansiona TUTTI i valori dentro il tool senza filtri
--- Cerca qualsiasi stringa che assomiglia a un nome d'arma
--- =======================================================
--- AGGRESSIVE TOOL SCAN — WHITELIST ONLY, NO GARBAGE
--- Solo accetta valori che matchano esattamente KNOWN_WEAPONS
--- Ignora: Description, frasi con 2+ parole, testo > 20 char
--- =======================================================
-local _SKIP_ATTR_KEYS = {
-    description=true, desc=true, text=true, hint=true,
-    info=true, note=true, message=true, flavor=true,
-    lore=true, story=true, details=true, extra=true,
-    placeholder=true, temp=true, debug=true, tooltip=true,
-}
-local _GARBAGE_SUBSTR = {
-    "nothing","nuthing","nuth","i have","i don","placeholder",
-    "lorem","ipsum","debug","todo","fixme","null","undefined",
-    "error","failed","loading","updating","testing",
-}
-local function _isGarbageVal(str)
-    if not str or #str < 2 or #str > 22 then return true end
-    local low = str:lower()
-    for _, sub in ipairs(_GARBAGE_SUBSTR) do
-        if low:find(sub, 1, true) then return true end
-    end
-    -- 2+ parole = descrizione, non nome arma
-    local words = 0
-    for _ in str:gmatch("%S+") do words = words + 1 end
-    if words >= 2 then return true end
-    return false
-end
-
-local function AggressiveToolScan(tool)
-    local found = nil
-    pcall(function()
-        local attrs = tool:GetAttributes()
-        for k, v in pairs(attrs) do
-            if found then return end
-            if not _SKIP_ATTR_KEYS[k:lower()] and type(v) == "string" then
-                local trimmed = v:match("^%s*(.-)%s*$")
-                local low = trimmed:lower()
-                if KNOWN_WEAPONS[low] and not _isGarbageVal(trimmed) then
-                    found = trimmed; return
-                end
-            end
-        end
-    end)
-    pcall(function()
-        if found then return end
-        for _, child in ipairs(tool:GetChildren()) do
-            if found then return end
-            if child:IsA("StringValue") then
-                local v = child.Value:match("^%s*(.-)%s*$")
-                local low = v:lower()
-                if KNOWN_WEAPONS[low] and not _isGarbageVal(v) then
-                    found = v; return
-                end
-            end
-        end
-    end)
-    pcall(function()
-        if found then return end
-        local tt = tool.ToolTip
-        if tt and type(tt) == "string" then
-            local v = tt:match("^%s*(.-)%s*$")
-            if KNOWN_WEAPONS[v:lower()] and not _isGarbageVal(v) then
-                found = v
-            end
-        end
-    end)
-    return found
-end
-
--- ═══════════════════════════════════════════════════
--- MASTER RESOLVER v11.0
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- MASTER RESOLVER v10.0
 -- Resolution order:
---   0. PlayerGui HUD scan (BlockSpin mostra il nome nella HUD)
---   0b. AggressiveToolScan (tutti i valori dentro il tool)
 --   1. RS cache lookup by tool.Name
---   2. Known weapon whitelist check (NON per nomi generici)
---   3. tool.Name se non generico
---   4-10. Deep inspection standard
--- ═══════════════════════════════════════════════════
+--   2. Known weapon whitelist check
+--   3. tool.Name if human-readable
+--   4. Attributes (DisplayName, ItemName, etc.)
+--   5. ToolTip
+--   6. String attribute scan (known weapons only)
+--   7. RS cross-reference by attribute IDs
+--   8. Child name scan (known weapons first, then valid 4+ char names)
+--   9. Animation prefix scan
+--  10. StringValue scan (known weapons only)
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
     local rawName = tool.Name
     local realName = nil
 
-    -- ── STEP 0: AggressiveToolScan — scansione totale di tutti i valori del tool
-    -- Questo è il primo passo perché è il più diretto per BlockSpin
-    -- Legge TUTTI gli attributi, StringValue, Configuration, ToolTip senza filtri
-    local aggressiveHit = AggressiveToolScan(tool)
-    if aggressiveHit and not Util.IsGarbageName(aggressiveHit) then
-        local agLow = aggressiveHit:lower():match("^%s*(.-)%s*$")
-        -- Accetta solo se è nella whitelist O se è un nome plausibile (non categoria generica)
-        local GENERIC_CHECK = {
-            ["pistol"]=true,["shotgun"]=true,["rifle"]=true,["smg"]=true,
-            ["sniper"]=true,["gun"]=true,["weapon"]=true,["melee"]=true,
-        }
-        if not GENERIC_CHECK[agLow] then
-            realName = aggressiveHit
+    -- ÔöÇÔöÇ 1. ReplicatedStorage cache lookup ÔöÇÔöÇ
+    local rsMap = BuildRSWeaponMap()
+    if rsMap and rawName then
+        local rsHit = rsMap[rawName:lower()]
+        if rsHit and not Util.IsGarbageName(rsHit) then
+            realName = rsHit
         end
     end
 
-    -- ── 1. ReplicatedStorage cache lookup ──
+    -- ÔöÇÔöÇ 2. Known weapon whitelist ÔöÇÔöÇ
     if not realName then
-        local rsMap = BuildRSWeaponMap()
-        if rsMap and rawName then
-            local rsHit = rsMap[rawName:lower()]
-            if rsHit and not Util.IsGarbageName(rsHit) then
-                realName = rsHit
-            end
-        end
-    end
-
-    -- ── 2. Known weapon whitelist ──
-    -- NOTA: nomi generici (pistol, shotgun, rifle, smg, ecc.) vengono marcati per
-    -- la disambiguation — NON ritornati subito, perché BlockSpin usa questi come
-    -- container e il nome specifico è dentro l'oggetto
-    local GENERIC_CATEGORIES = {
-        ["pistol"]=true, ["shotgun"]=true, ["rifle"]=true, ["smg"]=true,
-        ["sniper"]=true, ["gun"]=true, ["weapon"]=true, ["melee"]=true,
-        ["bat"]=true, ["knife"]=true, ["sword"]=true, ["axe"]=true,
-        ["hammer"]=true, ["bow"]=true, ["crossbow"]=true,
-    }
-
-    local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
-    local isGeneric = GENERIC_CATEGORIES[lowRaw]
-
-    if not realName and not isGeneric then
+        local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
         if KNOWN_WEAPONS[lowRaw] then
             realName = rawName:match("^%s*(.-)%s*$")
         elseif BLOCKSPIN_RARITIES[lowRaw] then
@@ -1279,175 +923,27 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ── 3. tool.Name se non generico ──
-    if not realName and not isGeneric and not Util.IsGarbageName(rawName) then
+    -- ÔöÇÔöÇ 3. tool.Name if human-readable ÔöÇÔöÇ
+    if not realName and not Util.IsGarbageName(rawName) then
         local cleaned = Util.CleanToolName(rawName)
         if cleaned then realName = cleaned end
     end
 
-    -- ═══════════════════════════════════════════════════
-    -- DISAMBIGUATION UNIVERSALE (BlockSpin usa nomi generici come container)
-    -- Cerca il nome specifico dell'arma dentro il tool stesso
-    -- Questo vale per: Pistol, Shotgun, Rifle, SMG, Sniper, ecc.
-    -- ═══════════════════════════════════════════════════
-    local needsDisambig = isGeneric or (realName and GENERIC_CATEGORIES[realName:lower()])
-    if needsDisambig then
+    -- ÔöÇÔöÇ Shotgun disambiguation ÔöÇÔöÇ
+    if realName and realName:lower() == "shotgun" then
         local found = nil
-
         pcall(function()
-            -- PASS 1: Attributi — BlockSpin spesso mette il nome specifico qui
-            local attrKeys = {
-                "WeaponName","weaponName","GunName","gunName","ItemName","itemName",
-                "DisplayName","displayName","Name","name","Title","title",
-                "WeaponType","weaponType","GunType","gunType","WeaponID","weaponID",
-                "ItemID","itemID","SkinName","skinName","ModelName","modelName",
-                "Label","label","Type","Rarity","rarity",
-            }
-            for _, key in ipairs(attrKeys) do
-                if found then return end
-                local val = tool:GetAttribute(key)
-                if type(val) == "string" and #val > 1 and #val < 50 then
-                    local valTrim = val:match("^%s*(.-)%s*$")
-                    local valLow = valTrim:lower()
-                    -- Accetta se è nella whitelist O se sembra un nome proprio (non generico)
-                    if (KNOWN_WEAPONS[valLow] or BLOCKSPIN_RARITIES[valLow])
-                       and not GENERIC_CATEGORIES[valLow] then
-                        found = valTrim
-                        return
-                    end
-                    -- Accetta anche se non è garbage e non è generico
-                    if not Util.IsGarbageName(valTrim) and not GENERIC_CATEGORIES[valLow] then
-                        local cleaned = Util.CleanToolName(valTrim)
-                        if cleaned and not GENERIC_CATEGORIES[cleaned:lower()] then
-                            found = cleaned
-                            return
-                        end
-                    end
-                end
+            for _, desc in ipairs(tool:GetDescendants()) do
+                local dn = desc.Name:lower()
+                if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
+                if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
+                if dn:find("remington") or dn:find("870") then found = "Remington"; return end
             end
         end)
-
-        -- PASS 2: StringValue figli/discendenti — nome specifico spesso qui
-        if not found then
-            pcall(function()
-                for _, desc in ipairs(tool:GetDescendants()) do
-                    if found then return end
-                    if desc:IsA("StringValue") then
-                        local sv = desc.Value
-                        if type(sv) == "string" and #sv > 1 and #sv < 50 then
-                            local svLow = sv:lower():match("^%s*(.-)%s*$")
-                            if (KNOWN_WEAPONS[svLow] or BLOCKSPIN_RARITIES[svLow])
-                               and not GENERIC_CATEGORIES[svLow] then
-                                found = sv:match("^%s*(.-)%s*$")
-                                return
-                            end
-                            -- Anche se il nome del child suggerisce che è un nome arma
-                            local childNameLow = desc.Name:lower()
-                            if (childNameLow:find("name") or childNameLow:find("weapon") or
-                                childNameLow:find("gun") or childNameLow:find("label") or
-                                childNameLow:find("display") or childNameLow:find("title")) then
-                                if not Util.IsGarbageName(sv) and not GENERIC_CATEGORIES[svLow] then
-                                    local cleaned = Util.CleanToolName(sv)
-                                    if cleaned and not GENERIC_CATEGORIES[cleaned:lower()] then
-                                        found = cleaned
-                                        return
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-
-        -- PASS 3: Nome dei figli/modelli che matchano un'arma specifica
-        if not found then
-            pcall(function()
-                -- Prima: figli diretti con nomi nella whitelist
-                for _, child in ipairs(tool:GetChildren()) do
-                    if found then return end
-                    local dn = child.Name
-                    local dnLow = dn:lower()
-                    if (KNOWN_WEAPONS[dnLow] or BLOCKSPIN_RARITIES[dnLow])
-                       and not GENERIC_CATEGORIES[dnLow] then
-                        found = dn
-                        return
-                    end
-                end
-                -- Secondo: prefix da animation names (es. "Remington_Shoot")
-                for _, desc in ipairs(tool:GetDescendants()) do
-                    if found then return end
-                    if desc:IsA("Animation") and desc.Name:find("_") then
-                        local prefix = desc.Name:split("_")[1]
-                        if prefix and #prefix > 2 then
-                            local prefLow = prefix:lower()
-                            if (KNOWN_WEAPONS[prefLow] or BLOCKSPIN_RARITIES[prefLow])
-                               and not GENERIC_CATEGORIES[prefLow] then
-                                found = prefix
-                                return
-                            end
-                        end
-                    end
-                    -- Cerca anche nei descendant names per pattern specifici
-                    if not found then
-                        local dn = desc.Name:lower()
-                        -- Shotgun specifics
-                        if lowRaw == "shotgun" or (realName and realName:lower() == "shotgun") then
-                            if dn:find("remington") or dn:find("870") then found = "Remington"; return end
-                            if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
-                            if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
-                            if dn:find("spas") then found = "SPAS-12"; return end
-                            if dn:find("aa12") or dn:find("aa-12") then found = "AA-12"; return end
-                        end
-                        -- Pistol specifics
-                        if lowRaw == "pistol" then
-                            if dn:find("glock") then found = "Glock"; return end
-                            if dn:find("deagle") or dn:find("desert") then found = "Desert Eagle"; return end
-                            if dn:find("anaconda") then found = "Anaconda"; return end
-                            if dn:find("p226") then found = "P226"; return end
-                            if dn:find("1911") or dn:find("m1911") then found = "M1911"; return end
-                            if dn:find("revolver") then found = "Revolver"; return end
-                        end
-                        -- Rifle/AR specifics
-                        if lowRaw == "rifle" then
-                            if dn:find("ak") then found = "AK-47"; return end
-                            if dn:find("m16") then found = "M16"; return end
-                            if dn:find("m4") or dn:find("m4a1") then found = "M4A1"; return end
-                            if dn:find("scar") then found = "SCAR"; return end
-                            if dn:find("aug") then found = "AUG"; return end
-                            if dn:find("famas") then found = "FAMAS"; return end
-                        end
-                        -- SMG specifics
-                        if lowRaw == "smg" then
-                            if dn:find("mp5") then found = "MP5"; return end
-                            if dn:find("mp7") then found = "MP7"; return end
-                            if dn:find("uzi") then found = "UZI"; return end
-                            if dn:find("mac10") or dn:find("mac-10") then found = "MAC-10"; return end
-                            if dn:find("p90") then found = "P90"; return end
-                            if dn:find("vector") then found = "Vector"; return end
-                        end
-                        -- Sniper specifics
-                        if lowRaw == "sniper" then
-                            if dn:find("barrett") or dn:find("50") then found = "Barrett .50 Cal"; return end
-                            if dn:find("awp") then found = "AWP"; return end
-                            if dn:find("dragunov") then found = "Dragunov"; return end
-                        end
-                    end
-                end
-            end)
-        end
-
-        if found then
-            realName = found
-        else
-            -- Nessuna info specifica trovata: usa il nome generico con categoria
-            -- Es: "Pistol" → "Pistol", "Shotgun" → "Shotgun"
-            -- Meglio di niente
-            realName = rawName:match("^%s*(.-)%s*$")
-        end
+        realName = found or "Remington"
     end
 
-    -- ── 4-10. Deep inspection (only when we still have no name) ──
+    -- ÔöÇÔöÇ 4-10. Deep inspection (only when we still have no name) ÔöÇÔöÇ
     if not realName or Util.IsGarbageName(realName) then
         realName = nil
 
@@ -1487,7 +983,7 @@ function Util.ResolveToolInfo(tool)
             end)
         end
 
-        -- 6. Scan ALL string attributes — accept ONLY if it matches a known weapon
+        -- 6. Scan ALL string attributes ÔÇö accept ONLY if it matches a known weapon
         if not realName then
             pcall(function()
                 for _, attrVal in pairs(tool:GetAttributes()) do
@@ -1532,7 +1028,7 @@ function Util.ResolveToolInfo(tool)
                 end
 
                 -- Pass 2: ONLY accept children whose cleaned name matches a known weapon
-                -- Do NOT use loose "4+ chars" heuristic — that picks up MeshPart/Blender names
+                -- Do NOT use loose "4+ chars" heuristic ÔÇö that picks up MeshPart/Blender names
                 for _, child in ipairs(tool:GetChildren()) do
                     if realName then return end
                     local dn = child.Name
@@ -1585,7 +1081,7 @@ function Util.ResolveToolInfo(tool)
             end)
         end
 
-        -- 10. StringValue scan — known weapons only
+        -- 10. StringValue scan ÔÇö known weapons only
         if not realName then
             pcall(function()
                 for _, desc in ipairs(tool:GetDescendants()) do
@@ -1605,7 +1101,7 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ── Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ──
+    -- ÔöÇÔöÇ Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ÔöÇÔöÇ
     if not realName or Util.IsGarbageName(realName) then
         -- Ultimo tentativo: pulisci il nome grezzo e mostralo comunque
         -- Questo garantisce che OGNI tool venga mostrato, anche se non in whitelist
@@ -1642,49 +1138,134 @@ function Util.ResolveToolName(tool)
     return name
 end
 
-function Util.GetWeaponDetails(tool, isEquipped)
-    if not tool then return nil end
-
-    local rawToolName = tool.Name
-    local name, rarity, color
-
-    -- ── STEP 0: getsenv cache — se il tool ha nome numerico, cerca il nome reale
-    -- Questo usa l'interceptor che legge le variabili interne degli script di BlockSpin
-    if rawToolName:match("^%d+$") then
-        local idName = Util.LookupWeaponIDName(rawToolName)
-        if idName then
-            name   = idName
-            rarity, color = Util.GetItemRarity(tool, idName)
+-- ── BlockSpin: attribute-based categorizer ──
+local function BS_AttributeCategory(tool)
+    local attrs = {}
+    pcall(function() attrs = tool:GetAttributes() end)
+    local rarityName    = attrs["RarityName"] or attrs["rarityName"] or attrs["Rarity"] or attrs["rarity"]
+    local healthRestore = attrs["HealthRestoreAmount"] or attrs["HealthRestore"]
+    local durability    = attrs["Durability"] or attrs["durability"]
+    local automatic     = attrs["automatic"] or attrs["Automatic"]
+    local reloadOffset  = attrs["ReloadMultiplierOffset"] or attrs["ReloadSpeed"]
+    local speedMult     = attrs["SpeedMultiplier"] or attrs["speedMultiplier"]
+    local damage        = attrs["Damage"] or attrs["BaseDamage"]
+    local ammo          = attrs["MaxAmmo"] or attrs["Ammo"]
+    local category, detail = nil, ""
+    if type(healthRestore) == "number" and healthRestore > 0 then
+        category = "Medkit"; detail = "+" .. math.floor(healthRestore) .. " HP"
+    elseif automatic ~= nil or reloadOffset ~= nil or type(ammo) == "number" then
+        category = (automatic == true) and "Auto Weapon" or "Weapon"
+        if type(damage) == "number" and damage > 0 then detail = math.floor(damage) .. " DMG" end
+    elseif type(speedMult) == "number" then
+        category = speedMult >= 1.3 and "Speed Boost" or "Armor"
+        detail = "x" .. string.format("%.1f", speedMult)
+    elseif type(durability) == "number" and durability > 0 then
+        category = "Melee"; detail = math.floor(durability) .. " DUR"
+    end
+    if not category then return nil, nil, nil end
+    local rColor, rName = RARITY_COLORS.Common, "Common"
+    if type(rarityName) == "string" and #rarityName > 0 then
+        local rLow = rarityName:lower()
+        if rLow:find("mythic") then rName="Mythic"; rColor=RARITY_COLORS.Mythic
+        elseif rLow:find("legend") then rName="Legendary"; rColor=RARITY_COLORS.Legendary
+        elseif rLow:find("epic") then rName="Epic"; rColor=RARITY_COLORS.Epic
+        elseif rLow:find("rare") then rName="Rare"; rColor=RARITY_COLORS.Rare
+        elseif rLow:find("uncommon") then rName="Uncommon"; rColor=RARITY_COLORS.Uncommon
         end
     end
+    local display = category
+    if detail ~= "" then display = display .. " [" .. detail .. "]" end
+    return display, rName, rColor
+end
 
-    -- ── STEP 1: Resolver normale (per tool con nomi leggibili)
+-- ── getsenv weapon ID name cache ──
+local _genvCache, _genvDone = {}, false
+local function _extractIDMap(tbl, d)
+    if d > 2 or type(tbl) ~= "table" then return end
+    for k, v in pairs(tbl) do
+        local ks = nil
+        if type(k) == "number" then ks = tostring(k)
+        elseif type(k) == "string" and k:match("^%d+$") then ks = k end
+        if ks then
+            if type(v) == "string" and #v > 1 and #v < 32 then
+                local vl = v:lower()
+                if not vl:find("nuthing") and not vl:find("nothing") and not vl:find("i have") and not _genvCache[ks] then
+                    _genvCache[ks] = v
+                end
+            elseif type(v) == "table" then
+                local n = v.Name or v.name or v.DisplayName or v.displayName or v.WeaponName or v.weaponName
+                if type(n) == "string" and #n > 1 and #n < 32 then
+                    local nl = n:lower()
+                    if not nl:find("nuthing") and not nl:find("nothing") then _genvCache[ks] = n end
+                end
+                _extractIDMap(v, d + 1)
+            end
+        end
+    end
+end
+local _WSCRIPT_HINTS = {"weapon","gun","item","inventory","shop","tool","equip","loadout","store","catalog","backpack"}
+local function _looksWS(name)
+    local low = name:lower()
+    for _, h in ipairs(_WSCRIPT_HINTS) do if low:find(h, 1, true) then return true end end
+    return false
+end
+local function RunGetsenvScan()
+    if _genvDone then return end
+    _genvDone = true
+    pcall(function()
+        for _, sc in ipairs(game:GetDescendants()) do
+            pcall(function()
+                if (sc:IsA("LocalScript") or sc:IsA("ModuleScript")) and _looksWS(sc.Name) then
+                    local ok2, env = pcall(getsenv, sc)
+                    if ok2 and type(env) == "table" then
+                        _extractIDMap(env, 0)
+                        for varN, varV in pairs(env) do
+                            if type(varN) == "string" then
+                                local vn = varN:lower()
+                                if vn:find("weapon") or vn:find("item") or vn:find("catalog") or vn:find("data") then
+                                    _extractIDMap(varV, 1)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+task.delay(2, RunGetsenvScan)
+
+function Util.GetWeaponDetails(tool, isEquipped)
+    if not tool then return nil end
+    local rawName = tool.Name
+    local name, rarity, color
+    if rawName:match("^%d+$") then
+        if not _genvDone then task.spawn(RunGetsenvScan) end
+        local hit = _genvCache[rawName]
+        if hit then
+            name = hit
+            rarity, color = Util.GetItemRarity(tool, hit)
+        end
+    end
     if not name then
         name, rarity, color = Util.ResolveToolInfo(tool)
     end
-
-    -- ── STEP 2: Categorizer attributi (fallback finale per numericID senza getsenv hit)
     if not name then
-        local attrName, attrRarity, attrColor = Util.BlockSpinResolveFromAttributes(tool)
-        if attrName then
-            name   = attrName
-            rarity = attrRarity or "Common"
-            color  = attrColor  or RARITY_COLORS.Common
-        end
+        name, rarity, color = BS_AttributeCategory(tool)
     end
-
     if not name then return nil end
-
     return {
-        name      = name,
-        rarity    = rarity or "Common",
-        color     = color  or RARITY_COLORS.Common,
+        name       = name,
+        rarity     = rarity or "Common",
+        color      = color  or RARITY_COLORS.Common,
         isEquipped = isEquipped,
-        damage    = Util.GetToolDamage(tool),
+        damage     = Util.GetToolDamage(tool),
     }
 end
 
--- v10.0: Tool info cache — 1.5s TTL
+end
+
+-- v10.0: Tool info cache ÔÇö 1.5s TTL
 local _toolInfoCache = setmetatable({}, {__mode = "k"})
 
 function Util.GetToolInfo(tool, isEquipped)
@@ -1759,9 +1340,9 @@ function Util.GetBestBone(char)
     return "HumanoidRootPart"
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- NOTIFICATION SYSTEM
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Notify = {}
 function Notify.Send(text, color, dur)
     color = color or C3(255,255,255)
@@ -1794,9 +1375,9 @@ function Notify.Send(text, color, dur)
     end)
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- ESP ENGINE (v3.6 NATIVE HIGHLIGHT & BILLBOARDGUI SYSTEM)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local ESP = {}
 
 local _charConns = {}
@@ -2335,9 +1916,9 @@ function ESP.Update(player, d)
 end
 
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- AIMBOT ENGINE
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Aimbot = {}
 
 local FOVCircle, TargetDot, TargetInfo, SnapLine, LockIndicator
@@ -2505,9 +2086,9 @@ pcall(function()
     -- Only active when silent aim has a valid target
 end)
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- TRIGGERBOT ENGINE (v3.3: REWRITTEN - FOV + Instant + AutoSpray)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local Triggerbot = {}
 local _lastTrig = 0
 local _sprayActive = false
@@ -2701,9 +2282,9 @@ function Triggerbot.Process()
     State.HitCount = State.HitCount + 1
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- PLAYER MODS ENGINE (v3: NEW)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local PlayerMods = {}
 
 function PlayerMods.UpdateSpeed()
@@ -2864,9 +2445,9 @@ function PlayerMods.SetupFullbright()
     end)
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- KILL TRACKING (v3: NEW)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function trackKills()
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
@@ -2889,17 +2470,17 @@ local function trackKills()
     end
 end
 
--- v3.4: Watermark REMOVED — clean screen
+-- v3.4: Watermark REMOVED ÔÇö clean screen
 local _wm = {}
 local function updateWatermark() end -- no-op
 
--- ═══════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════
--- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders ┬À Pure Smooth Curves ┬À Mouse Unlocker ┬À Safe Tabs ┬À Draggable Pill)
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local PRVServiceUI = {}
 local NativeGUI = nil
 local cursorConnection = nil
@@ -3022,9 +2603,9 @@ local function BuildNativeGUI()
     WinGrad.Rotation = 45
     WinGrad.Parent = Window
 
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     -- FLOATING DRAGGABLE LOGO PILL (Tasto/Icona per riaprire!)
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     local FloatPill = Instance.new("Frame")
     FloatPill.Name = "FloatPill"
     FloatPill.Size = UDim2.new(0, 165, 0, 44)
@@ -3116,9 +2697,9 @@ local function BuildNativeGUI()
         end
     end)
 
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     -- TOPBAR (Transparent background, inset, no edge bleeding)
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
     Topbar.Size = UDim2.new(1, 0, 0, 52)
@@ -3200,7 +2781,7 @@ local function BuildNativeGUI()
     BrandSub.Position = UDim2.new(0, 58, 0, 28)
     BrandSub.Size = UDim2.new(0, 260, 0, 14)
     BrandSub.BackgroundTransparency = 1
-    BrandSub.Text = "BlockSpin Stealth · Key [K] · 60 FPS"
+    BrandSub.Text = "BlockSpin Stealth ┬À Key [K] ┬À 60 FPS"
     BrandSub.TextColor3 = C_MUTED
     BrandSub.Font = Enum.Font.GothamMedium
     BrandSub.TextSize = 11
@@ -3265,9 +2846,9 @@ local function BuildNativeGUI()
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = Window
 
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     -- SIDEBAR (Inset 14px, scrollable, pure curved edges)
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 180, 1, -72)
@@ -3290,9 +2871,9 @@ local function BuildNativeGUI()
     VertDivider.BorderSizePixel = 0
     VertDivider.Parent = Window
 
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     -- CONTENT AREA (Inset 14px from right & bottom - zero border clipping!)
-    -- ═══════════════════════════════════════════════════
+    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     local ContentHolder = Instance.new("Frame")
     ContentHolder.Name = "ContentHolder"
     ContentHolder.Size = UDim2.new(1, -222, 1, -68)
@@ -3802,9 +3383,9 @@ local function BuildNativeGUI()
         "LeftControl", "RightControl", "CapsLock", "Tab", "Q", "E", "R", "F", "Z", "X", "C", "V", "B"
     }
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 1. POPULATE ESP
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tESP:AddSection("General")
         tESP:AddToggle("Enable ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
@@ -3849,9 +3430,9 @@ local function BuildNativeGUI()
         tESP:AddSlider("Max Distance", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
     end)
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 2. POPULATE INVENTARIO
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tInv:AddSection("Inventory ESP")
         tInv:AddToggle("Enable Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
@@ -3862,9 +3443,9 @@ local function BuildNativeGUI()
         tInv:AddSlider("Max Displayed Items", 1, 8, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
     end)
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 3. POPULATE AIMBOT
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tAim:AddSection("Status & Activation")
         tAim:AddToggle("Enable Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
@@ -3914,9 +3495,9 @@ local function BuildNativeGUI()
         tAim:AddToggle("Show Target Info", Config.Aimbot.ShowTargetInfo, function(v) Config.Aimbot.ShowTargetInfo = v end)
     end)
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 4. POPULATE TRIGGERBOT
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tTrig:AddSection("General")
         tTrig:AddToggle("Enable Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
@@ -3939,9 +3520,9 @@ local function BuildNativeGUI()
         tTrig:AddToggle("Headshot Only", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
     end)
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 5. POPULATE PLAYER
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tPlayer:AddSection("Movement")
         tPlayer:AddToggle("Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
@@ -3964,9 +3545,9 @@ local function BuildNativeGUI()
         tPlayer:AddSlider("Fly Speed", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
     end)
 
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     -- 6. POPULATE SETTINGS
-    -- ──────────────────────────────────────────
+    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     pcall(function()
         tSettings:AddSection("Interface")
         tSettings:AddToggle("Show Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
@@ -4031,7 +3612,7 @@ task.spawn(function()
 end)
 
 -- INPUT HANDLER (v3: updated for custom keybinds)
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function matchesBind(input, bindValue, bindType)
     if bindType == "Mouse" then
         return input.UserInputType == bindValue
@@ -4112,9 +3693,9 @@ local function OnInputEnded(input, _)
     end
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- MAIN RENDER LOOP
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function RenderLoop()
     -- Camera refresh
     Camera = Workspace.CurrentCamera
@@ -4256,9 +3837,9 @@ local function RenderLoop()
     updateWatermark()
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- CLEANUP
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function Unload()
     -- v3.4: Disconnect render
     if State.Connections.Render then
@@ -4313,9 +3894,9 @@ local function Unload()
     Notify.Send("PRV SERVICE Unloaded!", C3(255, 80, 80), 2)
 end
 
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 -- INIT
--- ═══════════════════════════════════════════════════
+-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 local function Init()
     task.spawn(function()
         for _, p in ipairs(Players:GetPlayers()) do
