@@ -579,13 +579,64 @@ function Util.GetWeaponDetails(tool, isEquipped)
     local rarity = matched and matched.rarity or "Common"
     local color = matched and matched.color or C3(160, 160, 175)
     local symbol = matched and matched.symbol or "TOOL"
-    local icon = matched and matched.icon or ""
+    local icon = ""
 
+    -- 1. Check Tool.TextureId
     pcall(function()
-        if tool.TextureId and #tool.TextureId > 5 then
+        if tool.TextureId and #tool.TextureId > 5 and not tool.TextureId:find("1088837") then
             icon = tool.TextureId
         end
     end)
+
+    -- 2. Inspect children for native game icons/textures/images (ImageLabel, Texture, Decal, Value)
+    if #icon == 0 then
+        pcall(function()
+            for _, child in ipairs(tool:GetDescendants()) do
+                if child:IsA("ImageLabel") or child:IsA("ImageButton") then
+                    if child.Image and #child.Image > 5 then
+                        icon = child.Image
+                        return
+                    end
+                elseif child:IsA("StringValue") then
+                    local n = child.Name:lower()
+                    if (n:find("icon") or n:find("texture") or n:find("image")) and #child.Value > 5 then
+                        icon = child.Value
+                        return
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 3. Check BlockSpin / Cinnamon ReplicatedStorage weapon asset registries
+    if #icon == 0 then
+        pcall(function()
+            local rep = game:GetService("ReplicatedStorage")
+            local dirs = {"Weapons", "Guns", "Items", "ItemIcons", "WeaponData", "WeaponConfig"}
+            for _, dName in ipairs(dirs) do
+                local folder = rep:FindFirstChild(dName)
+                if folder then
+                    local itemFolder = folder:FindFirstChild(tool.Name) or folder:FindFirstChild(name)
+                    if itemFolder then
+                        for _, desc in ipairs(itemFolder:GetDescendants()) do
+                            if (desc:IsA("ImageLabel") and #desc.Image > 5) then
+                                icon = desc.Image
+                                return
+                            elseif desc:IsA("StringValue") and (desc.Name:lower():find("icon") or desc.Name:lower():find("image")) and #desc.Value > 5 then
+                                icon = desc.Value
+                                return
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 4. Authentic silhouette weapon icon library fallback (cross-origin CDN assets)
+    if #icon == 0 and matched and matched.icon and #matched.icon > 5 then
+        icon = matched.icon
+    end
 
     local dmg = Util.GetToolDamage(tool)
 
@@ -1283,6 +1334,7 @@ function ESP.Update(player, d)
                                     slotData.Text.Visible = false
                                 else
                                     slotData.Image.Visible = false
+                                    -- Use 3-letter weapon acronym instead of generic crossed tool
                                     slotData.Text.Text = item.symbol
                                     slotData.Text.TextColor3 = item.color
                                     slotData.Text.Visible = true
