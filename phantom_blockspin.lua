@@ -142,6 +142,8 @@ local Config = {
     -- ── INVENTORY ESP ──
     InventoryESP = {
         Enabled       = false,
+        VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarità
+        ShowRarityGlow = true,        -- v8: Contorno Leggendario dorato (RPG, Minigun)
         ShowEquipped  = true,
         ShowBackpack  = true,
         ShowToolTip   = true,         -- v3: show tool tooltip/description
@@ -543,6 +545,60 @@ function Util.GetToolDamage(tool)
     return dmg
 end
 
+-- ═══════════════════════════════════════════════════
+-- v8: WEAPON DATABASE & RARITY SYSTEM (Visual ESP Badges)
+-- ═══════════════════════════════════════════════════
+local WEAPON_DB = {
+    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://6034685361" },
+    { keys = {"minigun", "railgun", "laser", "plasma", "gold"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "MINI", icon = "rbxassetid://6034685338" },
+    { keys = {"sniper", "awp", "barrett", "marksman"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://6034685338" },
+    { keys = {"deagle", "desert", "katana", "sword", "blade"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "EPIC", icon = "rbxassetid://6034685375" },
+    { keys = {"ak", "m4", "rifle", "ar", "shotgun", "spas", "pump"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "RARE", icon = "rbxassetid://6034685382" },
+    { keys = {"smg", "mp5", "uzi", "pistol", "glock", "revolver"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "GUN", icon = "rbxassetid://6034685368" },
+    { keys = {"medkit", "heal", "bandage", "potion"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
+    { keys = {"grenade", "c4", "bomb", "flash"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "BOMB", icon = "rbxassetid://6034685355" }
+}
+
+function Util.GetWeaponDetails(tool, isEquipped)
+    if not tool then return nil end
+    local name = Util.ResolveToolName(tool) or tool.Name
+    local lower = name:lower()
+
+    local matched = nil
+    for _, w in ipairs(WEAPON_DB) do
+        for _, k in ipairs(w.keys) do
+            if lower:find(k) then
+                matched = w
+                break
+            end
+        end
+        if matched then break end
+    end
+
+    local rarity = matched and matched.rarity or "Common"
+    local color = matched and matched.color or C3(160, 160, 175)
+    local symbol = matched and matched.symbol or "TOOL"
+    local icon = matched and matched.icon or ""
+
+    pcall(function()
+        if tool.TextureId and #tool.TextureId > 5 then
+            icon = tool.TextureId
+        end
+    end)
+
+    local dmg = Util.GetToolDamage(tool)
+
+    return {
+        name = name,
+        rarity = rarity,
+        color = color,
+        symbol = symbol,
+        icon = icon,
+        isEquipped = isEquipped,
+        damage = dmg
+    }
+end
+
 -- v3.6: Cached tool display info with smart name resolution
 local _toolInfoCache = setmetatable({}, {__mode = "k"})
 
@@ -691,8 +747,8 @@ function ESP.Create(player)
         local bb = Instance.new("BillboardGui")
         bb.Name = "P_ESP_" .. (player and player.UserId or mRandom(1000, 9999))
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 160, 0, 65)
-        bb.StudsOffset = V3(0, 2.8, 0)
+        bb.Size = UDim2.new(0, 200, 0, 75)
+        bb.StudsOffset = V3(0, 3.2, 0)
         bb.LightInfluence = 0
         bb.MaxDistance = Config.ESP.MaxDistance
         bb.Enabled = false
@@ -764,6 +820,108 @@ function ESP.Create(player)
         invLbl.Visible = false
         invLbl.Parent = bb
         d.InventoryLabel = invLbl
+
+        -- v8: Visual Inventory Badges Frame (Loghi & Contorni Rarita Leggendaria/Epica/Rara)
+        local badgesFrame = Instance.new("Frame")
+        badgesFrame.Name = "BadgesFrame"
+        badgesFrame.BackgroundTransparency = 1
+        badgesFrame.Size = UDim2.new(1, 0, 0, 36)
+        badgesFrame.Position = UDim2.new(0, 0, 0, 24)
+        badgesFrame.Visible = false
+        badgesFrame.Parent = bb
+        d.BadgesFrame = badgesFrame
+
+        local bLayout = Instance.new("UIListLayout")
+        bLayout.FillDirection = Enum.FillDirection.Horizontal
+        bLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        bLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        bLayout.Padding = UDim.new(0, 5)
+        bLayout.Parent = badgesFrame
+
+        d.BadgeSlots = {}
+        for i = 1, 5 do
+            local slot = Instance.new("Frame")
+            slot.Name = "Slot_" .. i
+            slot.Size = UDim2.new(0, 28, 0, 28)
+            slot.BackgroundColor3 = C3(16, 15, 25)
+            slot.BorderSizePixel = 0
+            slot.Visible = false
+            slot.Parent = badgesFrame
+
+            local sCorner = Instance.new("UICorner")
+            sCorner.CornerRadius = UDim.new(0, 6)
+            sCorner.Parent = slot
+
+            local sStroke = Instance.new("UIStroke")
+            sStroke.Color = C3(160, 160, 175)
+            sStroke.Thickness = 1.2
+            sStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            sStroke.Parent = slot
+
+            local img = Instance.new("ImageLabel")
+            img.Name = "Icon"
+            img.Size = UDim2.new(1, -4, 1, -4)
+            img.Position = UDim2.new(0, 2, 0, 2)
+            img.BackgroundTransparency = 1
+            img.ScaleType = Enum.ScaleType.Fit
+            img.Visible = false
+            img.Parent = slot
+
+            local lbl = Instance.new("TextLabel")
+            lbl.Name = "CodeLabel"
+            lbl.Size = UDim2.new(1, 0, 1, 0)
+            lbl.BackgroundTransparency = 1
+            lbl.Font = Enum.Font.GothamBold
+            lbl.TextSize = 9
+            lbl.TextColor3 = C3(255, 255, 255)
+            lbl.TextStrokeTransparency = 0.5
+            lbl.Visible = false
+            lbl.Parent = slot
+
+            local eqTag = Instance.new("Frame")
+            eqTag.Name = "EquippedTag"
+            eqTag.Size = UDim2.new(0, 10, 0, 10)
+            eqTag.Position = UDim2.new(0, -2, 0, -2)
+            eqTag.BackgroundColor3 = C3(255, 190, 20)
+            eqTag.BorderSizePixel = 0
+            eqTag.Visible = false
+            eqTag.Parent = slot
+            local eqCorner = Instance.new("UICorner")
+            eqCorner.CornerRadius = UDim.new(1, 0)
+            eqCorner.Parent = eqTag
+
+            local eqTxt = Instance.new("TextLabel")
+            eqTxt.Size = UDim2.new(1, 0, 1, 0)
+            eqTxt.BackgroundTransparency = 1
+            eqTxt.Text = "E"
+            eqTxt.TextColor3 = C3(0, 0, 0)
+            eqTxt.Font = Enum.Font.GothamBold
+            eqTxt.TextSize = 7
+            eqTxt.Parent = eqTag
+
+            local dmgLbl = Instance.new("TextLabel")
+            dmgLbl.Name = "DmgLabel"
+            dmgLbl.Size = UDim2.new(1, 0, 0, 10)
+            dmgLbl.Position = UDim2.new(0, 0, 1, -9)
+            dmgLbl.BackgroundTransparency = 1
+            dmgLbl.Font = Enum.Font.GothamBold
+            dmgLbl.TextSize = 8
+            dmgLbl.TextColor3 = C3(255, 255, 255)
+            dmgLbl.TextStrokeTransparency = 0
+            dmgLbl.TextStrokeColor3 = C3(0, 0, 0)
+            dmgLbl.Visible = false
+            dmgLbl.Parent = slot
+
+            d.BadgeSlots[i] = {
+                Frame = slot,
+                Stroke = sStroke,
+                Corner = sCorner,
+                Image = img,
+                Text = lbl,
+                EquippedTag = eqTag,
+                DmgLabel = dmgLbl
+            }
+        end
 
         d.Billboard = bb
     end)
@@ -1039,65 +1197,132 @@ function ESP.Update(player, d)
                 end
             end
 
-            -- Inventory ESP (Ultra-optimized with 0.3s throttle & diff cache)
-            if d.InventoryLabel then
-                if Config.InventoryESP.Enabled then
-                    local now = Tick()
-                    if not d._lastInvCheck or (now - d._lastInvCheck > 0.3) then
-                        d._lastInvCheck = now
-                        local items = {}
-                        local itemCount = 0
-                        local hasEquipped = false
+            -- Inventory ESP (Visual Badges con Loghi Arme e Contorni Rarita Leggendaria/Epica)
+            if Config.InventoryESP.Enabled then
+                local now = Tick()
+                if not d._lastInvCheck or (now - d._lastInvCheck > 0.25) then
+                    d._lastInvCheck = now
+                    local toolList = {}
+                    local textItems = {}
+                    local itemCount = 0
+                    local hasEquipped = false
 
-                        if Config.InventoryESP.ShowEquipped then
-                            for _, c in ipairs(char:GetChildren()) do
+                    if Config.InventoryESP.ShowEquipped then
+                        for _, c in ipairs(char:GetChildren()) do
+                            if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
+                                hasEquipped = true
+                                local details = Util.GetWeaponDetails(c, true)
+                                if details then
+                                    tInsert(toolList, details)
+                                    itemCount = itemCount + 1
+                                end
+                                local info = Util.GetToolInfo(c, true)
+                                if info and info.display then
+                                    tInsert(textItems, info.display)
+                                end
+                            end
+                        end
+                    end
+                    if Config.InventoryESP.ShowBackpack then
+                        local bp = player:FindFirstChild("Backpack")
+                        if bp then
+                            for _, c in ipairs(bp:GetChildren()) do
                                 if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                                    hasEquipped = true
-                                    local info = Util.GetToolInfo(c, true)
-                                    if info.display then
-                                        tInsert(items, info.display)
+                                    local details = Util.GetWeaponDetails(c, false)
+                                    if details then
+                                        tInsert(toolList, details)
                                         itemCount = itemCount + 1
                                     end
-                                end
-                            end
-                        end
-                        if Config.InventoryESP.ShowBackpack then
-                            local bp = player:FindFirstChild("Backpack")
-                            if bp then
-                                for _, c in ipairs(bp:GetChildren()) do
-                                    if c:IsA("Tool") and itemCount < Config.InventoryESP.MaxItems then
-                                        local info = Util.GetToolInfo(c, false)
-                                        if info.display then
-                                            tInsert(items, info.display)
-                                            itemCount = itemCount + 1
-                                        end
+                                    local info = Util.GetToolInfo(c, false)
+                                    if info and info.display then
+                                        tInsert(textItems, info.display)
                                     end
                                 end
                             end
                         end
-
-                        d._lastInvText = (#items > 0) and tConcat(items, " | ") or ""
-                        d._lastHasEquipped = hasEquipped
                     end
 
-                    local text = d._lastInvText or ""
-                    if #text > 0 then
-                        if d.InventoryLabel.Text ~= text then
-                            d.InventoryLabel.Text = text
+                    d._cachedToolList = toolList
+                    d._lastInvText = (#textItems > 0) and tConcat(textItems, " | ") or ""
+                    d._lastHasEquipped = hasEquipped
+                end
+
+                local toolList = d._cachedToolList or {}
+
+                if Config.InventoryESP.VisualBadges and d.BadgesFrame and d.BadgeSlots then
+                    local yOffset = (Config.ESP.HealthBar and (Config.ESP.HealthText and 34 or 24)) or (Config.ESP.Names and 18 or 4)
+                    d.BadgesFrame.Position = UDim2.new(0, 0, 0, yOffset)
+
+                    if #toolList > 0 then
+                        d.BadgesFrame.Visible = true
+                        for i = 1, 5 do
+                            local slotData = d.BadgeSlots[i]
+                            local item = toolList[i]
+                            if item and slotData then
+                                slotData.Frame.Visible = true
+                                slotData.Stroke.Color = item.color
+
+                                if item.isEquipped then
+                                    slotData.Frame.Size = UDim2.new(0, 32, 0, 32)
+                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 2.4 or 1.8
+                                    slotData.EquippedTag.Visible = true
+                                    slotData.Frame.BackgroundColor3 = C3(26, 22, 38)
+                                else
+                                    slotData.Frame.Size = UDim2.new(0, 26, 0, 26)
+                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 1.8 or 1.2
+                                    slotData.EquippedTag.Visible = false
+                                    slotData.Frame.BackgroundColor3 = C3(16, 15, 25)
+                                end
+
+                                if item.icon and #item.icon > 5 then
+                                    slotData.Image.Image = item.icon
+                                    slotData.Image.Visible = true
+                                    slotData.Text.Visible = false
+                                else
+                                    slotData.Image.Visible = false
+                                    slotData.Text.Text = item.symbol
+                                    slotData.Text.TextColor3 = item.color
+                                    slotData.Text.Visible = true
+                                end
+
+                                if Config.InventoryESP.ShowDamage and item.damage then
+                                    slotData.DmgLabel.Text = tostring(item.damage)
+                                    slotData.DmgLabel.Visible = true
+                                else
+                                    slotData.DmgLabel.Visible = false
+                                end
+                            elseif slotData then
+                                slotData.Frame.Visible = false
+                            end
                         end
-                        local targetCol = d._lastHasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
-                        if d.InventoryLabel.TextColor3 ~= targetCol then
-                            d.InventoryLabel.TextColor3 = targetCol
-                        end
-                        d.InventoryLabel.TextSize = Config.InventoryESP.TextSize
-                        d.InventoryLabel.Position = UDim2.new(0, 0, 0, (Config.ESP.HealthBar and (Config.ESP.HealthText and 33 or 23)) or (Config.ESP.Names and 16 or 0))
-                        d.InventoryLabel.Visible = true
+                        if d.InventoryLabel then d.InventoryLabel.Visible = false end
                     else
-                        d.InventoryLabel.Visible = false
+                        d.BadgesFrame.Visible = false
+                        if d.InventoryLabel then d.InventoryLabel.Visible = false end
                     end
                 else
-                    d.InventoryLabel.Visible = false
+                    if d.BadgesFrame then d.BadgesFrame.Visible = false end
+                    if d.InventoryLabel then
+                        local text = d._lastInvText or ""
+                        if #text > 0 then
+                            if d.InventoryLabel.Text ~= text then
+                                d.InventoryLabel.Text = text
+                            end
+                            local targetCol = d._lastHasEquipped and Config.InventoryESP.EquippedColor or Config.InventoryESP.TextColor
+                            if d.InventoryLabel.TextColor3 ~= targetCol then
+                                d.InventoryLabel.TextColor3 = targetCol
+                            end
+                            d.InventoryLabel.TextSize = Config.InventoryESP.TextSize
+                            d.InventoryLabel.Position = UDim2.new(0, 0, 0, (Config.ESP.HealthBar and (Config.ESP.HealthText and 33 or 23)) or (Config.ESP.Names and 16 or 0))
+                            d.InventoryLabel.Visible = true
+                        else
+                            d.InventoryLabel.Visible = false
+                        end
+                    end
                 end
+            else
+                if d.BadgesFrame then d.BadgesFrame.Visible = false end
+                if d.InventoryLabel then d.InventoryLabel.Visible = false end
             end
         else
             d.Billboard.Enabled = false
@@ -2681,14 +2906,17 @@ local function BuildNativeGUI()
     -- 2. POPULATE INVENTARIO
     -- ──────────────────────────────────────────
     pcall(function()
-        tInv:AddSection("Generale")
+        tInv:AddSection("Badge Grafici & Rarita")
         tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
-        tInv:AddToggle("Mostra Tool in Mano", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
-        tInv:AddToggle("Mostra Tool nello Zaino", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
+        tInv:AddToggle("Badge Visivi (Icone & Rarita)", Config.InventoryESP.VisualBadges, function(v) Config.InventoryESP.VisualBadges = v end)
+        tInv:AddToggle("Contorno Dorato Leggendari (RPG)", Config.InventoryESP.ShowRarityGlow, function(v) Config.InventoryESP.ShowRarityGlow = v end)
+
+        tInv:AddSection("Filtri Oggetti")
+        tInv:AddToggle("Mostra Oggetto in Mano (Equipped)", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
+        tInv:AddToggle("Mostra Oggetti nello Zaino", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
         tInv:AddToggle("Mostra Danno Rilevato", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
         tInv:AddToggle("Pulisci Nomi Tool", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
-        tInv:AddSlider("Max Oggetti Visualizzati", 3, 15, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
-        tInv:AddSlider("Dimensione Testo", 8, 20, Config.InventoryESP.TextSize, "pt", 1, function(v) Config.InventoryESP.TextSize = v end)
+        tInv:AddSlider("Max Oggetti Mostrati", 1, 5, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
     end)
 
     -- ──────────────────────────────────────────
