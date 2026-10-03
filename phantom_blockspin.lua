@@ -446,6 +446,25 @@ local KNOWN_WEAPONS = {
     ["adrenaline"]=true, ["armor vest"]=true, ["helmet"]=true,
     ["flare gun"]=true, ["riot shield"]=true, ["tomahawk"]=true,
     ["throwing knife"]=true, ["binoculars"]=true,
+    -- BlockSpin unique weapons / melee tools
+    ["diamond mop"]=true, ["mop"]=true, ["broom"]=true, ["plunger"]=true,
+    ["golf club"]=true, ["pool cue"]=true, ["cane"]=true, ["ruler"]=true,
+    ["umbrella"]=true, ["briefcase"]=true, ["guitar"]=true, ["skateboard"]=true,
+    ["fists"]=true, ["brass knuckles"]=true, ["knuckles"]=true,
+    ["gold pistol"]=true, ["gold ak"]=true, ["gold uzi"]=true,
+    ["gold shotgun"]=true, ["golden gun"]=true,
+    ["taser"]=true, ["stun gun"]=true, ["pepper spray"]=true,
+    ["brass bat"]=true, ["spiked bat"]=true, ["nail bat"]=true,
+    ["fire axe"]=true, ["chainsaw"]=true, ["cleaver"]=true,
+    ["hunting rifle"]=true, ["lever action"]=true, ["revolver rifle"]=true,
+    ["lmg"]=true, ["hmg"]=true, ["heavy machine gun"]=true,
+    ["smg 45"]=true, ["smg45"]=true, ["smg-45"]=true,
+    ["laser gun"]=true, ["plasma gun"]=true, ["future gun"]=true,
+    ["firework launcher"]=true, ["confetti gun"]=true, ["water gun"]=true,
+    ["super soaker"]=true, ["nerf gun"]=true, ["toy gun"]=true,
+    ["bb gun"]=true, ["slingshot"]=true, ["potato gun"]=true,
+    ["blaster"]=true, ["ray gun"]=true, ["freeze gun"]=true,
+
 }
 
 -- ───────────────────────────────────────────────────
@@ -521,6 +540,14 @@ function Util.IsGarbageName(str)
     -- Whitelist check — always valid
     if KNOWN_WEAPONS[s:lower()] then return false end
 
+    -- FILE PATHS: anything with / or \ is a mesh/model path (e.g. "Pistols/bloodbag", "Meshes/new Melees")
+    if s:find("/") or s:find("\\") then return true end
+
+    -- BLENDER MESH NAMES: "Cube.001", "Cube.003", "Weapon.002" — word + dot + 3 digits
+    if s:match("%a+%.%d%d%d") then return true end
+    -- Also catch single dot-number like "Part.1", "Mesh.5"
+    if s:match("^[%a%d_]+%.[%d]+$") then return true end
+
     -- Full UUID pattern: 8-4-4-4-12 hex with optional braces
     if s:match("^{?%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x}?$") then
         return true
@@ -538,8 +565,11 @@ function Util.IsGarbageName(str)
     local low = s:lower()
     if low:find("rbxasset") or low:find("rbxgameasset") then return true end
 
-    -- Garbage words
+    -- Garbage words (exact whole-string match only)
     if GARBAGE_WORDS[low] then return true end
+
+    -- Must contain at least one letter (no pure symbols/numbers)
+    if not s:match("%a") then return true end
 
     -- Mostly digits (70%+ digits, more than 2 chars)
     if #s > 2 then
@@ -997,20 +1027,24 @@ function Util.ResolveToolInfo(tool)
                     end
                 end
 
-                -- Pass 2: children with valid non-garbage names (4+ chars, has letters, not internal)
+                -- Pass 2: ONLY accept children whose cleaned name matches a known weapon
+                -- Do NOT use loose "4+ chars" heuristic — that picks up MeshPart/Blender names
                 for _, child in ipairs(tool:GetChildren()) do
                     if realName then return end
                     local dn = child.Name
-                    local dnLow = dn:lower()
-                    if not IGNORED_CHILDREN[dnLow] and not dn:match("^%d+$") then
+                    if not IGNORED_CHILDREN[dn:lower()] and not dn:match("^%d+$") then
                         if not child:IsA("Script") and not child:IsA("LocalScript")
                            and not child:IsA("ModuleScript") and not child:IsA("RemoteEvent")
                            and not child:IsA("RemoteFunction") and not child:IsA("BindableEvent")
                            and not child:IsA("BindableFunction") then
                             local c = Util.CleanToolName(dn)
-                            if c and #c >= 4 and c:match("[%a]") and not c:match("^%d") then
-                                realName = c
-                                return
+                            if c then
+                                local cLow = c:lower()
+                                -- ONLY accept if it's a confirmed known weapon name
+                                if KNOWN_WEAPONS[cLow] or BLOCKSPIN_RARITIES[cLow] then
+                                    realName = c
+                                    return
+                                end
                             end
                         end
                     end
@@ -1662,7 +1696,7 @@ function ESP.Update(player, d)
                         end
                     end
 
-                    d._lastInvText = (#formattedItems > 0) and tConcat(formattedItems, "\n") or ""
+                    d._lastInvText = (#formattedItems > 0) and tConcat(formattedItems, "  |  ") or ""
                 end
 
                 local text = d._lastInvText or ""
