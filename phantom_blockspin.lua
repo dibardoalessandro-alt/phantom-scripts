@@ -550,32 +550,31 @@ end
 -- v8: WEAPON DATABASE & RARITY SYSTEM (Visual ESP Badges)
 -- ═══════════════════════════════════════════════════
 local WEAPON_DB = {
-    -- Explosive / Heavy (Legendary - Gold)
-    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://7072718362" },
-    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "rbxassetid://7072718362" },
-    
-    -- Sniper / Precision (Epic - Purple)
-    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://7072718362" },
-    
-    -- High Caliber / Melee (Epic - Purple)
-    { keys = {"deagle", "desert", "magnum", "python"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "rbxassetid://7072718362" },
-    { keys = {"katana", "sword", "blade", "machete", "axe", "scythe"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "rbxassetid://7072718362" },
-    
-    -- Shotguns (Rare - Cyan)
-    { keys = {"shotgun", "spas", "pump", "double", "scatter", "tactical"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "rbxassetid://7072718362" },
-    
-    -- Assault Rifles (Rare - Cyan)
-    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "rbxassetid://7072718362" },
-    
-    -- SMGs (Uncommon - Green)
-    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "rbxassetid://7072718362" },
-    
-    -- Handguns / Pistols (Uncommon - Green)
-    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "rbxassetid://7072718362" },
-    
-    -- Medical & Throwables
-    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utilities", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://7072718362" },
-    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "rbxassetid://7072718362" }
+    -- ── LEGENDARY (Gold / Amber) ──
+    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://6034685361" },
+    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold", "golden"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "rbxassetid://6034685361" },
+    { keys = {"flamethrower", "grenadelauncher"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "FLM", icon = "rbxassetid://6034685361" },
+
+    -- ── EPIC (Purple / Amethyst) ──
+    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://6034685375" },
+    { keys = {"deagle", "desert", "magnum", "python", "revolver50"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "rbxassetid://6034685375" },
+    { keys = {"katana", "sword", "blade", "machete", "scythe", "lightsaber"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "rbxassetid://6034685375" },
+
+    -- ── RARE (Cyan / Electric Blue) ──
+    { keys = {"shotgun", "spas", "spas12", "pump", "double", "scatter", "tactical", "mossberg", "remington"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "rbxassetid://6034685382" },
+    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug", "galil", "m16", "hk416"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "rbxassetid://6034685382" },
+
+    -- ── UNCOMMON (Emerald Green) ──
+    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9", "bizon"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "rbxassetid://6034685368" },
+    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp", "walther", "m9", "p250", "five-seven"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "rbxassetid://6034685368" },
+    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke", "dynamite"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "rbxassetid://6034685355" },
+
+    -- ── BLOCKSPIN SPECIAL / UTILITY / MELEE ITEMS ──
+    { keys = {"fishing", "rod", "pesca"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "ROD", icon = "rbxassetid://6034685375" },
+    { keys = {"pan", "frying", "padella"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "PAN", icon = "rbxassetid://6034685375" },
+    { keys = {"energy", "drink", "shot", "booster", "adrenaline", "stim"}, rarity = "Rare", color = C3(250, 204, 21), symbol = "NRG", icon = "rbxassetid://6034685364" },
+    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
+    { keys = {"bat", "baseball", "crowbar", "wrench", "pipe", "hammer", "knife", "fist"}, rarity = "Common", color = C3(180, 180, 195), symbol = "MEL", icon = "rbxassetid://6034685375" }
 }
 
 function Util.GetWeaponDetails(tool, isEquipped)
@@ -596,7 +595,7 @@ function Util.GetWeaponDetails(tool, isEquipped)
 
     local rarity = matched and matched.rarity or "Common"
     local color = matched and matched.color or C3(160, 160, 175)
-    local symbol = matched and matched.symbol or (name:sub(1, 3):upper())
+    local symbol = matched and matched.symbol or (name and #name > 0 and name:sub(1, 3):upper() or "ITM")
     local icon = ""
 
     -- 1. Check Tool.TextureId
@@ -1347,7 +1346,12 @@ function ESP.Update(player, d)
                                 end
 
                                 -- Prioritize authentic weapon textures; if generic Roblox crossed tool, show clean weapon acronym badge
-                                local hasValidTexture = item.icon and #item.icon > 5 and not item.icon:find("1088837") and not item.icon:find("6034685")
+                                local hasValidTexture = item.icon and #item.icon > 5 
+                                    and not item.icon:find("1088837") 
+                                    and not item.icon:find("6034685")
+                                    and not item.icon:find("textures/ui")
+                                    and not item.icon:find("rbxasset://textures")
+                                    and not item.icon:find("default")
                                 if hasValidTexture then
                                     slotData.Image.Image = item.icon
                                     slotData.Image.Visible = true
