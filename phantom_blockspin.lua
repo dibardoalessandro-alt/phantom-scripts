@@ -802,6 +802,101 @@ function Util.GetToolDamage(tool)
 end
 
 -- ═══════════════════════════════════════════════════
+-- BLOCKSPIN ATTRIBUTE-BASED RESOLVER
+-- BlockSpin usa nomi numerici per i tool (es. 405805, 694008)
+-- Il nome specifico è server-side solo in un ModuleScript (inaccessibile da Xeno)
+-- Categorizziamo dal contenuto degli attributi:
+--   automatic / ReloadMultiplierOffset  → arma da fuoco
+--   HealthRestoreAmount                 → oggetto medico
+--   SpeedMultiplier / StaminaConsume    → armor / speed boost
+--   Durability (senza reload)           → melee
+--   RarityName                          → rarità diretta
+-- ═══════════════════════════════════════════════════
+function Util.BlockSpinResolveFromAttributes(tool)
+    local attrs = {}
+    pcall(function() attrs = tool:GetAttributes() end)
+
+    -- Estrai valori chiave
+    local rarityName     = attrs["RarityName"] or attrs["rarityName"] or attrs["Rarity"] or attrs["rarity"]
+    local healthRestore  = attrs["HealthRestoreAmount"] or attrs["HealthRestore"] or attrs["Health"]
+    local durability     = attrs["Durability"] or attrs["durability"]
+    local automatic      = attrs["automatic"] or attrs["Automatic"] or attrs["isAutomatic"]
+    local reloadOffset   = attrs["ReloadMultiplierOffset"] or attrs["ReloadSpeed"] or attrs["reloadSpeed"]
+    local speedMult      = attrs["SpeedMultiplier"] or attrs["speedMultiplier"]
+    local staminaMult    = attrs["StaminaConsumeMultiplier"] or attrs["StaminaMultiplier"]
+    local damage         = attrs["Damage"] or attrs["BaseDamage"] or attrs["AttackDamage"]
+    local rarityPrice    = attrs["RarityPrice"] or attrs["Price"]
+    local ammo           = attrs["MaxAmmo"] or attrs["Ammo"] or attrs["ammo"]
+
+    -- Determina categoria
+    local category = nil
+    local detail   = ""
+
+    -- 1. Oggetto medico
+    if type(healthRestore) == "number" and healthRestore > 0 then
+        category = "Medkit"
+        detail   = "+" .. math.floor(healthRestore) .. " HP"
+
+    -- 2. Arma da fuoco (ha automatic o reload attr)
+    elseif automatic ~= nil or reloadOffset ~= nil or type(ammo) == "number" then
+        if automatic == true then
+            category = "Auto Weapon"
+        elseif automatic == false then
+            category = "Weapon"
+        else
+            category = "Weapon"
+        end
+        if type(damage) == "number" and damage > 0 then
+            detail = math.floor(damage) .. " DMG"
+        end
+
+    -- 3. Speed/Armor item
+    elseif type(speedMult) == "number" then
+        if speedMult >= 1.3 then
+            category = "Speed Boost"
+        elseif type(staminaMult) == "number" then
+            category = "Armor"
+        else
+            category = "Boost"
+        end
+        detail = "x" .. string.format("%.1f", speedMult)
+
+    -- 4. Melee (solo durabilità, niente reload/automatic)
+    elseif type(durability) == "number" and durability > 0 then
+        category = "Melee"
+        detail   = math.floor(durability) .. " DUR"
+
+    -- 5. Item generico con prezzo rarità (è un oggetto ma non sappiamo cosa)
+    elseif type(rarityPrice) == "number" then
+        category = "Item"
+    end
+
+    if not category then return nil, nil, nil end
+
+    -- Determina colore/rarità
+    local rColor = RARITY_COLORS.Common
+    local rName  = "Common"
+    if type(rarityName) == "string" and #rarityName > 0 then
+        local rLow = rarityName:lower():match("^%s*(.-)%s*$")
+        if rLow:find("mythic")    then rName = "Mythic";    rColor = RARITY_COLORS.Mythic
+        elseif rLow:find("legend") then rName = "Legendary"; rColor = RARITY_COLORS.Legendary
+        elseif rLow:find("epic")   then rName = "Epic";      rColor = RARITY_COLORS.Epic
+        elseif rLow:find("rare")   then rName = "Rare";      rColor = RARITY_COLORS.Rare
+        elseif rLow:find("uncommon") then rName = "Uncommon"; rColor = RARITY_COLORS.Uncommon
+        elseif rLow:find("common") then rName = "Common";    rColor = RARITY_COLORS.Common
+        end
+    end
+
+    -- Costruisci nome display
+    local display = category
+    if detail ~= "" then
+        display = display .. " [" .. detail .. "]"
+    end
+
+    return display, rName, rColor
+end
+
+-- ═══════════════════════════════════════════════════
 -- REPLICATED STORAGE SCANNER (XENO-SAFE)
 -- NO require() — only reads Tool instances and their properties
 -- ═══════════════════════════════════════════════════
@@ -1479,15 +1574,28 @@ end
 
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
+
+    -- Prima prova il resolver normale (funziona per tool con nomi leggibili)
     local name, rarity, color = Util.ResolveToolInfo(tool)
+
+    -- Se fallisce (tool con nome numerico come in BlockSpin), usa il categorizer per attributi
+    if not name then
+        local attrName, attrRarity, attrColor = Util.BlockSpinResolveFromAttributes(tool)
+        if attrName then
+            name  = attrName
+            rarity = attrRarity or "Common"
+            color  = attrColor or RARITY_COLORS.Common
+        end
+    end
+
     if not name then return nil end
 
     return {
-        name = name,
-        rarity = rarity or "Common",
-        color = color or RARITY_COLORS.Common,
+        name      = name,
+        rarity    = rarity or "Common",
+        color     = color  or RARITY_COLORS.Common,
         isEquipped = isEquipped,
-        damage = Util.GetToolDamage(tool),
+        damage    = Util.GetToolDamage(tool),
     }
 end
 
