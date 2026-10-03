@@ -1,6 +1,6 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v6.0 · BlockSpin Master Cyber Edition             ║
+    ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi K per aprire/chiudere il menu                          ║
@@ -556,7 +556,7 @@ local WEAPON_DB = {
     { keys = {"deagle", "desert", "katana", "sword", "blade"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "EPIC", icon = "rbxassetid://6034685375" },
     { keys = {"ak", "m4", "rifle", "ar", "shotgun", "spas", "pump"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "RARE", icon = "rbxassetid://6034685382" },
     { keys = {"smg", "mp5", "uzi", "pistol", "glock", "revolver"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "GUN", icon = "rbxassetid://6034685368" },
-    { keys = {"medkit", "heal", "bandage", "potion"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
+    { keys = {"medkit", "heal", "bandage", "potion"}, rarity = "Utilities", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
     { keys = {"grenade", "c4", "bomb", "flash"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "BOMB", icon = "rbxassetid://6034685355" }
 }
 
@@ -684,14 +684,14 @@ function Notify.Send(text, color, dur)
     dur = dur or 2.5
     local ok, lbl = pcall(function()
         local d = Drawing.new("Text")
-        d.Text = "  [PHANTOM]  " .. text
+        d.Text = "  [PRV SERVICE]  " .. text
         d.Size = 16; d.Font = FONT
         d.Color = color; d.OutlineColor = C3(0,0,0); d.Outline = true
         d.Position = V2(12, 10 + (#State.Notifications * 22))
         d.Visible = true
         return d
     end)
-    if not ok then warn("[PHANTOM] " .. text) return end
+    if not ok then warn("[PRV SERVICE] " .. text) return end
     local entry = {Drawing = lbl}
     tInsert(State.Notifications, entry)
     tSpawn(function()
@@ -1813,14 +1813,14 @@ function PlayerMods.SetupFly()
         if Config.Player.FlyEnabled then
             if not State.FlyBody then
                 local bv = Instance.new("BodyVelocity")
-                bv.Name = "PhantomFly_" .. math.random(10000,99999)
+                bv.Name = "PRVFly_" .. math.random(10000,99999)
                 bv.MaxForce = V3(math.huge, math.huge, math.huge)
                 bv.Velocity = V3(0,0,0)
                 bv.Parent = root
                 State.FlyBody = bv
 
                 local bg = Instance.new("BodyGyro")
-                bg.Name = "PhantomGyro_" .. math.random(10000,99999)
+                bg.Name = "PRVGyro_" .. math.random(10000,99999)
                 bg.MaxTorque = V3(math.huge, math.huge, math.huge)
                 bg.P = 9e4
                 bg.Parent = root
@@ -1960,9 +1960,9 @@ local function updateWatermark() end -- no-op
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
--- PHANTOM CYBER-NEON V7.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
+-- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
 -- ═══════════════════════════════════════════════════
-local PhantomUI = {}
+local PRV SERVICEUI = {}
 local NativeGUI = nil
 local cursorConnection = nil
 
@@ -2010,16 +2010,16 @@ local function BuildNativeGUI()
     end)
 
     pcall(function()
-        local old = parentTarget:FindFirstChild("PHANTOM_CYBER_GUI")
+        local old = parentTarget:FindFirstChild("PRV_SERVICE_GUI")
         if old then old:Destroy() end
         if playerGui then
-            local old2 = playerGui:FindFirstChild("PHANTOM_CYBER_GUI")
+            local old2 = playerGui:FindFirstChild("PRV_SERVICE_GUI")
             if old2 then old2:Destroy() end
         end
     end)
 
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "PHANTOM_CYBER_GUI"
+    ScreenGui.Name = "PRV_SERVICE_GUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.DisplayOrder = 999999
@@ -2087,7 +2087,7 @@ local function BuildNativeGUI()
     -- ═══════════════════════════════════════════════════
     local FloatPill = Instance.new("Frame")
     FloatPill.Name = "FloatPill"
-    FloatPill.Size = UDim2.new(0, 150, 0, 44)
+    FloatPill.Size = UDim2.new(0, 165, 0, 44)
     FloatPill.Position = UDim2.new(0, 30, 0, 30)
     FloatPill.BackgroundColor3 = Color3.fromRGB(20, 18, 32)
     FloatPill.BorderSizePixel = 0
@@ -2105,13 +2105,13 @@ local function BuildNativeGUI()
     FloatStroke.Parent = FloatPill
 
     local PillIcon = Instance.new("TextLabel")
-    PillIcon.Size = UDim2.new(0, 30, 0, 30)
+    PillIcon.Size = UDim2.new(0, 38, 0, 30)
     PillIcon.Position = UDim2.new(0, 7, 0.5, -15)
     PillIcon.BackgroundColor3 = C_NEON
-    PillIcon.Text = "P"
+    PillIcon.Text = "PRV"
     PillIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
     PillIcon.Font = Enum.Font.GothamBold
-    PillIcon.TextSize = 15
+    PillIcon.TextSize = 11
     PillIcon.Parent = FloatPill
     local PillIconCorner = Instance.new("UICorner")
     PillIconCorner.CornerRadius = UDim.new(1, 0)
@@ -2119,9 +2119,9 @@ local function BuildNativeGUI()
 
     local PillLabel = Instance.new("TextButton")
     PillLabel.Size = UDim2.new(1, -44, 1, 0)
-    PillLabel.Position = UDim2.new(0, 42, 0, 0)
+    PillLabel.Position = UDim2.new(0, 46, 0, 0)
     PillLabel.BackgroundTransparency = 1
-    PillLabel.Text = "PHANTOM"
+    PillLabel.Text = "PRV SERVICE"
     PillLabel.TextColor3 = C_TEXT
     PillLabel.Font = Enum.Font.GothamBold
     PillLabel.TextSize = 13
@@ -2238,17 +2238,17 @@ local function BuildNativeGUI()
     local LogoText = Instance.new("TextLabel")
     LogoText.Size = UDim2.new(1, 0, 1, 0)
     LogoText.BackgroundTransparency = 1
-    LogoText.Text = "P"
+    LogoText.Text = "PRV"
     LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
     LogoText.Font = Enum.Font.GothamBold
-    LogoText.TextSize = 16
+    LogoText.TextSize = 11
     LogoText.Parent = LogoBadge
 
     local BrandTitle = Instance.new("TextLabel")
     BrandTitle.Position = UDim2.new(0, 58, 0, 9)
     BrandTitle.Size = UDim2.new(0, 220, 0, 20)
     BrandTitle.BackgroundTransparency = 1
-    BrandTitle.Text = "PHANTOM <font color=\"#c084fc\">ULTRA</font>"
+    BrandTitle.Text = "PRV <font color=\"#c084fc\">SERVICE</font>"
     BrandTitle.RichText = true
     BrandTitle.TextColor3 = C_TEXT
     BrandTitle.Font = Enum.Font.GothamBold
@@ -2260,7 +2260,7 @@ local function BuildNativeGUI()
     BrandSub.Position = UDim2.new(0, 58, 0, 28)
     BrandSub.Size = UDim2.new(0, 260, 0, 14)
     BrandSub.BackgroundTransparency = 1
-    BrandSub.Text = "BlockSpin Stealth · Tasto [K] · 60 FPS"
+    BrandSub.Text = "BlockSpin Stealth · Key [K] · 60 FPS"
     BrandSub.TextColor3 = C_MUTED
     BrandSub.Font = Enum.Font.GothamMedium
     BrandSub.TextSize = 11
@@ -2306,7 +2306,7 @@ local function BuildNativeGUI()
         Window.Visible = false
         FloatPill.Visible = true
         SetCursorState(false)
-        Notify.Send("Tocca il logo o premi K per riaprire", C3(168, 85, 247), 3)
+        Notify.Send("Tap logo or press K to reopen", C3(168, 85, 247), 3)
     end)
 
     -- Clic su "X" (chiudi) -> Chiude tutto
@@ -2847,7 +2847,7 @@ local function BuildNativeGUI()
 
     -- Create Native Tabs
     local tESP      = CreateTab("ESP", "ESP")
-    local tInv      = CreateTab("Inventario", "INV")
+    local tInv      = CreateTab("Inventory", "INV")
     local tAim      = CreateTab("Aimbot", "AIM")
     local tTrig     = CreateTab("Triggerbot", "TRG")
     local tPlayer   = CreateTab("Player", "PLY")
@@ -2862,75 +2862,75 @@ local function BuildNativeGUI()
     -- 1. POPULATE ESP
     -- ──────────────────────────────────────────
     pcall(function()
-        tESP:AddSection("Generale")
-        tESP:AddToggle("Abilita ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
-        tESP:AddDropdown("Stile Box", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
-        tESP:AddSlider("Spessore Box", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
-        tESP:AddToggle("Contorno Box (Outline)", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
+        tESP:AddSection("General")
+        tESP:AddToggle("Enable ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
+        tESP:AddDropdown("Box Style", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
+        tESP:AddSlider("Box Thickness", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
+        tESP:AddToggle("Box Outline", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
 
-        tESP:AddSection("Dettagli Giocatore")
-        tESP:AddToggle("Mostra Nomi", Config.ESP.Names, function(v) Config.ESP.Names = v end)
-        tESP:AddSlider("Dimensione Nome", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
-        tESP:AddToggle("Mostra Distanza", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
-        tESP:AddToggle("Barra Vita (HealthBar)", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
-        tESP:AddDropdown("Posizione Barra Vita", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
-        tESP:AddToggle("Mostra HP Numerico", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
+        tESP:AddSection("Player Details")
+        tESP:AddToggle("Show Names", Config.ESP.Names, function(v) Config.ESP.Names = v end)
+        tESP:AddSlider("Name Size", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
+        tESP:AddToggle("Show Distance", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
+        tESP:AddToggle("Health Bar", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
+        tESP:AddDropdown("Health Bar Position", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
+        tESP:AddToggle("Show Numeric HP", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
 
-        tESP:AddSection("Tracers & Sguardo")
-        tESP:AddToggle("Abilita Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
-        tESP:AddDropdown("Origine Tracers", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
-        tESP:AddSlider("Spessore Tracers", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
-        tESP:AddToggle("Mostra Direzione Sguardo", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
+        tESP:AddSection("Tracers & Look Vector")
+        tESP:AddToggle("Enable Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
+        tESP:AddDropdown("Tracer Origin", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
+        tESP:AddSlider("Tracer Thickness", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
+        tESP:AddToggle("Show Look Vector", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
 
         tESP:AddSection("Skeleton & Chams")
-        tESP:AddToggle("Abilita Scheletro (Skeleton)", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
-        tESP:AddColorPicker("Colore Scheletro", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
-        tESP:AddToggle("Abilita Chams Highlight", Config.ESP.Chams, function(v)
+        tESP:AddToggle("Enable Skeleton", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
+        tESP:AddColorPicker("Skeleton Color", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
+        tESP:AddToggle("Enable Chams Highlight", Config.ESP.Chams, function(v)
             Config.ESP.Chams = v
             if not v then
                 for _, p in ipairs(Players:GetPlayers()) do
                     if p ~= LocalPlayer and p.Character then
-                        local h = p.Character:FindFirstChild("PHANTOM_Highlight")
+                        local h = p.Character:FindFirstChild("PRV_Highlight")
                         if h then h:Destroy() end
                     end
                 end
             end
         end)
-        tESP:AddColorPicker("Colore Chams (Visibile)", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
-        tESP:AddColorPicker("Colore Chams (Nascosto)", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
+        tESP:AddColorPicker("Chams Visible Color", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
+        tESP:AddColorPicker("Chams Hidden Color", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
 
-        tESP:AddSection("Filtri & Colori")
-        tESP:AddToggle("Controllo Visibilita (Wall)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
-        tESP:AddToggle("Ignora Compagni di Squadra", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
-        tESP:AddSlider("Distanza Massima", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
+        tESP:AddSection("Filters & Range")
+        tESP:AddToggle("Wall Check (Visibility)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
+        tESP:AddToggle("Team Check (Ignore Team)", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
+        tESP:AddSlider("Max Distance", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
     end)
 
     -- ──────────────────────────────────────────
     -- 2. POPULATE INVENTARIO
     -- ──────────────────────────────────────────
     pcall(function()
-        tInv:AddSection("Badge Grafici & Rarita")
-        tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
-        tInv:AddToggle("Badge Visivi (Icone & Rarita)", Config.InventoryESP.VisualBadges, function(v) Config.InventoryESP.VisualBadges = v end)
-        tInv:AddToggle("Contorno Dorato Leggendari (RPG)", Config.InventoryESP.ShowRarityGlow, function(v) Config.InventoryESP.ShowRarityGlow = v end)
-        tInv:AddSlider("Dimensione Badge (Compatto)", 14, 32, Config.InventoryESP.BadgeSize, "px", 1, function(v) Config.InventoryESP.BadgeSize = v end)
+        tInv:AddSection("Visual Badges & Rarity")
+        tInv:AddToggle("Enable Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
+        tInv:AddToggle("Visual Badges (Icons & Rarity)", Config.InventoryESP.VisualBadges, function(v) Config.InventoryESP.VisualBadges = v end)
+        tInv:AddToggle("Golden Legendary Border (RPG)", Config.InventoryESP.ShowRarityGlow, function(v) Config.InventoryESP.ShowRarityGlow = v end)
+        tInv:AddSlider("Badge Size (Compact)", 14, 32, Config.InventoryESP.BadgeSize, "px", 1, function(v) Config.InventoryESP.BadgeSize = v end)
 
-        tInv:AddSection("Filtri Oggetti")
-        tInv:AddToggle("Mostra Oggetto in Mano (Equipped)", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
-        tInv:AddToggle("Mostra Oggetti nello Zaino", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
-        tInv:AddToggle("Mostra Danno Rilevato", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
-        tInv:AddToggle("Pulisci Nomi Tool", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
-        tInv:AddSlider("Max Oggetti Mostrati", 1, 5, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
+        tInv:AddSection("Item Filters")
+        tInv:AddToggle("Show Equipped Weapon", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
+        tInv:AddToggle("Show Backpack Items", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
+        tInv:AddToggle("Show Detected Damage", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
+        tInv:AddToggle("Clean Item Names", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
+        tInv:AddSlider("Max Displayed Items", 1, 5, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
     end)
 
     -- ──────────────────────────────────────────
     -- 3. POPULATE AIMBOT
     -- ──────────────────────────────────────────
     pcall(function()
-        tAim:AddSection("Stato & Attivazione")
-        tAim:AddToggle("Abilita Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
-        tAim:AddDropdown("Modalita Attivazione", {"Hold", "Toggle", "Always"}, Config.Aimbot.ActivationMode, function(v) Config.Aimbot.ActivationMode = v end)
-        tAim:AddDropdown("Tasto Aimbot", safeKeybinds, Config.Aimbot.KeybindName, function(v)
+        tAim:AddSection("Status & Activation")
+        tAim:AddToggle("Enable Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
+        tAim:AddDropdown("Activation Mode", {"Hold", "Toggle", "Always"}, Config.Aimbot.ActivationMode, function(v) Config.Aimbot.ActivationMode = v end)
+        tAim:AddDropdown("Aimbot Keybind", safeKeybinds, Config.Aimbot.KeybindName, function(v)
             Config.Aimbot.KeybindName = v
             local bind = KeybindMap[v]
             if bind then
@@ -2939,35 +2939,35 @@ local function BuildNativeGUI()
                 Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
             end
         end)
-        tAim:AddToggle("Silent Aim (Sperimentale)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
-        tAim:AddToggle("Aim Assist Leggero", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
-        tAim:AddSlider("Forza Aim Assist", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
+        tAim:AddToggle("Silent Aim (Experimental)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
+        tAim:AddToggle("Light Aim Assist", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
+        tAim:AddSlider("Aim Assist Strength", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
 
         tAim:AddSection("Targeting")
-        tAim:AddDropdown("Parte del Corpo", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
-        tAim:AddToggle("Priorita Ossa Visibili", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
-        tAim:AddDropdown("Priorita Bersaglio", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
-        tAim:AddToggle("Controllo Ostacoli (Wall Check)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
-        tAim:AddToggle("Ignora Squadra", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
-        tAim:AddToggle("Ignora Morti / Atterrati", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
+        tAim:AddDropdown("Target Body Part", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
+        tAim:AddToggle("Prioritize Visible Bones", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
+        tAim:AddDropdown("Target Priority", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
+        tAim:AddToggle("Wall Check (Obstacles)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
+        tAim:AddToggle("Ignore Teammates", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
+        tAim:AddToggle("Ignore Dead / Knocked", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
 
-        tAim:AddSection("FOV & Precisione")
-        tAim:AddSlider("Raggio FOV", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
-        tAim:AddToggle("Mostra Cerchio FOV", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
-        tAim:AddColorPicker("Colore Cerchio FOV", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
-        tAim:AddSlider("Smoothing (Fluidita)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
-        tAim:AddToggle("Umanizza Movimento", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
-        tAim:AddToggle("Predizione Movimento", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
+        tAim:AddSection("FOV & Precision")
+        tAim:AddSlider("FOV Radius", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
+        tAim:AddToggle("Show FOV Circle", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
+        tAim:AddColorPicker("FOV Circle Color", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
+        tAim:AddSlider("Smoothing (Fluidity)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
+        tAim:AddToggle("Humanize Movement", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
+        tAim:AddToggle("Movement Prediction", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
     end)
 
     -- ──────────────────────────────────────────
     -- 4. POPULATE TRIGGERBOT
     -- ──────────────────────────────────────────
     pcall(function()
-        tTrig:AddSection("Generale")
-        tTrig:AddToggle("Abilita Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
-        tTrig:AddDropdown("Modalita", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
-        tTrig:AddDropdown("Tasto Triggerbot", safeKeybinds, Config.Triggerbot.KeybindName, function(v)
+        tTrig:AddSection("General")
+        tTrig:AddToggle("Enable Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
+        tTrig:AddDropdown("Activation Mode", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
+        tTrig:AddDropdown("Triggerbot Keybind", safeKeybinds, Config.Triggerbot.KeybindName, function(v)
             Config.Triggerbot.KeybindName = v
             local bind = KeybindMap[v]
             if bind then
@@ -2977,66 +2977,66 @@ local function BuildNativeGUI()
             end
         end)
 
-        tTrig:AddSection("Parametri Sparo")
-        tTrig:AddToggle("Auto Shoot Continuo", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
+        tTrig:AddSection("Firing Parameters")
+        tTrig:AddToggle("Continuous Auto-Shoot", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
         tTrig:AddToggle("Spray Mode", Config.Triggerbot.Spray, function(v) Config.Triggerbot.Spray = v end)
-        tTrig:AddSlider("Delay tra Colpi", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
-        tTrig:AddSlider("Probabilita Colpo (Hit Chance)", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
-        tTrig:AddToggle("Solo Headshot", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
+        tTrig:AddSlider("Shot Delay", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
+        tTrig:AddSlider("Hit Chance", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
+        tTrig:AddToggle("Headshot Only", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
     end)
 
     -- ──────────────────────────────────────────
     -- 5. POPULATE PLAYER
     -- ──────────────────────────────────────────
     pcall(function()
-        tPlayer:AddSection("Movimento")
+        tPlayer:AddSection("Movement")
         tPlayer:AddToggle("Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
-        tPlayer:AddSlider("Velocita Corsa", 16, 200, Config.Player.WalkSpeed, " studs", 2, function(v) Config.Player.WalkSpeed = v end)
-        tPlayer:AddToggle("Super Salto", Config.Player.JumpEnabled, function(v) Config.Player.JumpEnabled = v end)
-        tPlayer:AddSlider("Forza Salto", 50, 300, Config.Player.JumpPower, "", 5, function(v) Config.Player.JumpPower = v end)
+        tPlayer:AddSlider("Walk Speed", 16, 200, Config.Player.WalkSpeed, " studs", 2, function(v) Config.Player.WalkSpeed = v end)
+        tPlayer:AddToggle("Super Jump", Config.Player.JumpEnabled, function(v) Config.Player.JumpEnabled = v end)
+        tPlayer:AddSlider("Jump Power", 50, 300, Config.Player.JumpPower, "", 5, function(v) Config.Player.JumpPower = v end)
         tPlayer:AddToggle("Infinite Jump", Config.Player.InfiniteJump, function(v) Config.Player.InfiniteJump = v end)
 
-        tPlayer:AddSection("Bypass Movimento")
-        tPlayer:AddToggle("Noclip (Attraversa Muri)", Config.Player.NoclipEnabled, function(v) Config.Player.NoclipEnabled = v end)
-        tPlayer:AddToggle("Volo (WASD + Space/Shift)", Config.Player.FlyEnabled, function(v)
+        tPlayer:AddSection("Movement Bypass")
+        tPlayer:AddToggle("Noclip (Walk Through Walls)", Config.Player.NoclipEnabled, function(v) Config.Player.NoclipEnabled = v end)
+        tPlayer:AddToggle("Fly (WASD + Space/Shift)", Config.Player.FlyEnabled, function(v)
             Config.Player.FlyEnabled = v
             PlayerMods.SetupFly()
             if v then
-                Notify.Send("FLY ATTIVO - WASD per muoverti", C3(50, 200, 255), 3)
+                Notify.Send("FLY ACTIVE - Use WASD to move", C3(50, 200, 255), 3)
             else
-                Notify.Send("FLY DISATTIVATO", C3(200, 200, 200), 2)
+                Notify.Send("FLY DISABLED", C3(200, 200, 200), 2)
             end
         end)
-        tPlayer:AddSlider("Velocita Volo", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
+        tPlayer:AddSlider("Fly Speed", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
     end)
 
     -- ──────────────────────────────────────────
     -- 6. POPULATE SETTINGS
     -- ──────────────────────────────────────────
     pcall(function()
-        tSettings:AddSection("Interfaccia")
-        tSettings:AddToggle("Mostra Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
-        tSettings:AddToggle("Suono Uccisione (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
+        tSettings:AddSection("Interface")
+        tSettings:AddToggle("Show Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
+        tSettings:AddToggle("Kill Sound (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
 
-        tSettings:AddSection("Utility")
+        tSettings:AddSection("Utilities")
         tSettings:AddToggle("Anti-AFK", Config.Misc.AntiAFK, function(v)
             Config.Misc.AntiAFK = v
             PlayerMods.SetupAntiAFK()
         end)
-        tSettings:AddToggle("Fullbright (Luce Massima)", Config.Misc.Fullbright, function(v)
+        tSettings:AddToggle("Fullbright (Max Light)", Config.Misc.Fullbright, function(v)
             Config.Misc.Fullbright = v
             PlayerMods.SetupFullbright()
         end)
 
-        tSettings:AddSection("Comandi")
-        tSettings:AddButton("Reset Statistiche Sessione", "", function()
+        tSettings:AddSection("Commands & Session")
+        tSettings:AddButton("Reset Session Stats", "", function()
             State.KillCount = 0
             State.HitCount = 0
             State.SessionStart = Tick()
-            Notify.Send("Stats Azzerate!", C3(200, 200, 200), 2)
+            Notify.Send("Stats Reset!", C3(200, 200, 200), 2)
         end)
 
-        tSettings:AddButton("UNLOAD (Chiudi Tutto)", "", function()
+        tSettings:AddButton("UNLOAD (Close Script)", "", function()
             State.Running = false
         end)
     end)
@@ -3045,11 +3045,11 @@ local function BuildNativeGUI()
     State.GUIVisible = true
     SetCursorState(true)
 
-    Notify.Send("PHANTOM ULTRA Pronta! [K] per il menu", C3(168, 85, 247), 4)
+    Notify.Send("PRV SERVICE Pronta! [K] per il menu", C3(168, 85, 247), 4)
 end
 
-PhantomUI.Build = BuildNativeGUI
-PhantomUI.Toggle = function()
+PRV SERVICEUI.Build = BuildNativeGUI
+PRV SERVICEUI.Toggle = function()
     if NativeGUI and NativeGUI:FindFirstChild("MainWindow") then
         local win = NativeGUI.MainWindow
         local pill = NativeGUI:FindFirstChild("FloatPill")
@@ -3061,7 +3061,7 @@ PhantomUI.Toggle = function()
         end
     end
 end
-PhantomUI.Destroy = function()
+PRV SERVICEUI.Destroy = function()
     pcall(function()
         SetCursorState(false)
         if NativeGUI then NativeGUI:Destroy() end
@@ -3069,10 +3069,10 @@ PhantomUI.Destroy = function()
 end
 
 task.spawn(function()
-    local ok, err = pcall(PhantomUI.Build)
+    local ok, err = pcall(PRV SERVICEUI.Build)
     if not ok then
-        warn("[PHANTOM] Ultra GUI Error: " .. tostring(err))
-        Notify.Send("Errore GUI: " .. tostring(err), C3(255, 60, 60), 6)
+        warn("[PRV SERVICE] Ultra GUI Error: " .. tostring(err))
+        Notify.Send("GUI Error: " .. tostring(err), C3(255, 60, 60), 6)
     end
 end)
 
@@ -3089,7 +3089,7 @@ end
 local function OnInputBegan(input, gp)
     -- K or G = Toggle GUI (Always responsive!)
     if input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.G or input.KeyCode == Config.Misc.GUIToggleKey then
-        PhantomUI.Toggle()
+        PRV SERVICEUI.Toggle()
         return
     end
 
@@ -3311,7 +3311,7 @@ local function Unload()
         pcall(function() State.Connections.Render:Disconnect() end)
         State.Connections.Render = nil
     end
-    pcall(function() RunService:UnbindFromRenderStep("PhantomRender") end)
+    pcall(function() RunService:UnbindFromRenderStep("PRVRender") end)
 
     for _, c in pairs(State.Connections) do
         pcall(function() if c and c.Connected then c:Disconnect() end end)
@@ -3354,9 +3354,9 @@ local function Unload()
     for _, n in ipairs(State.Notifications) do pcall(function() n.Drawing:Remove() end) end
 
     -- Destroy GUI
-    pcall(function() PhantomUI.Destroy() end)
+    pcall(function() PRV SERVICEUI.Destroy() end)
 
-    Notify.Send("PHANTOM Unloaded!", C3(255, 80, 80), 2)
+    Notify.Send("PRV SERVICE Unloaded!", C3(255, 80, 80), 2)
 end
 
 -- ═══════════════════════════════════════════════════
@@ -3395,17 +3395,17 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v6.0 Master Loaded!", C3(192, 132, 252), 4)
-    Notify.Send("Premi K per aprire/chiudere il menu", C3(200, 200, 200), 5)
-    Notify.Send("v6.0: Mouse Sbloccato & Tutte le Tab Funzionanti!", C3(56, 189, 248), 6)
+    Notify.Send("PRV SERVICE v8.5 Loaded!", C3(192, 132, 252), 4)
+    Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
+    Notify.Send("v8.5: Visual Badges & Full English UI!", C3(56, 189, 248), 6)
 end
 
 local ok, err = pcall(Init)
 if not ok then
-    warn("[PHANTOM] INIT ERROR: " .. tostring(err))
+    warn("[PRV SERVICE] INIT ERROR: " .. tostring(err))
     pcall(function()
         local e = Drawing.new("Text")
-        e.Text = "[PHANTOM] ERROR: " .. tostring(err)
+        e.Text = "[PRV SERVICE] ERROR: " .. tostring(err)
         e.Size = 16; e.Font = 2; e.Color = C3(255,0,0)
         e.OutlineColor = C3(0,0,0); e.Outline = true
         e.Position = V2(12, 10); e.Visible = true
