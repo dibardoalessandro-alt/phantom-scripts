@@ -1,18 +1,18 @@
-﻿--[[
-    ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
-    Ôòæ     PRV SERVICE v8.5 ┬À BlockSpin Master Cyber Edition             Ôòæ
-    Ôòæ     Mouse Unlock ┬À Tab Fix ┬À Floating Pill ┬À Built for Xeno   Ôòæ
-    ÔòáÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòú
-    Ôòæ  Premi K per aprire/chiudere il menu                          Ôòæ
-    Ôòæ  v6.0: SBLOCCO MOUSE AUTOMATICO ÔÇö Cursore visibile e libero,   Ôòæ
-    Ôòæ        Triggerbot, Player & Settings scrollabili al 100%,     Ôòæ
-    Ôòæ        Sidebar scorrevole, Logo Pill flottante drag & touch   Ôòæ
-    ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
+    ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
+    ╠═══════════════════════════════════════════════════════════════╣
+    ║  Premi K per aprire/chiudere il menu                          ║
+    ║  v6.0: SBLOCCO MOUSE AUTOMATICO — Cursore visibile e libero,   ║
+    ║        Triggerbot, Player & Settings scrollabili al 100%,     ║
+    ║        Sidebar scorrevole, Logo Pill flottante drag & touch   ║
+    ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- SAFE FONT DETECTION
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function getFont()
     local ok, fonts = pcall(function() return Drawing.Fonts end)
     if ok and fonts then
@@ -28,9 +28,9 @@ local FONT = getFont()
 local HAS_MOUSEMOVEREL = pcall(function() return typeof(mousemoverel) == "function" end)
 local HAS_MOUSE1CLICK  = pcall(function() return typeof(mouse1click) == "function" end)
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- SERVICES
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -66,9 +66,9 @@ local tWait   = task.wait
 local tSpawn  = task.spawn
 local tDefer  = task.defer
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- KEYBIND MAPS (for GUI dropdown selection)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local KeybindMap = {
     -- Mouse
     ["Mouse2 (RMB)"]  = {Type = "Mouse", Value = Enum.UserInputType.MouseButton2},
@@ -97,11 +97,11 @@ local KeybindOptions = {}
 for name, _ in pairs(KeybindMap) do tInsert(KeybindOptions, name) end
 table.sort(KeybindOptions)
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- CONFIGURATION
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Config = {
-    -- ÔöÇÔöÇ ESP ÔöÇÔöÇ
+    -- ── ESP ──
     ESP = {
         Enabled         = false,
         BoxStyle        = "Full",       -- "Full" / "Corner"
@@ -139,10 +139,10 @@ local Config = {
         ChamsTransparency   = 0.3,
     },
 
-    -- ÔöÇÔöÇ INVENTORY ESP ÔöÇÔöÇ
+    -- ── INVENTORY ESP ──
     InventoryESP = {
         Enabled       = false,
-        VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarit├á
+        VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarità
         ShowRarityGlow = true,        -- v8: Contorno Leggendario dorato (RPG, Minigun)
         BadgeSize     = 20,           -- v8.1: Dimensione badge compatta (20px)
         ShowEquipped  = true,
@@ -156,7 +156,7 @@ local Config = {
         MaxItems      = 8,           -- v3: limit display
     },
 
-    -- ÔöÇÔöÇ AIMBOT ÔöÇÔöÇ
+    -- ── AIMBOT ──
     Aimbot = {
         Enabled              = false,
         ActivationMode       = "Hold",     -- "Hold" / "Toggle"
@@ -196,7 +196,7 @@ local Config = {
         BonePriority         = false,       -- auto-pick best bone
     },
 
-    -- ÔöÇÔöÇ TRIGGERBOT ÔöÇÔöÇ
+    -- ── TRIGGERBOT ──
     Triggerbot = {
         Enabled        = false,
         ActivationMode = "Always",      -- "Hold" / "Always"
@@ -232,7 +232,7 @@ local Config = {
         StableFrames   = 3,
     },
 
-    -- ÔöÇÔöÇ PLAYER ÔöÇÔöÇ (v3: NEW TAB)
+    -- ── PLAYER ── (v3: NEW TAB)
     Player = {
         SpeedEnabled   = false,
         WalkSpeed      = 16,        -- default roblox
@@ -244,7 +244,7 @@ local Config = {
         InfiniteJump   = false,
     },
 
-    -- ÔöÇÔöÇ MISC ÔöÇÔöÇ
+    -- ── MISC ──
     Misc = {
         ShowWatermark  = false,
         GUIToggleKey   = Enum.KeyCode.G,
@@ -257,9 +257,9 @@ local Config = {
     },
 }
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- STATE
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local State = {
     Running         = true,
     AimbotHeld      = false,
@@ -291,9 +291,9 @@ local State = {
     OriginalBrightness = nil,
 }
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- ANTI-DETECTION v3 (hardened)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 pcall(function()
     if not hookmetamethod or not newcclosure or not getnamecallmethod then return end
 
@@ -343,9 +343,9 @@ pcall(function()
     -- Only apply to our own waits (don't hook globally, too risky)
 end)
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- UTILITIES
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Util = {}
 
 function Util.W2S(pos)
@@ -405,15 +405,15 @@ function Util.MousePos()
     return UserInputService:GetMouseLocation()
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- v10.0: INVENTORY ESP RESOLVER ÔÇö FINAL REWRITE
+-- ═══════════════════════════════════════════════════
+-- v10.0: INVENTORY ESP RESOLVER — FINAL REWRITE
 -- Xeno-safe, no require(), no false positives
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
 -- WEAPON NAME WHITELIST (lowercase)
--- If a string matches here, it's ALWAYS valid ÔÇö skip garbage checks
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- If a string matches here, it's ALWAYS valid — skip garbage checks
+-- ───────────────────────────────────────────────────
 local KNOWN_WEAPONS = {
     -- BlockSpin confirmed weapons
     ["anaconda"]=true, ["remington"]=true, ["mp5"]=true, ["rpg"]=true,
@@ -467,9 +467,9 @@ local KNOWN_WEAPONS = {
 
 }
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
--- GARBAGE WORDS ÔÇö never display these as weapon names
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
+-- GARBAGE WORDS — never display these as weapon names
+-- ───────────────────────────────────────────────────
 local GARBAGE_WORDS = {
     ["weapon"]=true, ["weapons"]=true, ["tool"]=true, ["tools"]=true,
     ["item"]=true, ["items"]=true, ["uncommon"]=true, ["common"]=true,
@@ -504,9 +504,9 @@ local GARBAGE_WORDS = {
     ["terrain"]=true, ["seat"]=true,
 }
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
 -- CHILD NAMES TO ALWAYS IGNORE IN TOOL SCAN
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
 local IGNORED_CHILDREN = {
     ["handle"]=true, ["parts"]=true, ["sounds"]=true, ["animations"]=true,
     ["settings"]=true, ["config"]=true, ["client"]=true, ["server"]=true,
@@ -526,9 +526,9 @@ local IGNORED_CHILDREN = {
     ["accessory"]=true, ["hat"]=true, ["shirt"]=true, ["pants"]=true,
 }
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
--- IsGarbageName ÔÇö returns true if a string is NOT a valid weapon name
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
+-- IsGarbageName — returns true if a string is NOT a valid weapon name
+-- ───────────────────────────────────────────────────
 function Util.IsGarbageName(str)
     if not str or type(str) ~= "string" then return true end
     local s = str:match("^%s*(.-)%s*$")
@@ -537,13 +537,13 @@ function Util.IsGarbageName(str)
     -- Pure numeric = garbage
     if s:match("^%d+$") then return true end
 
-    -- Whitelist check ÔÇö always valid
+    -- Whitelist check — always valid
     if KNOWN_WEAPONS[s:lower()] then return false end
 
     -- FILE PATHS: anything with / or \ is a mesh/model path (e.g. "Pistols/bloodbag", "Meshes/new Melees")
     if s:find("/") or s:find("\\") then return true end
 
-    -- BLENDER MESH NAMES: "Cube.001", "Cube.003", "Weapon.002" ÔÇö word + dot + 3 digits
+    -- BLENDER MESH NAMES: "Cube.001", "Cube.003", "Weapon.002" — word + dot + 3 digits
     if s:match("%a+%.%d%d%d") then return true end
     -- Also catch single dot-number like "Part.1", "Mesh.5"
     if s:match("^[%a%d_]+%.[%d]+$") then return true end
@@ -581,13 +581,13 @@ function Util.IsGarbageName(str)
     return false
 end
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
--- CleanToolName ÔÇö strips prefixes/suffixes, normalizes
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
+-- CleanToolName — strips prefixes/suffixes, normalizes
+-- ───────────────────────────────────────────────────
 function Util.CleanToolName(raw)
     if not raw or type(raw) ~= "string" then return nil end
 
-    -- Whitelist shortcut ÔÇö return immediately for known names
+    -- Whitelist shortcut — return immediately for known names
     local trimmed = raw:match("^%s*(.-)%s*$")
     if KNOWN_WEAPONS[trimmed:lower()] then return trimmed end
 
@@ -597,7 +597,7 @@ function Util.CleanToolName(raw)
     name = name:gsub("^Melee_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
     -- Strip leading/trailing numeric IDs separated by underscore
     name = name:gsub("^%d+_", ""):gsub("_%d+$", "")
-    -- Underscores ÔåÆ spaces
+    -- Underscores → spaces
     name = name:gsub("_", " ")
     name = name:match("^%s*(.-)%s*$")
 
@@ -606,11 +606,11 @@ function Util.CleanToolName(raw)
     return name
 end
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
--- CapitalizeName ÔÇö proper display casing
--- Handles: "ak-47" ÔåÆ "AK-47", "double barrel" ÔåÆ "Double Barrel",
---          "mp5" ÔåÆ "MP5", "combat knife" ÔåÆ "Combat Knife"
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
+-- CapitalizeName — proper display casing
+-- Handles: "ak-47" → "AK-47", "double barrel" → "Double Barrel",
+--          "mp5" → "MP5", "combat knife" → "Combat Knife"
+-- ───────────────────────────────────────────────────
 local function CapitalizeName(name)
     if not name then return name end
 
@@ -649,7 +649,7 @@ local function CapitalizeName(name)
             -- If part starts with a digit, keep as-is
             if part:match("^%d") then
                 tInsert(parts, part)
-            -- Short parts (1-2 chars) that are letters only ÔåÆ uppercase (likely acronym)
+            -- Short parts (1-2 chars) that are letters only → uppercase (likely acronym)
             elseif #part <= 2 and part:match("^%a+$") then
                 tInsert(parts, part:upper())
             else
@@ -662,9 +662,9 @@ local function CapitalizeName(name)
     return tConcat(result, " ")
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- RARITY SYSTEM
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local RARITY_COLORS = {
     Mythic    = C3(239, 68, 68),
     Legendary = C3(255, 190, 20),
@@ -733,9 +733,9 @@ local BLOCKSPIN_RARITIES = {
     ["baton"]             = { r = "Common",    c = RARITY_COLORS.Common },
 }
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
--- GetItemRarity ÔÇö exact match first, then safe partial
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
+-- GetItemRarity — exact match first, then safe partial
+-- ───────────────────────────────────────────────────
 function Util.GetItemRarity(tool, itemName)
     if not itemName then return "Common", RARITY_COLORS.Common end
     local lower = itemName:lower():match("^%s*(.-)%s*$")
@@ -778,9 +778,9 @@ function Util.GetItemRarity(tool, itemName)
     return "Common", RARITY_COLORS.Common
 end
 
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
 -- GetToolDamage
--- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+-- ───────────────────────────────────────────────────
 function Util.GetToolDamage(tool)
     local dmg = nil
     pcall(function()
@@ -801,10 +801,10 @@ function Util.GetToolDamage(tool)
     return dmg
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- REPLICATED STORAGE SCANNER (XENO-SAFE)
--- NO require() ÔÇö only reads Tool instances and their properties
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- NO require() — only reads Tool instances and their properties
+-- ═══════════════════════════════════════════════════
 local _rsCache = nil
 local _rsCacheTime = 0
 local _rsScanFailed = false
@@ -884,7 +884,7 @@ local function BuildRSWeaponMap()
     return map
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- MASTER RESOLVER v10.0
 -- Resolution order:
 --   1. RS cache lookup by tool.Name
@@ -897,14 +897,14 @@ end
 --   8. Child name scan (known weapons first, then valid 4+ char names)
 --   9. Animation prefix scan
 --  10. StringValue scan (known weapons only)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
     local rawName = tool.Name
     local realName = nil
 
-    -- ÔöÇÔöÇ 1. ReplicatedStorage cache lookup ÔöÇÔöÇ
+    -- ── 1. ReplicatedStorage cache lookup ──
     local rsMap = BuildRSWeaponMap()
     if rsMap and rawName then
         local rsHit = rsMap[rawName:lower()]
@@ -913,7 +913,7 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ÔöÇÔöÇ 2. Known weapon whitelist ÔöÇÔöÇ
+    -- ── 2. Known weapon whitelist ──
     if not realName then
         local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
         if KNOWN_WEAPONS[lowRaw] then
@@ -923,13 +923,13 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ÔöÇÔöÇ 3. tool.Name if human-readable ÔöÇÔöÇ
+    -- ── 3. tool.Name if human-readable ──
     if not realName and not Util.IsGarbageName(rawName) then
         local cleaned = Util.CleanToolName(rawName)
         if cleaned then realName = cleaned end
     end
 
-    -- ÔöÇÔöÇ Shotgun disambiguation ÔöÇÔöÇ
+    -- ── Shotgun disambiguation ──
     if realName and realName:lower() == "shotgun" then
         local found = nil
         pcall(function()
@@ -943,7 +943,7 @@ function Util.ResolveToolInfo(tool)
         realName = found or "Remington"
     end
 
-    -- ÔöÇÔöÇ 4-10. Deep inspection (only when we still have no name) ÔöÇÔöÇ
+    -- ── 4-10. Deep inspection (only when we still have no name) ──
     if not realName or Util.IsGarbageName(realName) then
         realName = nil
 
@@ -983,7 +983,7 @@ function Util.ResolveToolInfo(tool)
             end)
         end
 
-        -- 6. Scan ALL string attributes ÔÇö accept ONLY if it matches a known weapon
+        -- 6. Scan ALL string attributes — accept ONLY if it matches a known weapon
         if not realName then
             pcall(function()
                 for _, attrVal in pairs(tool:GetAttributes()) do
@@ -1028,7 +1028,7 @@ function Util.ResolveToolInfo(tool)
                 end
 
                 -- Pass 2: ONLY accept children whose cleaned name matches a known weapon
-                -- Do NOT use loose "4+ chars" heuristic ÔÇö that picks up MeshPart/Blender names
+                -- Do NOT use loose "4+ chars" heuristic — that picks up MeshPart/Blender names
                 for _, child in ipairs(tool:GetChildren()) do
                     if realName then return end
                     local dn = child.Name
@@ -1081,7 +1081,7 @@ function Util.ResolveToolInfo(tool)
             end)
         end
 
-        -- 10. StringValue scan ÔÇö known weapons only
+        -- 10. StringValue scan — known weapons only
         if not realName then
             pcall(function()
                 for _, desc in ipairs(tool:GetDescendants()) do
@@ -1101,7 +1101,7 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ÔöÇÔöÇ Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ÔöÇÔöÇ
+    -- ── Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ──
     if not realName or Util.IsGarbageName(realName) then
         -- Ultimo tentativo: pulisci il nome grezzo e mostralo comunque
         -- Questo garantisce che OGNI tool venga mostrato, anche se non in whitelist
@@ -1138,47 +1138,9 @@ function Util.ResolveToolName(tool)
     return name
 end
 
-local function _bsCat(tool)
-    local ok, a = pcall(function() return tool:GetAttributes() end)
-    if not ok then a = {} end
-    local rn = a["RarityName"] or a["rarityName"] or a["Rarity"] or a["rarity"]
-    local hp = a["HealthRestoreAmount"] or a["HealthRestore"]
-    local dur = a["Durability"] or a["durability"]
-    local au = a["automatic"] or a["Automatic"]
-    local rel = a["ReloadMultiplierOffset"] or a["ReloadSpeed"]
-    local spd = a["SpeedMultiplier"] or a["speedMultiplier"]
-    local dmg = a["Damage"] or a["BaseDamage"]
-    local ammo = a["MaxAmmo"] or a["Ammo"]
-    local cat, det = nil, ""
-    if type(hp) == "number" and hp > 0 then
-        cat = "Medkit"; det = "+" .. math.floor(hp) .. " HP"
-    elseif au ~= nil or rel ~= nil or type(ammo) == "number" then
-        cat = (au == true) and "Auto Weapon" or "Weapon"
-        if type(dmg) == "number" and dmg > 0 then det = math.floor(dmg) .. " DMG" end
-    elseif type(spd) == "number" then
-        cat = spd >= 1.3 and "Speed Boost" or "Armor"
-        det = "x" .. string.format("%.1f", spd)
-    elseif type(dur) == "number" and dur > 0 then
-        cat = "Melee"; det = math.floor(dur) .. " DUR"
-    end
-    if not cat then return nil, nil, nil end
-    local rc, rname = RARITY_COLORS.Common, "Common"
-    if type(rn) == "string" and #rn > 0 then
-        local rl = rn:lower()
-        if rl:find("mythic") then rname="Mythic"; rc=RARITY_COLORS.Mythic
-        elseif rl:find("legend") then rname="Legendary"; rc=RARITY_COLORS.Legendary
-        elseif rl:find("epic") then rname="Epic"; rc=RARITY_COLORS.Epic
-        elseif rl:find("rare") then rname="Rare"; rc=RARITY_COLORS.Rare
-        elseif rl:find("uncommon") then rname="Uncommon"; rc=RARITY_COLORS.Uncommon
-        end
-    end
-    local disp = cat
-    if det ~= "" then disp = disp .. " [" .. det .. "]" end
-    return disp, rname, rc
-endfunction Util.GetWeaponDetails(tool, isEquipped)
+function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
     local name, rarity, color = Util.ResolveToolInfo(tool)
-    if not name then name, rarity, color = _bsCat(tool) end
     if not name then return nil end
 
     return {
@@ -1190,7 +1152,7 @@ endfunction Util.GetWeaponDetails(tool, isEquipped)
     }
 end
 
--- v10.0: Tool info cache ÔÇö 1.5s TTL
+-- v10.0: Tool info cache — 1.5s TTL
 local _toolInfoCache = setmetatable({}, {__mode = "k"})
 
 function Util.GetToolInfo(tool, isEquipped)
@@ -1265,9 +1227,9 @@ function Util.GetBestBone(char)
     return "HumanoidRootPart"
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- NOTIFICATION SYSTEM
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Notify = {}
 function Notify.Send(text, color, dur)
     color = color or C3(255,255,255)
@@ -1300,9 +1262,9 @@ function Notify.Send(text, color, dur)
     end)
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- ESP ENGINE (v3.6 NATIVE HIGHLIGHT & BILLBOARDGUI SYSTEM)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local ESP = {}
 
 local _charConns = {}
@@ -1841,9 +1803,9 @@ function ESP.Update(player, d)
 end
 
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- AIMBOT ENGINE
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Aimbot = {}
 
 local FOVCircle, TargetDot, TargetInfo, SnapLine, LockIndicator
@@ -2011,9 +1973,9 @@ pcall(function()
     -- Only active when silent aim has a valid target
 end)
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- TRIGGERBOT ENGINE (v3.3: REWRITTEN - FOV + Instant + AutoSpray)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local Triggerbot = {}
 local _lastTrig = 0
 local _sprayActive = false
@@ -2207,9 +2169,9 @@ function Triggerbot.Process()
     State.HitCount = State.HitCount + 1
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- PLAYER MODS ENGINE (v3: NEW)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local PlayerMods = {}
 
 function PlayerMods.UpdateSpeed()
@@ -2370,9 +2332,9 @@ function PlayerMods.SetupFullbright()
     end)
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- KILL TRACKING (v3: NEW)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function trackKills()
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
@@ -2395,17 +2357,17 @@ local function trackKills()
     end
 end
 
--- v3.4: Watermark REMOVED ÔÇö clean screen
+-- v3.4: Watermark REMOVED — clean screen
 local _wm = {}
 local function updateWatermark() end -- no-op
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
--- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders ┬À Pure Smooth Curves ┬À Mouse Unlocker ┬À Safe Tabs ┬À Draggable Pill)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════
+-- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
+-- ═══════════════════════════════════════════════════
 local PRVServiceUI = {}
 local NativeGUI = nil
 local cursorConnection = nil
@@ -2528,9 +2490,9 @@ local function BuildNativeGUI()
     WinGrad.Rotation = 45
     WinGrad.Parent = Window
 
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     -- FLOATING DRAGGABLE LOGO PILL (Tasto/Icona per riaprire!)
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     local FloatPill = Instance.new("Frame")
     FloatPill.Name = "FloatPill"
     FloatPill.Size = UDim2.new(0, 165, 0, 44)
@@ -2622,9 +2584,9 @@ local function BuildNativeGUI()
         end
     end)
 
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     -- TOPBAR (Transparent background, inset, no edge bleeding)
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
     Topbar.Size = UDim2.new(1, 0, 0, 52)
@@ -2706,7 +2668,7 @@ local function BuildNativeGUI()
     BrandSub.Position = UDim2.new(0, 58, 0, 28)
     BrandSub.Size = UDim2.new(0, 260, 0, 14)
     BrandSub.BackgroundTransparency = 1
-    BrandSub.Text = "BlockSpin Stealth ┬À Key [K] ┬À 60 FPS"
+    BrandSub.Text = "BlockSpin Stealth · Key [K] · 60 FPS"
     BrandSub.TextColor3 = C_MUTED
     BrandSub.Font = Enum.Font.GothamMedium
     BrandSub.TextSize = 11
@@ -2771,9 +2733,9 @@ local function BuildNativeGUI()
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = Window
 
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     -- SIDEBAR (Inset 14px, scrollable, pure curved edges)
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 180, 1, -72)
@@ -2796,9 +2758,9 @@ local function BuildNativeGUI()
     VertDivider.BorderSizePixel = 0
     VertDivider.Parent = Window
 
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     -- CONTENT AREA (Inset 14px from right & bottom - zero border clipping!)
-    -- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    -- ═══════════════════════════════════════════════════
     local ContentHolder = Instance.new("Frame")
     ContentHolder.Name = "ContentHolder"
     ContentHolder.Size = UDim2.new(1, -222, 1, -68)
@@ -3308,9 +3270,9 @@ local function BuildNativeGUI()
         "LeftControl", "RightControl", "CapsLock", "Tab", "Q", "E", "R", "F", "Z", "X", "C", "V", "B"
     }
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 1. POPULATE ESP
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tESP:AddSection("General")
         tESP:AddToggle("Enable ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
@@ -3355,9 +3317,9 @@ local function BuildNativeGUI()
         tESP:AddSlider("Max Distance", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
     end)
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 2. POPULATE INVENTARIO
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tInv:AddSection("Inventory ESP")
         tInv:AddToggle("Enable Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
@@ -3368,9 +3330,9 @@ local function BuildNativeGUI()
         tInv:AddSlider("Max Displayed Items", 1, 8, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
     end)
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 3. POPULATE AIMBOT
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tAim:AddSection("Status & Activation")
         tAim:AddToggle("Enable Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
@@ -3420,9 +3382,9 @@ local function BuildNativeGUI()
         tAim:AddToggle("Show Target Info", Config.Aimbot.ShowTargetInfo, function(v) Config.Aimbot.ShowTargetInfo = v end)
     end)
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 4. POPULATE TRIGGERBOT
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tTrig:AddSection("General")
         tTrig:AddToggle("Enable Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
@@ -3445,9 +3407,9 @@ local function BuildNativeGUI()
         tTrig:AddToggle("Headshot Only", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
     end)
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 5. POPULATE PLAYER
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tPlayer:AddSection("Movement")
         tPlayer:AddToggle("Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
@@ -3470,9 +3432,9 @@ local function BuildNativeGUI()
         tPlayer:AddSlider("Fly Speed", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
     end)
 
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     -- 6. POPULATE SETTINGS
-    -- ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    -- ──────────────────────────────────────────
     pcall(function()
         tSettings:AddSection("Interface")
         tSettings:AddToggle("Show Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
@@ -3537,7 +3499,7 @@ task.spawn(function()
 end)
 
 -- INPUT HANDLER (v3: updated for custom keybinds)
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function matchesBind(input, bindValue, bindType)
     if bindType == "Mouse" then
         return input.UserInputType == bindValue
@@ -3618,9 +3580,9 @@ local function OnInputEnded(input, _)
     end
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- MAIN RENDER LOOP
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function RenderLoop()
     -- Camera refresh
     Camera = Workspace.CurrentCamera
@@ -3762,9 +3724,9 @@ local function RenderLoop()
     updateWatermark()
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- CLEANUP
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function Unload()
     -- v3.4: Disconnect render
     if State.Connections.Render then
@@ -3819,9 +3781,9 @@ local function Unload()
     Notify.Send("PRV SERVICE Unloaded!", C3(255, 80, 80), 2)
 end
 
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 -- INIT
--- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+-- ═══════════════════════════════════════════════════
 local function Init()
     task.spawn(function()
         for _, p in ipairs(Players:GetPlayers()) do
