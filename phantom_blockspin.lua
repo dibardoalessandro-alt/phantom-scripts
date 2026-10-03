@@ -407,109 +407,137 @@ end
 
 -- v3.2: REWRITTEN - Smart tool name resolution for BlockSpin and similar games
 -- Searches multiple sources to find the REAL item name instead of numeric IDs
-function Util.ResolveToolName(tool)
-    if not tool then return nil end
-    local found = nil
-
-    -- 1. Check attributes first (many games store display names here)
-    pcall(function()
-        local attrNames = {"DisplayName", "displayName", "ItemName", "itemName",
-                          "WeaponName", "weaponName", "GunName", "Name_Display",
-                          "RealName", "ShopName", "Label"}
-        for _, attr in ipairs(attrNames) do
-            local v = tool:GetAttribute(attr)
-            if v and type(v) == "string" and #v > 0 and not v:match("^%d+$") then
-                found = v
-                return
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 2. Check StringValue / ObjectValue children
-    pcall(function()
-        local valNames = {"itemname", "displayname", "name", "toolname",
-                         "weaponname", "gunname", "label", "title", "itemid"}
-        for _, child in ipairs(tool:GetChildren()) do
-            if child:IsA("StringValue") then
-                local n = child.Name:lower()
-                for _, vn in ipairs(valNames) do
-                    if n == vn or n:find(vn) then
-                        if #child.Value > 0 and not child.Value:match("^%d+$") then
-                            found = child.Value
-                            return
-                        end
-                    end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 3. Check for TextLabel inside tool's GUI
-    pcall(function()
-        for _, child in ipairs(tool:GetChildren()) do
-            if child:IsA("BillboardGui") or child:IsA("SurfaceGui") or child:IsA("ScreenGui") then
-                for _, lbl in ipairs(child:GetChildren()) do
-                    if lbl:IsA("TextLabel") and lbl.Text and #lbl.Text > 0 and not lbl.Text:match("^%d+$") and #lbl.Text < 40 then
-                        found = lbl.Text
-                        return
-                    end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 4. Check Configuration/Settings folder
-    pcall(function()
-        local cfgNames = {"Configuration", "Config", "Settings", "ItemConfig"}
-        for _, cfgName in ipairs(cfgNames) do
-            local cfg = tool:FindFirstChild(cfgName)
-            if cfg then
-                for _, child in ipairs(cfg:GetChildren()) do
-                    if child:IsA("StringValue") then
-                        local n = child.Name:lower()
-                        if n:find("name") or n:find("display") or n:find("label") then
-                            if #child.Value > 0 and not child.Value:match("^%d+$") then
-                                found = child.Value
-                                return
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-    if found then return found end
-
-    -- 5. Try ToolTip (often has the real name in BlockSpin)
-    pcall(function()
-        if tool.ToolTip and #tool.ToolTip > 0 and not tool.ToolTip:match("^%d+$") then
-            found = tool.ToolTip
-        end
-    end)
-    if found then return found end
-
-    -- 6. Last resort: use Tool.Name but ONLY if it's not purely numeric
-    local raw = tool.Name
-    if raw:match("^%d+$") then
-        -- Pure number ID — useless, skip entirely
-        return nil
-    end
-
-    -- Clean up the name
-    raw = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
-    raw = raw:gsub("^%d+_", ""):gsub("_%d+$", "")
-    raw = raw:gsub("_", " ")
-    raw = raw:gsub("(%a)([%w]*)", function(first, rest)
+function Util.CleanToolName(raw)
+    if not raw or type(raw) ~= "string" then return nil end
+    local name = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
+    name = name:gsub("^%d+_", ""):gsub("_%d+$", "")
+    name = name:gsub("_", " ")
+    name = name:gsub("(%a)([%w]*)", function(first, rest)
         return first:upper() .. rest:lower()
     end)
-    if #raw == 0 then return nil end
-    return raw
+    name = name:match("^%s*(.-)%s*$")
+    if #name == 0 or name:match("^%d+$") then return nil end
+    return name
 end
 
--- v3: Detect tool damage value
+function Util.ResolveToolName(tool)
+    if not tool then return "Item" end
+    local rawName = tool.Name
+    local found = nil
+
+    -- 1. If tool.Name is already a valid non-numeric string, use it
+    if not rawName:match("^%d+$") then
+        local cleaned = Util.CleanToolName(rawName)
+        if cleaned then return cleaned end
+    end
+
+    -- 2. Inspect ALL Attributes on the Tool
+    pcall(function()
+        for attr, v in pairs(tool:GetAttributes()) do
+            if type(v) == "string" and #v > 1 and not v:match("^%d+$") and not v:find("rbxasset") then
+                local low = attr:lower()
+                if low:find("name") or low:find("gun") or low:find("weapon") or low:find("item") or low:find("type") or low:find("title") or low:find("label") then
+                    local c = Util.CleanToolName(v)
+                    if c then found = c; return end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 3. Check direct children: Models, MeshParts, Folders, Modules (BlockSpin weapons store models/parts named after the gun)
+    pcall(function()
+        for _, child in ipairs(tool:GetChildren()) do
+            local cn = child.Name
+            if not cn:match("^%d+$") then
+                local ignored = {
+                    ["handle"] = true, ["parts"] = true, ["sounds"] = true, ["animations"] = true,
+                    ["settings"] = true, ["config"] = true, ["client"] = true, ["server"] = true,
+                    ["gunscript"] = true, ["hitbox"] = true, ["muzzle"] = true, ["flash"] = true,
+                    ["sound"] = true, ["particles"] = true, ["camera"] = true, ["visuals"] = true
+                }
+                if not ignored[cn:lower()] then
+                    local c = Util.CleanToolName(cn)
+                    if c then found = c; return end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 4. Check all StringValues in descendants
+    pcall(function()
+        for _, desc in ipairs(tool:GetDescendants()) do
+            if desc:IsA("StringValue") then
+                local v = desc.Value
+                if #v > 1 and not v:match("^%d+$") and not v:find("rbxasset") then
+                    local c = Util.CleanToolName(v)
+                    if c then found = c; return end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 5. Check Animation names inside Tool (e.g. "G3_Idle", "Remington_Shoot")
+    pcall(function()
+        for _, desc in ipairs(tool:GetDescendants()) do
+            if desc:IsA("Animation") then
+                local an = desc.Name
+                if an:find("_") then
+                    local prefix = an:split("_")[1]
+                    if prefix and #prefix > 1 and not prefix:match("^%d+$") then
+                        local c = Util.CleanToolName(prefix)
+                        if c then found = c; return end
+                    end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 6. Check ToolTip property
+    pcall(function()
+        if tool.ToolTip and #tool.ToolTip > 0 and not tool.ToolTip:match("^%d+$") then
+            local c = Util.CleanToolName(tool.ToolTip)
+            if c then found = c; return end
+        end
+    end)
+    if found then return found end
+
+    -- 7. Check ReplicatedStorage for matching item ID folder/model
+    pcall(function()
+        local rep = game:GetService("ReplicatedStorage")
+        local match = rep:FindFirstChild(rawName, true)
+        if match then
+            if match.Parent and not match.Parent.Name:match("^%d+$") and match.Parent ~= rep then
+                local c = Util.CleanToolName(match.Parent.Name)
+                if c then found = c; return end
+            end
+            for _, val in pairs(match:GetAttributes()) do
+                if type(val) == "string" and not val:match("^%d+$") then
+                    local c = Util.CleanToolName(val)
+                    if c then found = c; return end
+                end
+            end
+        end
+    end)
+    if found then return found end
+
+    -- 8. Fallback: Intelligent classification based on tool damage/stats instead of printing random numbers!
+    local dmg = Util.GetToolDamage(tool)
+    if dmg then
+        if dmg >= 90 then return "Sniper Rifle"
+        elseif dmg >= 35 then return "Shotgun"
+        elseif dmg >= 20 then return "Assault Rifle"
+        elseif dmg >= 10 then return "Handgun"
+        else return "Firearm"
+        end
+    end
+
+    return "Weapon"
+end
+
 function Util.GetToolDamage(tool)
     -- Check common damage attribute locations
     local dmg = nil
@@ -590,7 +618,8 @@ local WEAPON_DB = {
 
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
-    local name = Util.ResolveToolName(tool) or tool.Name
+    local name = Util.ResolveToolName(tool)
+    if not name or name:match("^%d+$") then name = "Weapon" end
     local lower = name:lower()
 
     local matched = nil
