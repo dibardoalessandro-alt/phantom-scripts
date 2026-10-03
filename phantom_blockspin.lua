@@ -144,6 +144,7 @@ local Config = {
         Enabled       = false,
         VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarità
         ShowRarityGlow = true,        -- v8: Contorno Leggendario dorato (RPG, Minigun)
+        BadgeSize     = 20,           -- v8.1: Dimensione badge compatta (20px)
         ShowEquipped  = true,
         ShowBackpack  = true,
         ShowToolTip   = true,         -- v3: show tool tooltip/description
@@ -825,8 +826,8 @@ function ESP.Create(player)
         local badgesFrame = Instance.new("Frame")
         badgesFrame.Name = "BadgesFrame"
         badgesFrame.BackgroundTransparency = 1
-        badgesFrame.Size = UDim2.new(1, 0, 0, 36)
-        badgesFrame.Position = UDim2.new(0, 0, 0, 24)
+        badgesFrame.Size = UDim2.new(1, 0, 0, 24)
+        badgesFrame.Position = UDim2.new(0, 0, 0, 22)
         badgesFrame.Visible = false
         badgesFrame.Parent = bb
         d.BadgesFrame = badgesFrame
@@ -835,33 +836,33 @@ function ESP.Create(player)
         bLayout.FillDirection = Enum.FillDirection.Horizontal
         bLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         bLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-        bLayout.Padding = UDim.new(0, 5)
+        bLayout.Padding = UDim.new(0, 3)
         bLayout.Parent = badgesFrame
 
         d.BadgeSlots = {}
         for i = 1, 5 do
             local slot = Instance.new("Frame")
             slot.Name = "Slot_" .. i
-            slot.Size = UDim2.new(0, 28, 0, 28)
+            slot.Size = UDim2.new(0, 20, 0, 20)
             slot.BackgroundColor3 = C3(16, 15, 25)
             slot.BorderSizePixel = 0
             slot.Visible = false
             slot.Parent = badgesFrame
 
             local sCorner = Instance.new("UICorner")
-            sCorner.CornerRadius = UDim.new(0, 6)
+            sCorner.CornerRadius = UDim.new(0, 4)
             sCorner.Parent = slot
 
             local sStroke = Instance.new("UIStroke")
             sStroke.Color = C3(160, 160, 175)
-            sStroke.Thickness = 1.2
+            sStroke.Thickness = 1
             sStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
             sStroke.Parent = slot
 
             local img = Instance.new("ImageLabel")
             img.Name = "Icon"
-            img.Size = UDim2.new(1, -4, 1, -4)
-            img.Position = UDim2.new(0, 2, 0, 2)
+            img.Size = UDim2.new(1, -2, 1, -2)
+            img.Position = UDim2.new(0, 1, 0, 1)
             img.BackgroundTransparency = 1
             img.ScaleType = Enum.ScaleType.Fit
             img.Visible = false
@@ -872,7 +873,7 @@ function ESP.Create(player)
             lbl.Size = UDim2.new(1, 0, 1, 0)
             lbl.BackgroundTransparency = 1
             lbl.Font = Enum.Font.GothamBold
-            lbl.TextSize = 9
+            lbl.TextSize = 7
             lbl.TextColor3 = C3(255, 255, 255)
             lbl.TextStrokeTransparency = 0.5
             lbl.Visible = false
@@ -880,8 +881,8 @@ function ESP.Create(player)
 
             local eqTag = Instance.new("Frame")
             eqTag.Name = "EquippedTag"
-            eqTag.Size = UDim2.new(0, 10, 0, 10)
-            eqTag.Position = UDim2.new(0, -2, 0, -2)
+            eqTag.Size = UDim2.new(0, 7, 0, 7)
+            eqTag.Position = UDim2.new(0, -1, 0, -1)
             eqTag.BackgroundColor3 = C3(255, 190, 20)
             eqTag.BorderSizePixel = 0
             eqTag.Visible = false
@@ -896,16 +897,16 @@ function ESP.Create(player)
             eqTxt.Text = "E"
             eqTxt.TextColor3 = C3(0, 0, 0)
             eqTxt.Font = Enum.Font.GothamBold
-            eqTxt.TextSize = 7
+            eqTxt.TextSize = 6
             eqTxt.Parent = eqTag
 
             local dmgLbl = Instance.new("TextLabel")
             dmgLbl.Name = "DmgLabel"
-            dmgLbl.Size = UDim2.new(1, 0, 0, 10)
-            dmgLbl.Position = UDim2.new(0, 0, 1, -9)
+            dmgLbl.Size = UDim2.new(1, 0, 0, 8)
+            dmgLbl.Position = UDim2.new(0, 0, 1, -7)
             dmgLbl.BackgroundTransparency = 1
             dmgLbl.Font = Enum.Font.GothamBold
-            dmgLbl.TextSize = 8
+            dmgLbl.TextSize = 7
             dmgLbl.TextColor3 = C3(255, 255, 255)
             dmgLbl.TextStrokeTransparency = 0
             dmgLbl.TextStrokeColor3 = C3(0, 0, 0)
@@ -1262,14 +1263,16 @@ function ESP.Update(player, d)
                                 slotData.Frame.Visible = true
                                 slotData.Stroke.Color = item.color
 
+                                local baseSize = Config.InventoryESP.BadgeSize or 20
                                 if item.isEquipped then
-                                    slotData.Frame.Size = UDim2.new(0, 32, 0, 32)
-                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 2.4 or 1.8
+                                    slotData.Frame.Size = UDim2.new(0, baseSize, 0, baseSize)
+                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 1.8 or 1.3
                                     slotData.EquippedTag.Visible = true
                                     slotData.Frame.BackgroundColor3 = C3(26, 22, 38)
                                 else
-                                    slotData.Frame.Size = UDim2.new(0, 26, 0, 26)
-                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 1.8 or 1.2
+                                    local subSize = math.floor(baseSize * 0.8)
+                                    slotData.Frame.Size = UDim2.new(0, subSize, 0, subSize)
+                                    slotData.Stroke.Thickness = (item.rarity == "Legendary") and 1.4 or 1
                                     slotData.EquippedTag.Visible = false
                                     slotData.Frame.BackgroundColor3 = C3(16, 15, 25)
                                 end
@@ -2910,6 +2913,7 @@ local function BuildNativeGUI()
         tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
         tInv:AddToggle("Badge Visivi (Icone & Rarita)", Config.InventoryESP.VisualBadges, function(v) Config.InventoryESP.VisualBadges = v end)
         tInv:AddToggle("Contorno Dorato Leggendari (RPG)", Config.InventoryESP.ShowRarityGlow, function(v) Config.InventoryESP.ShowRarityGlow = v end)
+        tInv:AddSlider("Dimensione Badge (Compatto)", 14, 32, Config.InventoryESP.BadgeSize, "px", 1, function(v) Config.InventoryESP.BadgeSize = v end)
 
         tInv:AddSection("Filtri Oggetti")
         tInv:AddToggle("Mostra Oggetto in Mano (Equipped)", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
