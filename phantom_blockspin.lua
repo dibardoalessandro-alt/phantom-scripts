@@ -1732,17 +1732,43 @@ local function updateWatermark() end -- no-op
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
--- PHANTOM CYBER-NEON V6.0 (Cursor Unlock · Tab Fix · Draggable Floating Pill · K Toggle)
+-- PHANTOM CYBER-NEON V7.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
 -- ═══════════════════════════════════════════════════
 local PhantomUI = {}
 local NativeGUI = nil
+local cursorConnection = nil
 
--- Cursor Unlock & Lock State Manager
+-- Persistent Mouse Unlocker (keeps cursor visible & free against camera locks)
 local function SetCursorState(active)
-    pcall(function()
-        UserInputService.MouseBehavior = active and Enum.MouseBehavior.Default or Enum.MouseBehavior.LockCenter
-        UserInputService.MouseIconEnabled = active
-    end)
+    if active then
+        pcall(function()
+            UserInputService.MouseIconEnabled = true
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        end)
+        if not cursorConnection then
+            cursorConnection = RunService.RenderStepped:Connect(function()
+                if State.GUIVisible then
+                    pcall(function()
+                        UserInputService.MouseIconEnabled = true
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                    end)
+                else
+                    if cursorConnection then
+                        cursorConnection:Disconnect()
+                        cursorConnection = nil
+                    end
+                end
+            end)
+        end
+    else
+        if cursorConnection then
+            cursorConnection:Disconnect()
+            cursorConnection = nil
+        end
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+        end)
+    end
 end
 
 local function BuildNativeGUI()
@@ -1775,7 +1801,7 @@ local function BuildNativeGUI()
 
     NativeGUI = ScreenGui
 
-    -- Premium Dark Cyber Palette
+    -- Palette Cyber-Neon
     local C_MAIN_BG    = Color3.fromRGB(13, 13, 20)
     local C_SIDE_BG    = Color3.fromRGB(18, 17, 28)
     local C_CARD       = Color3.fromRGB(22, 22, 34)
@@ -1787,26 +1813,39 @@ local function BuildNativeGUI()
     local C_TOGGLE_ON  = Color3.fromRGB(168, 85, 247)
     local C_TOGGLE_OFF = Color3.fromRGB(36, 36, 50)
 
-    -- Window Outer Glow Container (Curved Floating Window 700x500)
+    -- Window Outer Glow Container (Curved Floating Window 730x520)
     local Window = Instance.new("Frame")
     Window.Name = "MainWindow"
-    Window.Size = UDim2.new(0, 710, 0, 500)
-    Window.Position = UDim2.new(0.5, -355, 0.5, -250)
+    Window.Size = UDim2.new(0, 730, 0, 520)
+    Window.Position = UDim2.new(0.5, -365, 0.5, -260)
     Window.BackgroundColor3 = C_MAIN_BG
     Window.BorderSizePixel = 0
-    Window.ClipsDescendants = true
+    Window.ClipsDescendants = false -- Permette ai contorni curvi di non essere tagliati bruscamente!
     Window.Parent = ScreenGui
 
+    -- Curvatura 18px per contorni impeccabili
     local WindowCorner = Instance.new("UICorner")
     WindowCorner.CornerRadius = UDim.new(0, 18)
     WindowCorner.Parent = Window
 
+    -- Bordo esterno luminoso con gradiente neon
     local WindowStroke = Instance.new("UIStroke")
-    WindowStroke.Color = C_BORDER
-    WindowStroke.Thickness = 1.5
+    WindowStroke.Color = Color3.fromRGB(168, 85, 247)
+    WindowStroke.Thickness = 1.4
     WindowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     WindowStroke.Parent = Window
 
+    local StrokeGrad = Instance.new("UIGradient")
+    StrokeGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(192, 132, 252)),
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(140, 70, 220)),
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(60, 40, 90)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 70, 220))
+    })
+    StrokeGrad.Rotation = 45
+    StrokeGrad.Parent = WindowStroke
+
+    -- Gradiente di sfondo della finestra
     local WinGrad = Instance.new("UIGradient")
     WinGrad.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 18, 30)),
@@ -1815,9 +1854,9 @@ local function BuildNativeGUI()
     WinGrad.Rotation = 45
     WinGrad.Parent = Window
 
-    -- ─────────────────────────────────────────────────────────
+    -- ═══════════════════════════════════════════════════
     -- FLOATING DRAGGABLE LOGO PILL (Tasto/Icona per riaprire!)
-    -- ─────────────────────────────────────────────────────────
+    -- ═══════════════════════════════════════════════════
     local FloatPill = Instance.new("Frame")
     FloatPill.Name = "FloatPill"
     FloatPill.Size = UDim2.new(0, 150, 0, 44)
@@ -1841,7 +1880,7 @@ local function BuildNativeGUI()
     PillIcon.Size = UDim2.new(0, 30, 0, 30)
     PillIcon.Position = UDim2.new(0, 7, 0.5, -15)
     PillIcon.BackgroundColor3 = C_NEON
-    PillIcon.Text = "⚡"
+    PillIcon.Text = "P"
     PillIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
     PillIcon.Font = Enum.Font.GothamBold
     PillIcon.TextSize = 15
@@ -1883,38 +1922,44 @@ local function BuildNativeGUI()
     UserInputService.InputChanged:Connect(function(input)
         if input == pDragInput and pDragging then
             local delta = input.Position - pDragStart
-            FloatPill.Position = UDim2.new(pStartPos.X.Scale, pStartPos.X.Offset + delta.X, pStartPos.Y.Scale, pStartPos.Y.Offset + delta.Y)
+            FloatPill.Position = UDim2.new(
+                pStartPos.X.Scale, pStartPos.X.Offset + delta.X,
+                pStartPos.Y.Scale, pStartPos.Y.Offset + delta.Y
+            )
         end
     end)
 
-    -- Clic sul logo flottante -> Riapre la GUI
     local function ReopenFromPill()
         FloatPill.Visible = false
         State.GUIVisible = true
         Window.Visible = true
         SetCursorState(true)
-        Window.Position = UDim2.new(0.5, -355, 0.5, -230)
+        Window.Position = UDim2.new(0.5, -365, 0.5, -240)
         TweenService:Create(Window, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -355, 0.5, -250)
+            Position = UDim2.new(0.5, -365, 0.5, -260)
         }):Play()
     end
     PillLabel.MouseButton1Click:Connect(ReopenFromPill)
     FloatPill.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if not pDragging or (input.Position - pDragStart).Magnitude < 5 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if not pDragStart or (input.Position - pDragStart).Magnitude < 6 then
                 ReopenFromPill()
             end
         end
     end)
 
-    -- Dragging Handler per Topbar
-    local dragging, dragInput, dragStart, startPos
+    -- ═══════════════════════════════════════════════════
+    -- TOPBAR (Transparent background, inset, no edge bleeding)
+    -- ═══════════════════════════════════════════════════
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
     Topbar.Size = UDim2.new(1, 0, 0, 52)
+    Topbar.Position = UDim2.new(0, 0, 0, 0)
     Topbar.BackgroundTransparency = 1
     Topbar.Parent = Window
 
+    -- Dragging Handler per Topbar
+    local dragging, dragInput, dragStart, startPos
     Topbar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -1935,33 +1980,44 @@ local function BuildNativeGUI()
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            Window.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
         end
     end)
 
-    -- Brand Icon & Glowing Badge
+    -- Brand Icon Badge (Clean "P" with neon violet gradient)
     local LogoBadge = Instance.new("Frame")
     LogoBadge.Size = UDim2.new(0, 32, 0, 32)
-    LogoBadge.Position = UDim2.new(0, 16, 0.5, -16)
+    LogoBadge.Position = UDim2.new(0, 16, 0, 10)
     LogoBadge.BackgroundColor3 = C_NEON
     LogoBadge.BorderSizePixel = 0
     LogoBadge.Parent = Topbar
 
-    local LogoCorner = Instance.new("UICorner")
-    LogoCorner.CornerRadius = UDim.new(0, 10)
-    LogoCorner.Parent = LogoBadge
+    local LCorner = Instance.new("UICorner")
+    LCorner.CornerRadius = UDim.new(0, 8)
+    LCorner.Parent = LogoBadge
 
-    local LogoIcon = Instance.new("TextLabel")
-    LogoIcon.Size = UDim2.new(1, 0, 1, 0)
-    LogoIcon.BackgroundTransparency = 1
-    LogoIcon.Text = "✦"
-    LogoIcon.TextSize = 16
-    LogoIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-    LogoIcon.Font = Enum.Font.GothamBold
-    LogoIcon.Parent = LogoBadge
+    local LogoGrad = Instance.new("UIGradient")
+    LogoGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(192, 132, 252)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 70, 220))
+    })
+    LogoGrad.Rotation = 45
+    LogoGrad.Parent = LogoBadge
+
+    local LogoText = Instance.new("TextLabel")
+    LogoText.Size = UDim2.new(1, 0, 1, 0)
+    LogoText.BackgroundTransparency = 1
+    LogoText.Text = "P"
+    LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    LogoText.Font = Enum.Font.GothamBold
+    LogoText.TextSize = 16
+    LogoText.Parent = LogoBadge
 
     local BrandTitle = Instance.new("TextLabel")
-    BrandTitle.Position = UDim2.new(0, 56, 0, 9)
+    BrandTitle.Position = UDim2.new(0, 58, 0, 9)
     BrandTitle.Size = UDim2.new(0, 220, 0, 20)
     BrandTitle.BackgroundTransparency = 1
     BrandTitle.Text = "PHANTOM <font color=\"#c084fc\">ULTRA</font>"
@@ -1973,7 +2029,7 @@ local function BuildNativeGUI()
     BrandTitle.Parent = Topbar
 
     local BrandSub = Instance.new("TextLabel")
-    BrandSub.Position = UDim2.new(0, 56, 0, 28)
+    BrandSub.Position = UDim2.new(0, 58, 0, 28)
     BrandSub.Size = UDim2.new(0, 260, 0, 14)
     BrandSub.BackgroundTransparency = 1
     BrandSub.Text = "BlockSpin Stealth · Tasto [K] · 60 FPS"
@@ -1983,10 +2039,10 @@ local function BuildNativeGUI()
     BrandSub.TextXAlignment = Enum.TextXAlignment.Left
     BrandSub.Parent = Topbar
 
-    -- Window Controls (Round Minimize & Close buttons)
+    -- Window Controls (Minus & Close buttons with smooth styling)
     local BtnBox = Instance.new("Frame")
-    BtnBox.Size = UDim2.new(0, 70, 0, 30)
-    BtnBox.Position = UDim2.new(1, -82, 0.5, -15)
+    BtnBox.Size = UDim2.new(0, 68, 0, 30)
+    BtnBox.Position = UDim2.new(1, -84, 0, 11)
     BtnBox.BackgroundTransparency = 1
     BtnBox.Parent = Topbar
 
@@ -1994,10 +2050,10 @@ local function BuildNativeGUI()
     MinBtn.Size = UDim2.new(0, 28, 0, 28)
     MinBtn.Position = UDim2.new(0, 0, 0, 1)
     MinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
-    MinBtn.Text = "—"
+    MinBtn.Text = "-"
     MinBtn.TextColor3 = C_MUTED
     MinBtn.Font = Enum.Font.GothamBold
-    MinBtn.TextSize = 12
+    MinBtn.TextSize = 15
     MinBtn.Parent = BtnBox
     local MCorner = Instance.new("UICorner")
     MCorner.CornerRadius = UDim.new(0, 8)
@@ -2007,7 +2063,7 @@ local function BuildNativeGUI()
     CloseBtn.Size = UDim2.new(0, 28, 0, 28)
     CloseBtn.Position = UDim2.new(0, 36, 0, 1)
     CloseBtn.BackgroundColor3 = Color3.fromRGB(45, 20, 30)
-    CloseBtn.Text = "✕"
+    CloseBtn.Text = "X"
     CloseBtn.TextColor3 = Color3.fromRGB(244, 63, 94)
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.TextSize = 12
@@ -2033,47 +2089,50 @@ local function BuildNativeGUI()
         SetCursorState(false)
     end)
 
-    -- Divider Line
+    -- Divider Line (Inset 16px to prevent clipping outer corners)
     local TopDivider = Instance.new("Frame")
-    TopDivider.Size = UDim2.new(1, 0, 0, 1)
-    TopDivider.Position = UDim2.new(0, 0, 0, 52)
-    TopDivider.BackgroundColor3 = C_BORDER
+    TopDivider.Size = UDim2.new(1, -32, 0, 1)
+    TopDivider.Position = UDim2.new(0, 16, 0, 52)
+    TopDivider.BackgroundColor3 = Color3.fromRGB(45, 40, 65)
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = Window
 
-    -- Modern Scrollable Sidebar (185px)
+    -- ═══════════════════════════════════════════════════
+    -- SIDEBAR (Inset 14px, scrollable, pure curved edges)
+    -- ═══════════════════════════════════════════════════
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 185, 1, -53)
-    Sidebar.Position = UDim2.new(0, 0, 0, 53)
-    Sidebar.BackgroundColor3 = C_SIDE_BG
+    Sidebar.Size = UDim2.new(0, 180, 1, -72)
+    Sidebar.Position = UDim2.new(0, 14, 0, 60)
+    Sidebar.BackgroundTransparency = 1
     Sidebar.BorderSizePixel = 0
     Sidebar.ScrollBarThickness = 0
-    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 320)
+    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 300)
     Sidebar.Parent = Window
 
     local SideLayout = Instance.new("UIListLayout")
     SideLayout.Padding = UDim.new(0, 6)
-    SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     SideLayout.Parent = Sidebar
 
-    local SidePad = Instance.new("UIPadding")
-    SidePad.PaddingTop = UDim.new(0, 12)
-    SidePad.PaddingBottom = UDim.new(0, 12)
-    SidePad.PaddingLeft = UDim.new(0, 10)
-    SidePad.PaddingRight = UDim.new(0, 10)
-    SidePad.Parent = Sidebar
+    -- Vertical Divider between Sidebar and Content
+    local VertDivider = Instance.new("Frame")
+    VertDivider.Size = UDim2.new(0, 1, 1, -74)
+    VertDivider.Position = UDim2.new(0, 202, 0, 60)
+    VertDivider.BackgroundColor3 = Color3.fromRGB(35, 32, 50)
+    VertDivider.BorderSizePixel = 0
+    VertDivider.Parent = Window
 
-    -- Content Area
+    -- ═══════════════════════════════════════════════════
+    -- CONTENT AREA (Inset 14px from right & bottom - zero border clipping!)
+    -- ═══════════════════════════════════════════════════
     local ContentHolder = Instance.new("Frame")
     ContentHolder.Name = "ContentHolder"
-    ContentHolder.Size = UDim2.new(1, -185, 1, -53)
-    ContentHolder.Position = UDim2.new(0, 185, 0, 53)
+    ContentHolder.Size = UDim2.new(1, -222, 1, -68)
+    ContentHolder.Position = UDim2.new(0, 210, 0, 56)
     ContentHolder.BackgroundTransparency = 1
+    ContentHolder.ClipsDescendants = true
     ContentHolder.Parent = Window
 
-    -- Tab System
     local Tabs = {}
     local TabButtons = {}
     local activeTab = nil
@@ -2163,10 +2222,10 @@ local function BuildNativeGUI()
         end)
 
         local pPad = Instance.new("UIPadding")
-        pPad.PaddingTop = UDim.new(0, 16)
-        pPad.PaddingBottom = UDim.new(0, 26)
-        pPad.PaddingLeft = UDim.new(0, 18)
-        pPad.PaddingRight = UDim.new(0, 18)
+        pPad.PaddingTop = UDim.new(0, 10)
+        pPad.PaddingBottom = UDim.new(0, 20)
+        pPad.PaddingLeft = UDim.new(0, 10)
+        pPad.PaddingRight = UDim.new(0, 14)
         pPad.Parent = Scroll
 
         Tabs[name] = Scroll
@@ -2251,34 +2310,39 @@ local function BuildNativeGUI()
             Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Knob.BorderSizePixel = 0
             Knob.Parent = Switch
-
             local kCorner = Instance.new("UICorner")
             kCorner.CornerRadius = UDim.new(1, 0)
             kCorner.Parent = Knob
 
             local state = defaultVal
+            local function toggle()
+                state = not state
+                local targetX = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+                local targetCol = state and C_TOGGLE_ON or C_TOGGLE_OFF
 
-            local function updateToggle(val)
-                state = val
+                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Position = targetX
+                }):Play()
+
                 TweenService:Create(Switch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    BackgroundColor3 = state and C_TOGGLE_ON or C_TOGGLE_OFF
+                    BackgroundColor3 = targetCol
                 }):Play()
-                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Position = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
-                }):Play()
+
                 pcall(callback, state)
             end
 
-            Switch.MouseButton1Click:Connect(function()
-                updateToggle(not state)
-            end)
+            Switch.MouseButton1Click:Connect(toggle)
+            local CardBtn = Instance.new("TextButton")
+            CardBtn.Size = UDim2.new(1, -64, 1, 0)
+            CardBtn.BackgroundTransparency = 1
+            CardBtn.Text = ""
+            CardBtn.Parent = Card
+            CardBtn.MouseButton1Click:Connect(toggle)
         end
 
-        function tabMethods:AddSlider(title, min, max, defaultVal, suffix, step, callback)
-            suffix = suffix or ""
-            step = step or 1
+        function tabMethods:AddSlider(title, minVal, maxVal, defaultVal, suffix, step, callback)
             local Card = Instance.new("Frame")
-            Card.Size = UDim2.new(1, 0, 0, 58)
+            Card.Size = UDim2.new(1, 0, 0, 56)
             Card.BackgroundColor3 = C_CARD
             Card.BorderSizePixel = 0
             Card.Parent = Scroll
@@ -2293,7 +2357,7 @@ local function BuildNativeGUI()
             cStroke.Parent = Card
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(0.7, 0, 0, 24)
+            Label.Size = UDim2.new(0.7, 0, 0, 22)
             Label.Position = UDim2.new(0, 16, 0, 8)
             Label.BackgroundTransparency = 1
             Label.Text = title
@@ -2304,72 +2368,72 @@ local function BuildNativeGUI()
             Label.Parent = Card
 
             local ValLabel = Instance.new("TextLabel")
-            ValLabel.Size = UDim2.new(0.3, -24, 0, 24)
-            ValLabel.Position = UDim2.new(0.7, 8, 0, 8)
+            ValLabel.Size = UDim2.new(0.3, -32, 0, 22)
+            ValLabel.Position = UDim2.new(0.7, 0, 0, 8)
             ValLabel.BackgroundTransparency = 1
-            ValLabel.Text = tostring(defaultVal) .. suffix
+            ValLabel.Text = tostring(defaultVal) .. (suffix or "")
             ValLabel.TextColor3 = C_NEON
             ValLabel.Font = Enum.Font.GothamBold
-            ValLabel.TextSize = 12
+            ValLabel.TextSize = 13
             ValLabel.TextXAlignment = Enum.TextXAlignment.Right
             ValLabel.Parent = Card
 
-            local Track = Instance.new("TextButton")
+            local Track = Instance.new("Frame")
             Track.Size = UDim2.new(1, -32, 0, 6)
-            Track.Position = UDim2.new(0, 16, 0, 38)
-            Track.BackgroundColor3 = Color3.fromRGB(36, 36, 50)
-            Track.Text = ""
-            Track.AutoButtonColor = false
+            Track.Position = UDim2.new(0, 16, 0, 36)
+            Track.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+            Track.BorderSizePixel = 0
             Track.Parent = Card
-
             local tCorner = Instance.new("UICorner")
             tCorner.CornerRadius = UDim.new(1, 0)
             tCorner.Parent = Track
 
-            local curRatio = math.clamp((defaultVal - min) / (max - min), 0, 1)
+            local curRatio = math.clamp((defaultVal - minVal) / (maxVal - minVal), 0, 1)
             local Fill = Instance.new("Frame")
             Fill.Size = UDim2.new(curRatio, 0, 1, 0)
             Fill.BackgroundColor3 = C_NEON
             Fill.BorderSizePixel = 0
             Fill.Parent = Track
-
             local fCorner = Instance.new("UICorner")
             fCorner.CornerRadius = UDim.new(1, 0)
             fCorner.Parent = Fill
 
             local sliding = false
-            local function updateSlide(input)
-                local pos = input.Position.X
-                local trackStart = Track.AbsolutePosition.X
-                local trackWidth = Track.AbsoluteSize.X
-                local ratio = math.clamp((pos - trackStart) / trackWidth, 0, 1)
-                local rawVal = min + ratio * (max - min)
-                local snapped = math.floor(rawVal / step + 0.5) * step
-                snapped = math.clamp(snapped, min, max)
-                Fill.Size = UDim2.new(ratio, 0, 1, 0)
-                ValLabel.Text = tostring(math.floor(snapped * 100) / 100) .. suffix
-                pcall(callback, snapped)
+            local function updateSlider(inputX)
+                local trackAbsPos = Track.AbsolutePosition.X
+                local trackAbsSize = Track.AbsoluteSize.X
+                local rel = math.clamp((inputX - trackAbsPos) / trackAbsSize, 0, 1)
+                local rawVal = minVal + rel * (maxVal - minVal)
+                local val = step and (math.floor(rawVal / step + 0.5) * step) or rawVal
+                val = math.clamp(val, minVal, maxVal)
+
+                Fill.Size = UDim2.new(rel, 0, 1, 0)
+                ValLabel.Text = (step and step < 1 and string.format("%.2f", val) or tostring(math.floor(val))) .. (suffix or "")
+                pcall(callback, val)
             end
 
             Track.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     sliding = true
-                    updateSlide(input)
-                end
-            end)
-            Track.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    sliding = false
+                    updateSlider(input.Position.X)
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            sliding = false
+                        end
+                    end)
                 end
             end)
             UserInputService.InputChanged:Connect(function(input)
                 if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    updateSlide(input)
+                    updateSlider(input.Position.X)
                 end
             end)
         end
 
-        function tabMethods:AddDropdown(title, options, defaultVal, callback)
+        function tabMethods:AddDropdown(title, rawOptions, defaultVal, callback)
+            local options = rawOptions or {}
+            if type(options) ~= "table" then options = {} end
+
             local Card = Instance.new("Frame")
             Card.Size = UDim2.new(1, 0, 0, 46)
             Card.BackgroundColor3 = C_CARD
@@ -2401,7 +2465,7 @@ local function BuildNativeGUI()
             DropBtn.Size = UDim2.new(0.46, -16, 0, 30)
             DropBtn.Position = UDim2.new(0.54, 0, 0, 8)
             DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 44)
-            DropBtn.Text = tostring(defaultVal) .. "  ▾"
+            DropBtn.Text = tostring(defaultVal) .. "  v"
             DropBtn.TextColor3 = C_TEXT
             DropBtn.Font = Enum.Font.GothamMedium
             DropBtn.TextSize = 12
@@ -2437,7 +2501,7 @@ local function BuildNativeGUI()
                 oCorner.Parent = oBtn
 
                 oBtn.MouseButton1Click:Connect(function()
-                    DropBtn.Text = tostring(opt) .. "  ▾"
+                    DropBtn.Text = tostring(opt) .. "  v"
                     isOpen = false
                     TweenService:Create(Card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                         Size = UDim2.new(1, 0, 0, 46)
@@ -2554,181 +2618,195 @@ local function BuildNativeGUI()
     end
 
     -- Create Native Tabs
-    local tESP      = CreateTab("ESP", "👁")
-    local tInv      = CreateTab("Inventario", "📦")
-    local tAim      = CreateTab("Aimbot", "🎯")
-    local tTrig     = CreateTab("Triggerbot", "⚡")
-    local tPlayer   = CreateTab("Player", "🏃")
-    local tSettings = CreateTab("Settings", "⚙")
+    local tESP      = CreateTab("ESP", "ESP")
+    local tInv      = CreateTab("Inventario", "INV")
+    local tAim      = CreateTab("Aimbot", "AIM")
+    local tTrig     = CreateTab("Triggerbot", "TRG")
+    local tPlayer   = CreateTab("Player", "PLY")
+    local tSettings = CreateTab("Settings", "CFG")
+
+    local safeKeybinds = (KeybindOptions and #KeybindOptions > 0) and KeybindOptions or {
+        "Mouse2 (RMB)", "LeftAlt", "RightAlt", "LeftShift", "RightShift",
+        "LeftControl", "RightControl", "CapsLock", "Tab", "Q", "E", "R", "F", "Z", "X", "C", "V", "B"
+    }
 
     -- ──────────────────────────────────────────
     -- 1. POPULATE ESP
     -- ──────────────────────────────────────────
-    tESP:AddSection("Generale")
-    tESP:AddToggle("Abilita ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
-    tESP:AddDropdown("Stile Box", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
-    tESP:AddSlider("Spessore Box", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
-    tESP:AddToggle("Contorno Box (Outline)", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
+    pcall(function()
+        tESP:AddSection("Generale")
+        tESP:AddToggle("Abilita ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
+        tESP:AddDropdown("Stile Box", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
+        tESP:AddSlider("Spessore Box", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
+        tESP:AddToggle("Contorno Box (Outline)", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
 
-    tESP:AddSection("Dettagli Giocatore")
-    tESP:AddToggle("Mostra Nomi", Config.ESP.Names, function(v) Config.ESP.Names = v end)
-    tESP:AddSlider("Dimensione Nome", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
-    tESP:AddToggle("Mostra Distanza", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
-    tESP:AddToggle("Barra Vita (HealthBar)", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
-    tESP:AddDropdown("Posizione Barra Vita", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
-    tESP:AddToggle("Mostra HP Numerico", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
+        tESP:AddSection("Dettagli Giocatore")
+        tESP:AddToggle("Mostra Nomi", Config.ESP.Names, function(v) Config.ESP.Names = v end)
+        tESP:AddSlider("Dimensione Nome", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
+        tESP:AddToggle("Mostra Distanza", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
+        tESP:AddToggle("Barra Vita (HealthBar)", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
+        tESP:AddDropdown("Posizione Barra Vita", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
+        tESP:AddToggle("Mostra HP Numerico", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
 
-    tESP:AddSection("Tracers & Sguardo")
-    tESP:AddToggle("Abilita Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
-    tESP:AddDropdown("Origine Tracers", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
-    tESP:AddSlider("Spessore Tracers", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
-    tESP:AddToggle("Mostra Direzione Sguardo", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
+        tESP:AddSection("Tracers & Sguardo")
+        tESP:AddToggle("Abilita Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
+        tESP:AddDropdown("Origine Tracers", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
+        tESP:AddSlider("Spessore Tracers", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
+        tESP:AddToggle("Mostra Direzione Sguardo", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
 
-    tESP:AddSection("Skeleton & Chams")
-    tESP:AddToggle("Abilita Scheletro (Skeleton)", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
-    tESP:AddColorPicker("Colore Scheletro", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
-    tESP:AddToggle("Abilita Chams Highlight", Config.ESP.Chams, function(v)
-        Config.ESP.Chams = v
-        if not v then
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    local h = p.Character:FindFirstChild("PHANTOM_Highlight")
-                    if h then h:Destroy() end
+        tESP:AddSection("Skeleton & Chams")
+        tESP:AddToggle("Abilita Scheletro (Skeleton)", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
+        tESP:AddColorPicker("Colore Scheletro", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
+        tESP:AddToggle("Abilita Chams Highlight", Config.ESP.Chams, function(v)
+            Config.ESP.Chams = v
+            if not v then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character then
+                        local h = p.Character:FindFirstChild("PHANTOM_Highlight")
+                        if h then h:Destroy() end
+                    end
                 end
             end
-        end
-    end)
-    tESP:AddColorPicker("Colore Chams (Visibile)", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
-    tESP:AddColorPicker("Colore Chams (Nascosto)", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
+        end)
+        tESP:AddColorPicker("Colore Chams (Visibile)", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
+        tESP:AddColorPicker("Colore Chams (Nascosto)", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
 
-    tESP:AddSection("Filtri & Colori")
-    tESP:AddToggle("Controllo Visibilita (Wall)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
-    tESP:AddToggle("Ignora Compagni di Squadra", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
-    tESP:AddSlider("Distanza Massima", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
+        tESP:AddSection("Filtri & Colori")
+        tESP:AddToggle("Controllo Visibilita (Wall)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
+        tESP:AddToggle("Ignora Compagni di Squadra", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
+        tESP:AddSlider("Distanza Massima", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
+    end)
 
     -- ──────────────────────────────────────────
     -- 2. POPULATE INVENTARIO
     -- ──────────────────────────────────────────
-    tInv:AddSection("Generale")
-    tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
-    tInv:AddToggle("Mostra Tool in Mano (⚔)", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
-    tInv:AddToggle("Mostra Tool nello Zaino (📦)", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
-    tInv:AddToggle("Mostra Danno Rilevato", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
-    tInv:AddToggle("Pulisci Nomi Tool", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
-    tInv:AddSlider("Max Oggetti Visualizzati", 3, 15, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
-    tInv:AddSlider("Dimensione Testo", 8, 20, Config.InventoryESP.TextSize, "pt", 1, function(v) Config.InventoryESP.TextSize = v end)
+    pcall(function()
+        tInv:AddSection("Generale")
+        tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
+        tInv:AddToggle("Mostra Tool in Mano", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
+        tInv:AddToggle("Mostra Tool nello Zaino", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
+        tInv:AddToggle("Mostra Danno Rilevato", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
+        tInv:AddToggle("Pulisci Nomi Tool", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
+        tInv:AddSlider("Max Oggetti Visualizzati", 3, 15, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
+        tInv:AddSlider("Dimensione Testo", 8, 20, Config.InventoryESP.TextSize, "pt", 1, function(v) Config.InventoryESP.TextSize = v end)
+    end)
 
     -- ──────────────────────────────────────────
     -- 3. POPULATE AIMBOT
     -- ──────────────────────────────────────────
-    tAim:AddSection("Stato & Attivazione")
-    tAim:AddToggle("Abilita Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
-    tAim:AddDropdown("Modalita Attivazione", {"Hold", "Toggle"}, Config.Aimbot.ActivationMode, function(v)
-        Config.Aimbot.ActivationMode = v
-        State.AimbotToggled = false
-    end)
-    tAim:AddDropdown("🔑 Tasto Aimbot", KeybindOptions, Config.Aimbot.KeybindName, function(v)
-        Config.Aimbot.KeybindName = v
-        local bind = KeybindMap[v]
-        if bind then
-            Config.Aimbot.ActivationKey = bind.Value
-            Config.Aimbot.ActivationKeyType = bind.Type
-            Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
-        end
-    end)
-    tAim:AddToggle("Silent Aim (Sperimentale)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
-    tAim:AddToggle("Aim Assist Leggero", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
-    tAim:AddSlider("Forza Aim Assist", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
+    pcall(function()
+        tAim:AddSection("Stato & Attivazione")
+        tAim:AddToggle("Abilita Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
+        tAim:AddDropdown("Modalita Attivazione", {"Hold", "Toggle", "Always"}, Config.Aimbot.ActivationMode, function(v) Config.Aimbot.ActivationMode = v end)
+        tAim:AddDropdown("Tasto Aimbot", safeKeybinds, Config.Aimbot.KeybindName, function(v)
+            Config.Aimbot.KeybindName = v
+            local bind = KeybindMap[v]
+            if bind then
+                Config.Aimbot.ActivationKey = bind.Value
+                Config.Aimbot.ActivationKeyType = bind.Type
+                Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
+            end
+        end)
+        tAim:AddToggle("Silent Aim (Sperimentale)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
+        tAim:AddToggle("Aim Assist Leggero", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
+        tAim:AddSlider("Forza Aim Assist", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
 
-    tAim:AddSection("Targeting")
-    tAim:AddDropdown("Parte del Corpo", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
-    tAim:AddToggle("Priorita Ossa Visibili", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
-    tAim:AddDropdown("Priorita Bersaglio", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
-    tAim:AddToggle("Controllo Ostacoli (Wall Check)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
-    tAim:AddToggle("Ignora Squadra", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
-    tAim:AddToggle("Ignora Morti / Atterrati", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
+        tAim:AddSection("Targeting")
+        tAim:AddDropdown("Parte del Corpo", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
+        tAim:AddToggle("Priorita Ossa Visibili", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
+        tAim:AddDropdown("Priorita Bersaglio", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
+        tAim:AddToggle("Controllo Ostacoli (Wall Check)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
+        tAim:AddToggle("Ignora Squadra", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
+        tAim:AddToggle("Ignora Morti / Atterrati", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
 
-    tAim:AddSection("FOV & Precisione")
-    tAim:AddSlider("Raggio FOV", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
-    tAim:AddToggle("Mostra Cerchio FOV", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
-    tAim:AddColorPicker("Colore Cerchio FOV", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
-    tAim:AddSlider("Smoothing (Fluidita)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
-    tAim:AddToggle("Umanizza Movimento", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
-    tAim:AddToggle("Predizione Movimento", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
+        tAim:AddSection("FOV & Precisione")
+        tAim:AddSlider("Raggio FOV", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
+        tAim:AddToggle("Mostra Cerchio FOV", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
+        tAim:AddColorPicker("Colore Cerchio FOV", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
+        tAim:AddSlider("Smoothing (Fluidita)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
+        tAim:AddToggle("Umanizza Movimento", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
+        tAim:AddToggle("Predizione Movimento", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
+    end)
 
     -- ──────────────────────────────────────────
     -- 4. POPULATE TRIGGERBOT
     -- ──────────────────────────────────────────
-    tTrig:AddSection("Generale")
-    tTrig:AddToggle("Abilita Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
-    tTrig:AddDropdown("Modalita", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
-    tTrig:AddDropdown("🔑 Tasto Triggerbot", KeybindOptions, Config.Triggerbot.KeybindName, function(v)
-        Config.Triggerbot.KeybindName = v
-        local bind = KeybindMap[v]
-        if bind then
-            Config.Triggerbot.ActivationKey = bind.Value
-            Config.Triggerbot.ActivationKeyType = bind.Type
-            Notify.Send("Triggerbot Key: " .. v, C3(255, 200, 50), 2)
-        end
-    end)
+    pcall(function()
+        tTrig:AddSection("Generale")
+        tTrig:AddToggle("Abilita Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
+        tTrig:AddDropdown("Modalita", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
+        tTrig:AddDropdown("Tasto Triggerbot", safeKeybinds, Config.Triggerbot.KeybindName, function(v)
+            Config.Triggerbot.KeybindName = v
+            local bind = KeybindMap[v]
+            if bind then
+                Config.Triggerbot.ActivationKey = bind.Value
+                Config.Triggerbot.ActivationKeyType = bind.Type
+                Notify.Send("Triggerbot Key: " .. v, C3(255, 200, 50), 2)
+            end
+        end)
 
-    tTrig:AddSection("Parametri Sparo")
-    tTrig:AddToggle("Auto Shoot Continuo", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
-    tTrig:AddToggle("Spray Mode", Config.Triggerbot.Spray, function(v) Config.Triggerbot.Spray = v end)
-    tTrig:AddSlider("Delay tra Colpi", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
-    tTrig:AddSlider("Probabilita Colpo (Hit Chance)", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
-    tTrig:AddToggle("Solo Headshot", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
+        tTrig:AddSection("Parametri Sparo")
+        tTrig:AddToggle("Auto Shoot Continuo", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
+        tTrig:AddToggle("Spray Mode", Config.Triggerbot.Spray, function(v) Config.Triggerbot.Spray = v end)
+        tTrig:AddSlider("Delay tra Colpi", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
+        tTrig:AddSlider("Probabilita Colpo (Hit Chance)", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
+        tTrig:AddToggle("Solo Headshot", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
+    end)
 
     -- ──────────────────────────────────────────
     -- 5. POPULATE PLAYER
     -- ──────────────────────────────────────────
-    tPlayer:AddSection("Movimento")
-    tPlayer:AddToggle("🏃 Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
-    tPlayer:AddSlider("Velocita Corsa", 16, 200, Config.Player.WalkSpeed, " studs", 2, function(v) Config.Player.WalkSpeed = v end)
-    tPlayer:AddToggle("🦘 Super Salto", Config.Player.JumpEnabled, function(v) Config.Player.JumpEnabled = v end)
-    tPlayer:AddSlider("Forza Salto", 50, 300, Config.Player.JumpPower, "", 5, function(v) Config.Player.JumpPower = v end)
-    tPlayer:AddToggle("∞ Infinite Jump", Config.Player.InfiniteJump, function(v) Config.Player.InfiniteJump = v end)
+    pcall(function()
+        tPlayer:AddSection("Movimento")
+        tPlayer:AddToggle("Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
+        tPlayer:AddSlider("Velocita Corsa", 16, 200, Config.Player.WalkSpeed, " studs", 2, function(v) Config.Player.WalkSpeed = v end)
+        tPlayer:AddToggle("Super Salto", Config.Player.JumpEnabled, function(v) Config.Player.JumpEnabled = v end)
+        tPlayer:AddSlider("Forza Salto", 50, 300, Config.Player.JumpPower, "", 5, function(v) Config.Player.JumpPower = v end)
+        tPlayer:AddToggle("Infinite Jump", Config.Player.InfiniteJump, function(v) Config.Player.InfiniteJump = v end)
 
-    tPlayer:AddSection("Bypass Movimento")
-    tPlayer:AddToggle("👻 Noclip (Attraversa Muri)", Config.Player.NoclipEnabled, function(v) Config.Player.NoclipEnabled = v end)
-    tPlayer:AddToggle("🦅 Volo (WASD + Space/Shift)", Config.Player.FlyEnabled, function(v)
-        Config.Player.FlyEnabled = v
-        PlayerMods.SetupFly()
-        if v then
-            Notify.Send("FLY ATTIVO - WASD per muoverti", C3(50, 200, 255), 3)
-        else
-            Notify.Send("FLY DISATTIVATO", C3(200, 200, 200), 2)
-        end
+        tPlayer:AddSection("Bypass Movimento")
+        tPlayer:AddToggle("Noclip (Attraversa Muri)", Config.Player.NoclipEnabled, function(v) Config.Player.NoclipEnabled = v end)
+        tPlayer:AddToggle("Volo (WASD + Space/Shift)", Config.Player.FlyEnabled, function(v)
+            Config.Player.FlyEnabled = v
+            PlayerMods.SetupFly()
+            if v then
+                Notify.Send("FLY ATTIVO - WASD per muoverti", C3(50, 200, 255), 3)
+            else
+                Notify.Send("FLY DISATTIVATO", C3(200, 200, 200), 2)
+            end
+        end)
+        tPlayer:AddSlider("Velocita Volo", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
     end)
-    tPlayer:AddSlider("Velocita Volo", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
 
     -- ──────────────────────────────────────────
     -- 6. POPULATE SETTINGS
     -- ──────────────────────────────────────────
-    tSettings:AddSection("Interfaccia")
-    tSettings:AddToggle("Mostra Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
-    tSettings:AddToggle("Suono Uccisione (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
+    pcall(function()
+        tSettings:AddSection("Interfaccia")
+        tSettings:AddToggle("Mostra Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
+        tSettings:AddToggle("Suono Uccisione (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
 
-    tSettings:AddSection("Utility")
-    tSettings:AddToggle("🛡️ Anti-AFK", Config.Misc.AntiAFK, function(v)
-        Config.Misc.AntiAFK = v
-        PlayerMods.SetupAntiAFK()
-    end)
-    tSettings:AddToggle("💡 Fullbright (Luce Massima)", Config.Misc.Fullbright, function(v)
-        Config.Misc.Fullbright = v
-        PlayerMods.SetupFullbright()
-    end)
+        tSettings:AddSection("Utility")
+        tSettings:AddToggle("Anti-AFK", Config.Misc.AntiAFK, function(v)
+            Config.Misc.AntiAFK = v
+            PlayerMods.SetupAntiAFK()
+        end)
+        tSettings:AddToggle("Fullbright (Luce Massima)", Config.Misc.Fullbright, function(v)
+            Config.Misc.Fullbright = v
+            PlayerMods.SetupFullbright()
+        end)
 
-    tSettings:AddSection("Comandi")
-    tSettings:AddButton("🔄 Reset Statistiche Sessione", "", function()
-        State.KillCount = 0
-        State.HitCount = 0
-        State.SessionStart = Tick()
-        Notify.Send("Stats Azzerate!", C3(200, 200, 200), 2)
-    end)
+        tSettings:AddSection("Comandi")
+        tSettings:AddButton("Reset Statistiche Sessione", "", function()
+            State.KillCount = 0
+            State.HitCount = 0
+            State.SessionStart = Tick()
+            Notify.Send("Stats Azzerate!", C3(200, 200, 200), 2)
+        end)
 
-    tSettings:AddButton("❌ UNLOAD (Chiudi Tutto)", "", function()
-        State.Running = false
+        tSettings:AddButton("UNLOAD (Chiudi Tutto)", "", function()
+            State.Running = false
+        end)
     end)
 
     SwitchTab("ESP")
@@ -2777,6 +2855,12 @@ local function matchesBind(input, bindValue, bindType)
 end
 
 local function OnInputBegan(input, gp)
+    -- K or G = Toggle GUI (Always responsive!)
+    if input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.G or input.KeyCode == Config.Misc.GUIToggleKey then
+        PhantomUI.Toggle()
+        return
+    end
+
     if gp then
         -- v3: Infinite jump bypass (works even with GUI open)
         if Config.Player.InfiniteJump and input.KeyCode == Enum.KeyCode.Space then
@@ -2789,12 +2873,6 @@ local function OnInputBegan(input, gp)
                 end
             end)
         end
-        return
-    end
-
-    -- K or G = Toggle GUI
-    if input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.G or input.KeyCode == Config.Misc.GUIToggleKey then
-        PhantomUI.Toggle()
         return
     end
 
