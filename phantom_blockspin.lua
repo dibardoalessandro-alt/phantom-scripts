@@ -551,30 +551,30 @@ end
 -- ═══════════════════════════════════════════════════
 local WEAPON_DB = {
     -- ── LEGENDARY (Gold / Amber) ──
-    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "rbxassetid://6034685361" },
-    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold", "golden"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "rbxassetid://6034685361" },
-    { keys = {"flamethrower", "grenadelauncher"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "FLM", icon = "rbxassetid://6034685361" },
+    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "" },
+    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold", "golden"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "" },
+    { keys = {"flamethrower", "grenadelauncher"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "FLM", icon = "" },
 
     -- ── EPIC (Purple / Amethyst) ──
-    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "rbxassetid://6034685375" },
-    { keys = {"deagle", "desert", "magnum", "python", "revolver50"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "rbxassetid://6034685375" },
-    { keys = {"katana", "sword", "blade", "machete", "scythe", "lightsaber"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "rbxassetid://6034685375" },
+    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "" },
+    { keys = {"deagle", "desert", "magnum", "python", "revolver50"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "" },
+    { keys = {"katana", "sword", "blade", "machete", "scythe", "lightsaber"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "" },
 
     -- ── RARE (Cyan / Electric Blue) ──
-    { keys = {"shotgun", "spas", "spas12", "pump", "double", "scatter", "tactical", "mossberg", "remington"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "rbxassetid://6034685382" },
-    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug", "galil", "m16", "hk416"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "rbxassetid://6034685382" },
+    { keys = {"shotgun", "spas", "spas12", "pump", "double", "scatter", "tactical", "mossberg", "remington"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "" },
+    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug", "galil", "m16", "hk416"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "" },
 
     -- ── UNCOMMON (Emerald Green) ──
-    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9", "bizon"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "rbxassetid://6034685368" },
-    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp", "walther", "m9", "p250", "five-seven"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "rbxassetid://6034685368" },
-    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke", "dynamite"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "rbxassetid://6034685355" },
+    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9", "bizon"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "" },
+    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp", "walther", "m9", "p250", "five-seven"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "" },
+    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke", "dynamite"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "" },
 
     -- ── BLOCKSPIN SPECIAL / UTILITY / MELEE ITEMS ──
-    { keys = {"fishing", "rod", "pesca"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "ROD", icon = "rbxassetid://6034685375" },
-    { keys = {"pan", "frying", "padella"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "PAN", icon = "rbxassetid://6034685375" },
-    { keys = {"energy", "drink", "shot", "booster", "adrenaline", "stim"}, rarity = "Rare", color = C3(250, 204, 21), symbol = "NRG", icon = "rbxassetid://6034685364" },
-    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "rbxassetid://6034685364" },
-    { keys = {"bat", "baseball", "crowbar", "wrench", "pipe", "hammer", "knife", "fist"}, rarity = "Common", color = C3(180, 180, 195), symbol = "MEL", icon = "rbxassetid://6034685375" }
+    { keys = {"fishing", "rod", "pesca"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "ROD", icon = "" },
+    { keys = {"pan", "frying", "padella"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "PAN", icon = "" },
+    { keys = {"energy", "drink", "shot", "booster", "adrenaline", "stim"}, rarity = "Rare", color = C3(250, 204, 21), symbol = "NRG", icon = "" },
+    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "" },
+    { keys = {"bat", "baseball", "crowbar", "wrench", "pipe", "hammer", "knife", "fist"}, rarity = "Common", color = C3(180, 180, 195), symbol = "MEL", icon = "" }
 }
 
 function Util.GetWeaponDetails(tool, isEquipped)
@@ -596,64 +596,6 @@ function Util.GetWeaponDetails(tool, isEquipped)
     local rarity = matched and matched.rarity or "Common"
     local color = matched and matched.color or C3(160, 160, 175)
     local symbol = matched and matched.symbol or (name and #name > 0 and name:sub(1, 3):upper() or "ITM")
-    local icon = ""
-
-    -- 1. Check Tool.TextureId
-    pcall(function()
-        if tool.TextureId and #tool.TextureId > 5 and not tool.TextureId:find("1088837") then
-            icon = tool.TextureId
-        end
-    end)
-
-    -- 2. Inspect children for native game icons/textures/images (ImageLabel, Texture, Decal, Value)
-    if #icon == 0 then
-        pcall(function()
-            for _, child in ipairs(tool:GetDescendants()) do
-                if child:IsA("ImageLabel") or child:IsA("ImageButton") then
-                    if child.Image and #child.Image > 5 then
-                        icon = child.Image
-                        return
-                    end
-                elseif child:IsA("StringValue") then
-                    local n = child.Name:lower()
-                    if (n:find("icon") or n:find("texture") or n:find("image")) and #child.Value > 5 then
-                        icon = child.Value
-                        return
-                    end
-                end
-            end
-        end)
-    end
-
-    -- 3. Check BlockSpin / Cinnamon ReplicatedStorage weapon asset registries
-    if #icon == 0 then
-        pcall(function()
-            local rep = game:GetService("ReplicatedStorage")
-            local dirs = {"Weapons", "Guns", "Items", "ItemIcons", "WeaponData", "WeaponConfig"}
-            for _, dName in ipairs(dirs) do
-                local folder = rep:FindFirstChild(dName)
-                if folder then
-                    local itemFolder = folder:FindFirstChild(tool.Name) or folder:FindFirstChild(name)
-                    if itemFolder then
-                        for _, desc in ipairs(itemFolder:GetDescendants()) do
-                            if (desc:IsA("ImageLabel") and #desc.Image > 5) then
-                                icon = desc.Image
-                                return
-                            elseif desc:IsA("StringValue") and (desc.Name:lower():find("icon") or desc.Name:lower():find("image")) and #desc.Value > 5 then
-                                icon = desc.Value
-                                return
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-
-    -- 4. Authentic silhouette weapon icon library fallback (cross-origin CDN assets)
-    if #icon == 0 and matched and matched.icon and #matched.icon > 5 then
-        icon = matched.icon
-    end
 
     local dmg = Util.GetToolDamage(tool)
 
@@ -662,7 +604,6 @@ function Util.GetWeaponDetails(tool, isEquipped)
         rarity = rarity,
         color = color,
         symbol = symbol,
-        icon = icon,
         isEquipped = isEquipped,
         damage = dmg
     }
@@ -1345,26 +1286,13 @@ function ESP.Update(player, d)
                                     slotData.Frame.BackgroundColor3 = C3(16, 15, 25)
                                 end
 
-                                -- Prioritize authentic weapon textures; if generic Roblox crossed tool, show clean weapon acronym badge
-                                local hasValidTexture = item.icon and #item.icon > 5 
-                                    and not item.icon:find("1088837") 
-                                    and not item.icon:find("6034685")
-                                    and not item.icon:find("textures/ui")
-                                    and not item.icon:find("rbxasset://textures")
-                                    and not item.icon:find("default")
-                                if hasValidTexture then
-                                    slotData.Image.Image = item.icon
-                                    slotData.Image.Visible = true
-                                    slotData.Text.Visible = false
-                                else
-                                    slotData.Image.Visible = false
-                                    -- Display crisp weapon acronym (RPG, AWP, AR, SG, DGL, MED) with glowing rarity color!
-                                    slotData.Text.Text = item.symbol
-                                    slotData.Text.TextColor3 = item.color
-                                    slotData.Text.Font = Enum.Font.GothamBold
-                                    slotData.Text.TextSize = 8
-                                    slotData.Text.Visible = true
-                                end
+                                -- 100% PURE HUD ACRONYM BADGES (RPG, AWP, AR, SG, ROD, PAN, NRG, MED)
+                                slotData.Image.Visible = false
+                                slotData.Text.Text = item.symbol
+                                slotData.Text.TextColor3 = item.color
+                                slotData.Text.Font = Enum.Font.GothamBold
+                                slotData.Text.TextSize = 8
+                                slotData.Text.Visible = true
 
                                 if Config.InventoryESP.ShowDamage and item.damage then
                                     slotData.DmgLabel.Text = tostring(item.damage)
