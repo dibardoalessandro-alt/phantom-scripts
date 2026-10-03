@@ -1248,7 +1248,7 @@ function ESP.Create(player)
         bb.Name = "P_ESP_" .. (player and player.UserId or mRandom(1000, 9999))
         bb.AlwaysOnTop = true
         bb.Size = UDim2.new(0, 220, 0, 120)
-        bb.StudsOffset = V3(0, 3.5, 0)
+        bb.StudsOffset = V3(0, 1.8, 0)
         bb.LightInfluence = 0
         bb.MaxDistance = math.huge
         bb.Enabled = false
