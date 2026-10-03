@@ -1993,9 +1993,9 @@ local function SetCursorState(active)
             cursorConnection:Disconnect()
             cursorConnection = nil
         end
-        -- Allow the game's camera script to manage cursor and mouse behavior naturally
+        -- Keep mouse cursor visible and free
         pcall(function()
-            UserInputService.MouseIconEnabled = false
+            UserInputService.MouseIconEnabled = true
             UserInputService.MouseBehavior = Enum.MouseBehavior.Default
         end)
     end
