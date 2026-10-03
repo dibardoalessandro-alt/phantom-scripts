@@ -1,4 +1,4 @@
---[[
+﻿--[[
     ╔═══════════════════════════════════════════════════════════════╗
     ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
@@ -1041,102 +1041,69 @@ end
 -- AGGRESSIVE TOOL VALUE SCANNER (XENO-SAFE)
 -- Scansiona TUTTI i valori dentro il tool senza filtri
 -- Cerca qualsiasi stringa che assomiglia a un nome d'arma
--- ═══════════════════════════════════════════════════
+-- =======================================================
+-- AGGRESSIVE TOOL SCAN — WHITELIST ONLY, NO GARBAGE
+-- Solo accetta valori che matchano esattamente KNOWN_WEAPONS
+-- Ignora: Description, frasi con 2+ parole, testo > 20 char
+-- =======================================================
+local _SKIP_ATTR_KEYS = {
+    description=true, desc=true, text=true, hint=true,
+    info=true, note=true, message=true, flavor=true,
+    lore=true, story=true, details=true, extra=true,
+    placeholder=true, temp=true, debug=true, tooltip=true,
+}
+local _GARBAGE_SUBSTR = {
+    "nothing","nuthing","nuth","i have","i don","placeholder",
+    "lorem","ipsum","debug","todo","fixme","null","undefined",
+    "error","failed","loading","updating","testing",
+}
+local function _isGarbageVal(str)
+    if not str or #str < 2 or #str > 22 then return true end
+    local low = str:lower()
+    for _, sub in ipairs(_GARBAGE_SUBSTR) do
+        if low:find(sub, 1, true) then return true end
+    end
+    -- 2+ parole = descrizione, non nome arma
+    local words = 0
+    for _ in str:gmatch("%S+") do words = words + 1 end
+    if words >= 2 then return true end
+    return false
+end
+
 local function AggressiveToolScan(tool)
     local found = nil
     pcall(function()
-        -- Scan 1: TUTTI gli attributi del tool (nessun filtro sul nome chiave)
         local attrs = tool:GetAttributes()
-        for attrName, attrVal in pairs(attrs) do
+        for k, v in pairs(attrs) do
             if found then return end
-            if type(attrVal) == "string" and #attrVal > 1 and #attrVal < 50 then
-                local v = attrVal:match("^%s*(.-)%s*$")
-                local vLow = v:lower()
-                if (KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow]) then
-                    found = v; return
-                end
-                if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
-                    -- Accetta stringhe che sembrano nomi propri (iniziano con maiuscola o contengono spazi)
-                    if v:match("^%u") or v:find(" ") or v:find("%-") then
-                        found = v; return
-                    end
+            if not _SKIP_ATTR_KEYS[k:lower()] and type(v) == "string" then
+                local trimmed = v:match("^%s*(.-)%s*$")
+                local low = trimmed:lower()
+                if KNOWN_WEAPONS[low] and not _isGarbageVal(trimmed) then
+                    found = trimmed; return
                 end
             end
         end
-
-        -- Scan 2: TUTTI i figli del tool — ogni tipo di valore
+    end)
+    pcall(function()
+        if found then return end
         for _, child in ipairs(tool:GetChildren()) do
             if found then return end
-            -- StringValue
             if child:IsA("StringValue") then
                 local v = child.Value:match("^%s*(.-)%s*$")
-                local vLow = v:lower()
-                if #v > 1 and #v < 50 then
-                    if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
-                    if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
-                        found = v; return
-                    end
-                end
-            end
-            -- Configuration/Folder: cerca dentro
-            if child:IsA("Configuration") or child:IsA("Folder") or child:IsA("ModuleScript") then
-                for _, sub in ipairs(child:GetChildren()) do
-                    if found then return end
-                    if sub:IsA("StringValue") then
-                        local v = sub.Value:match("^%s*(.-)%s*$")
-                        local vLow = v:lower()
-                        if #v > 1 and #v < 50 then
-                            if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
-                            -- Il nome del child dà un hint su cosa contiene
-                            local subNameLow = sub.Name:lower()
-                            if (subNameLow:find("name") or subNameLow:find("weapon") or
-                                subNameLow:find("gun") or subNameLow:find("type") or
-                                subNameLow:find("id") or subNameLow:find("label")) then
-                                if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
-                                    found = v; return
-                                end
-                            end
-                        end
-                    end
-                    -- Attributi dei child
-                    local subAttrs = sub:GetAttributes()
-                    for _, sv in pairs(subAttrs) do
-                        if found then return end
-                        if type(sv) == "string" and #sv > 1 and #sv < 50 then
-                            local vTrim = sv:match("^%s*(.-)%s*$")
-                            local vLow = vTrim:lower()
-                            if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then
-                                found = vTrim; return
-                            end
-                        end
-                    end
-                end
-                -- Anche attributi della Configuration/Folder stessa
-                local cfAttrs = child:GetAttributes()
-                for cfK, cfV in pairs(cfAttrs) do
-                    if found then return end
-                    if type(cfV) == "string" and #cfV > 1 and #cfV < 50 then
-                        local v = cfV:match("^%s*(.-)%s*$")
-                        local vLow = v:lower()
-                        if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then found = v; return end
-                        if not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
-                            if v:match("^%u") or v:find(" ") or v:find("%-") then
-                                found = v; return
-                            end
-                        end
-                    end
+                local low = v:lower()
+                if KNOWN_WEAPONS[low] and not _isGarbageVal(v) then
+                    found = v; return
                 end
             end
         end
-
-        -- Scan 3: ToolTip (spesso ignorato ma può contenere il nome)
+    end)
+    pcall(function()
+        if found then return end
         local tt = tool.ToolTip
-        if not found and tt and type(tt) == "string" and #tt > 1 and #tt < 60 then
+        if tt and type(tt) == "string" then
             local v = tt:match("^%s*(.-)%s*$")
-            local vLow = v:lower()
-            if (KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow]) then
-                found = v
-            elseif not Util.IsGarbageName(v) and v:match("%a") and #v > 2 then
+            if KNOWN_WEAPONS[v:lower()] and not _isGarbageVal(v) then
                 found = v
             end
         end
