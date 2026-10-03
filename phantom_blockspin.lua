@@ -1,4 +1,4 @@
---[[
+﻿--[[
     ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
     Ôòæ     PRV SERVICE v8.5 ┬À BlockSpin Master Cyber Edition             Ôòæ
     Ôòæ     Mouse Unlock ┬À Tab Fix ┬À Floating Pill ┬À Built for Xeno   Ôòæ
@@ -1175,7 +1175,8 @@ local function _bsCat(tool)
     local disp = cat
     if det ~= "" then disp = disp .. " [" .. det .. "]" end
     return disp, rname, rc
-endfunction Util.GetWeaponDetails(tool, isEquipped)
+end
+function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
     local name, rarity, color = Util.ResolveToolInfo(tool)
     if not name then name, rarity, color = _bsCat(tool) end
