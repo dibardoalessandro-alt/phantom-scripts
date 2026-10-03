@@ -1,11 +1,11 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v4.0 · BlockSpin Ultra Curved Edition             ║
-    ║     Cyber-Neon Standalone Suite · Built for Xeno              ║
+    ║     PHANTOM v5.0 · BlockSpin Ultra Floating Edition           ║
+    ║     Cyber-Neon Suite · Built for Xeno                         ║
     ╠═══════════════════════════════════════════════════════════════╣
-    ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v4.0: CURVED CYBER UI — 18px Rounding, Neon Glow Borders,    ║
-    ║        Spring Animated Toggles, Zero Lag, Zero HttpGet        ║
+    ║  Premi K o G per aprire/chiudere il menu                      ║
+    ║  v5.0: DRAGGABLE FLOATING PILL — Clicca '-' e tocca il logo,  ║
+    ║        Tasto K & G toggle, Scroll illimitato Trigger/Player   ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
 
@@ -1729,7 +1729,8 @@ local function updateWatermark() end -- no-op
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════
--- PHANTOM CYBER-NEON ULTRA GUI (v4.0 · Curvature 16px · Glow Stroke · Smooth Spring Tweens · 60 FPS)
+-- ═══════════════════════════════════════════════════
+-- PHANTOM CYBER-NEON V5.0 (Ultra Curvature · Floating Drag Pill · K/G Toggle · 60 FPS Locked)
 -- ═══════════════════════════════════════════════════
 local PhantomUI = {}
 local NativeGUI = nil
@@ -1764,25 +1765,23 @@ local function BuildNativeGUI()
 
     NativeGUI = ScreenGui
 
-    -- Premium Cyber Palette (Deep Glassmorphic Void + Radiant Neon Purple/Violet Gradient)
-    local C_MAIN_BG   = Color3.fromRGB(12, 12, 18)
-    local C_SIDE_BG   = Color3.fromRGB(16, 15, 25)
-    local C_CARD      = Color3.fromRGB(20, 20, 32)
-    local C_CARD_HOV  = Color3.fromRGB(26, 26, 42)
-    local C_BORDER    = Color3.fromRGB(58, 48, 88)
-    local C_GLOW      = Color3.fromRGB(192, 132, 252)
-    local C_NEON      = Color3.fromRGB(168, 85, 247)
-    local C_NEON_CYAN = Color3.fromRGB(56, 189, 248)
-    local C_TEXT      = Color3.fromRGB(245, 245, 252)
-    local C_MUTED     = Color3.fromRGB(140, 140, 168)
-    local C_TOGGLE_ON = Color3.fromRGB(168, 85, 247)
-    local C_TOGGLE_OFF= Color3.fromRGB(34, 34, 48)
+    -- Colors & Palettes (Deep Glassmorphic Void + Radiant Neon Violet)
+    local C_MAIN_BG    = Color3.fromRGB(13, 13, 20)
+    local C_SIDE_BG    = Color3.fromRGB(18, 17, 27)
+    local C_CARD       = Color3.fromRGB(22, 22, 34)
+    local C_BORDER     = Color3.fromRGB(65, 52, 95)
+    local C_GLOW       = Color3.fromRGB(192, 132, 252)
+    local C_NEON       = Color3.fromRGB(168, 85, 247)
+    local C_TEXT       = Color3.fromRGB(245, 245, 255)
+    local C_MUTED      = Color3.fromRGB(145, 145, 172)
+    local C_TOGGLE_ON  = Color3.fromRGB(168, 85, 247)
+    local C_TOGGLE_OFF = Color3.fromRGB(36, 36, 50)
 
-    -- Window Outer Glow Container (Curved Floating Window)
+    -- Window Outer Glow Container (Curved Floating Window 700x500)
     local Window = Instance.new("Frame")
     Window.Name = "MainWindow"
-    Window.Size = UDim2.new(0, 700, 0, 490)
-    Window.Position = UDim2.new(0.5, -350, 0.5, -245)
+    Window.Size = UDim2.new(0, 700, 0, 500)
+    Window.Position = UDim2.new(0.5, -350, 0.5, -250)
     Window.BackgroundColor3 = C_MAIN_BG
     Window.BorderSizePixel = 0
     Window.ClipsDescendants = true
@@ -1800,16 +1799,99 @@ local function BuildNativeGUI()
     WindowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     WindowStroke.Parent = Window
 
-    -- Subtle Gradient on the Main Background
     local WinGrad = Instance.new("UIGradient")
     WinGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 16, 28)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 18, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(11, 11, 16))
     })
     WinGrad.Rotation = 45
     WinGrad.Parent = Window
 
-    -- Dragging Handler with inertia
+    -- ─────────────────────────────────────────────────────────
+    -- FLOATING DRAGGABLE LOGO PILL (Per riaprire toccandolo!)
+    -- ─────────────────────────────────────────────────────────
+    local FloatPill = Instance.new("Frame")
+    FloatPill.Name = "FloatPill"
+    FloatPill.Size = UDim2.new(0, 145, 0, 42)
+    FloatPill.Position = UDim2.new(0, 25, 0, 25)
+    FloatPill.BackgroundColor3 = Color3.fromRGB(20, 18, 32)
+    FloatPill.BorderSizePixel = 0
+    FloatPill.Visible = false
+    FloatPill.Active = true
+    FloatPill.Parent = ScreenGui
+
+    local FloatCorner = Instance.new("UICorner")
+    FloatCorner.CornerRadius = UDim.new(1, 0)
+    FloatCorner.Parent = FloatPill
+
+    local FloatStroke = Instance.new("UIStroke")
+    FloatStroke.Color = C_NEON
+    FloatStroke.Thickness = 1.5
+    FloatStroke.Parent = FloatPill
+
+    local PillIcon = Instance.new("TextLabel")
+    PillIcon.Size = UDim2.new(0, 28, 0, 28)
+    PillIcon.Position = UDim2.new(0, 7, 0.5, -14)
+    PillIcon.BackgroundColor3 = C_NEON
+    PillIcon.Text = "⚡"
+    PillIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PillIcon.Font = Enum.Font.GothamBold
+    PillIcon.TextSize = 14
+    PillIcon.Parent = FloatPill
+    local PillIconCorner = Instance.new("UICorner")
+    PillIconCorner.CornerRadius = UDim.new(1, 0)
+    PillIconCorner.Parent = PillIcon
+
+    local PillLabel = Instance.new("TextButton")
+    PillLabel.Size = UDim2.new(1, -40, 1, 0)
+    PillLabel.Position = UDim2.new(0, 38, 0, 0)
+    PillLabel.BackgroundTransparency = 1
+    PillLabel.Text = "PHANTOM"
+    PillLabel.TextColor3 = C_TEXT
+    PillLabel.Font = Enum.Font.GothamBold
+    PillLabel.TextSize = 13
+    PillLabel.TextXAlignment = Enum.TextXAlignment.Left
+    PillLabel.Parent = FloatPill
+
+    -- Dragging Pill Logic
+    local pDragging, pDragInput, pDragStart, pStartPos
+    FloatPill.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            pDragging = true
+            pDragStart = input.Position
+            pStartPos = FloatPill.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    pDragging = false
+                end
+            end)
+        end
+    end)
+    FloatPill.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            pDragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == pDragInput and pDragging then
+            local delta = input.Position - pDragStart
+            FloatPill.Position = UDim2.new(pStartPos.X.Scale, pStartPos.X.Offset + delta.X, pStartPos.Y.Scale, pStartPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Clic sul logo flottante -> Riapre la GUI
+    local function ReopenFromPill()
+        FloatPill.Visible = false
+        State.GUIVisible = true
+        Window.Visible = true
+        Window.Position = UDim2.new(0.5, -350, 0.5, -230)
+        TweenService:Create(Window, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0.5, -350, 0.5, -250)
+        }):Play()
+    end
+    PillLabel.MouseButton1Click:Connect(ReopenFromPill)
+
+    -- Dragging Handler per Topbar
     local dragging, dragInput, dragStart, startPos
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
@@ -1837,9 +1919,7 @@ local function BuildNativeGUI()
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            TweenService:Create(Window, TweenInfo.new(0.06, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            }):Play()
+            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
@@ -1854,14 +1934,6 @@ local function BuildNativeGUI()
     local LogoCorner = Instance.new("UICorner")
     LogoCorner.CornerRadius = UDim.new(0, 10)
     LogoCorner.Parent = LogoBadge
-
-    local LogoGrad = Instance.new("UIGradient")
-    LogoGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(192, 132, 252)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(126, 34, 206))
-    })
-    LogoGrad.Rotation = 90
-    LogoGrad.Parent = LogoBadge
 
     local LogoIcon = Instance.new("TextLabel")
     LogoIcon.Size = UDim2.new(1, 0, 1, 0)
@@ -1886,9 +1958,9 @@ local function BuildNativeGUI()
 
     local BrandSub = Instance.new("TextLabel")
     BrandSub.Position = UDim2.new(0, 56, 0, 28)
-    BrandSub.Size = UDim2.new(0, 250, 0, 14)
+    BrandSub.Size = UDim2.new(0, 260, 0, 14)
     BrandSub.BackgroundTransparency = 1
-    BrandSub.Text = "BlockSpin Stealth · Cyber Curve Edition · 60 FPS"
+    BrandSub.Text = "BlockSpin Stealth · Tasto [K] o [G] · 60 FPS"
     BrandSub.TextColor3 = C_MUTED
     BrandSub.Font = Enum.Font.GothamMedium
     BrandSub.TextSize = 11
@@ -1928,16 +2000,22 @@ local function BuildNativeGUI()
     CCorner.CornerRadius = UDim.new(0, 8)
     CCorner.Parent = CloseBtn
 
-    CloseBtn.MouseButton1Click:Connect(function()
-        State.GUIVisible = false
-        Window.Visible = false
-    end)
+    -- Clic su "-" (minimizza) -> Nasconde la finestra e mostra il Logo Flottante spostabile!
     MinBtn.MouseButton1Click:Connect(function()
         State.GUIVisible = false
         Window.Visible = false
+        FloatPill.Visible = true
+        Notify.Send("Menu ridotto a icona! Tocca il logo o premi K per riaprire", C3(168, 85, 247), 3)
     end)
 
-    -- Divider Line with subtle purple glow
+    -- Clic su "X" (chiudi) -> Chiude tutto
+    CloseBtn.MouseButton1Click:Connect(function()
+        State.GUIVisible = false
+        Window.Visible = false
+        FloatPill.Visible = false
+    end)
+
+    -- Divider Line
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
     TopDivider.Position = UDim2.new(0, 0, 0, 52)
@@ -1967,7 +2045,7 @@ local function BuildNativeGUI()
     SidePad.PaddingRight = UDim.new(0, 10)
     SidePad.Parent = Sidebar
 
-    -- Content Area with curved scroll view
+    -- Content Area
     local ContentHolder = Instance.new("Frame")
     ContentHolder.Name = "ContentHolder"
     ContentHolder.Size = UDim2.new(1, -175, 1, -53)
@@ -2032,7 +2110,6 @@ local function BuildNativeGUI()
         bCorner.CornerRadius = UDim.new(0, 10)
         bCorner.Parent = btn
 
-        -- Neon Indicator on active tab
         local pill = Instance.new("Frame")
         pill.Name = "IndicatorPill"
         pill.Size = UDim2.new(0, 4, 0, 0)
@@ -2053,8 +2130,7 @@ local function BuildNativeGUI()
         Scroll.ScrollBarImageColor3 = C_BORDER
         Scroll.BorderSizePixel = 0
         Scroll.Visible = false
-        Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, 1200) -- Explicit CanvasSize garantito per scorrere tutto!
         Scroll.Parent = ContentHolder
 
         local pLayout = Instance.new("UIListLayout")
@@ -2062,9 +2138,13 @@ local function BuildNativeGUI()
         pLayout.SortOrder = Enum.SortOrder.LayoutOrder
         pLayout.Parent = Scroll
 
+        pLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Scroll.CanvasSize = UDim2.new(0, 0, 0, pLayout.AbsoluteContentSize.Y + 40)
+        end)
+
         local pPad = Instance.new("UIPadding")
         pPad.PaddingTop = UDim.new(0, 16)
-        pPad.PaddingBottom = UDim.new(0, 22)
+        pPad.PaddingBottom = UDim.new(0, 26)
         pPad.PaddingLeft = UDim.new(0, 18)
         pPad.PaddingRight = UDim.new(0, 18)
         pPad.Parent = Scroll
@@ -2078,7 +2158,6 @@ local function BuildNativeGUI()
 
         local tabMethods = {}
 
-        -- Section header with neon accent bar
         function tabMethods:AddSection(secName)
             local SecFrame = Instance.new("Frame")
             SecFrame.Size = UDim2.new(1, 0, 0, 26)
@@ -2107,7 +2186,6 @@ local function BuildNativeGUI()
             SecLabel.Parent = SecFrame
         end
 
-        -- Curvy Toggle Card (12px radius + sliding pill)
         function tabMethods:AddToggle(title, defaultVal, callback)
             local Card = Instance.new("Frame")
             Card.Size = UDim2.new(1, 0, 0, 44)
@@ -2176,7 +2254,6 @@ local function BuildNativeGUI()
             end)
         end
 
-        -- Curvy Slider Card with live glow fill
         function tabMethods:AddSlider(title, min, max, defaultVal, suffix, step, callback)
             suffix = suffix or ""
             step = step or 1
@@ -2272,7 +2349,6 @@ local function BuildNativeGUI()
             end)
         end
 
-        -- Dropdown with smooth animated expansion
         function tabMethods:AddDropdown(title, options, defaultVal, callback)
             local Card = Instance.new("Frame")
             Card.Size = UDim2.new(1, 0, 0, 46)
@@ -2359,7 +2435,6 @@ local function BuildNativeGUI()
             end)
         end
 
-        -- Curvy Action Button
         function tabMethods:AddButton(title, desc, callback)
             local Card = Instance.new("TextButton")
             Card.Size = UDim2.new(1, 0, 0, 44)
@@ -2398,7 +2473,6 @@ local function BuildNativeGUI()
             end)
         end
 
-        -- Palette Color Picker
         function tabMethods:AddColorPicker(title, defaultColor, callback)
             local Card = Instance.new("Frame")
             Card.Size = UDim2.new(1, 0, 0, 44)
@@ -2640,15 +2714,19 @@ local function BuildNativeGUI()
     SwitchTab("ESP")
     State.GUIVisible = true
 
-    Notify.Send("PHANTOM ULTRA Curved GUI Pronta! [G]", C3(168, 85, 247), 4)
+    Notify.Send("PHANTOM ULTRA Pronta! [K] o [G] per il menu", C3(168, 85, 247), 4)
 end
 
 PhantomUI.Build = BuildNativeGUI
 PhantomUI.Toggle = function()
     if NativeGUI and NativeGUI:FindFirstChild("MainWindow") then
         local win = NativeGUI.MainWindow
+        local pill = NativeGUI:FindFirstChild("FloatPill")
         State.GUIVisible = not State.GUIVisible
         win.Visible = State.GUIVisible
+        if State.GUIVisible and pill then
+            pill.Visible = false
+        end
     end
 end
 PhantomUI.Destroy = function()
@@ -2691,8 +2769,8 @@ local function OnInputBegan(input, gp)
         return
     end
 
-    -- G = Toggle GUI
-    if input.KeyCode == Config.Misc.GUIToggleKey then
+    -- K or G = Toggle GUI
+    if input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.G or input.KeyCode == Config.Misc.GUIToggleKey then
         PhantomUI.Toggle()
         return
     end
@@ -2984,9 +3062,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v4.0 Ultra Loaded!", C3(192, 132, 252), 4)
-    Notify.Send("Premi G per aprire/chiudere il menu", C3(200, 200, 200), 5)
-    Notify.Send("v4.0: Ultra Curved Cyber Edition — 60 FPS Locked!", C3(56, 189, 248), 6)
+    Notify.Send("PHANTOM v5.0 Ultra Loaded!", C3(192, 132, 252), 4)
+    Notify.Send("Premi K o G per aprire/chiudere il menu", C3(200, 200, 200), 5)
+    Notify.Send("v5.0: Floating Logo Pill & Dynamic Scroll!", C3(56, 189, 248), 6)
 end
 
 local ok, err = pcall(Init)
