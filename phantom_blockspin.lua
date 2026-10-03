@@ -551,30 +551,41 @@ end
 -- ═══════════════════════════════════════════════════
 local WEAPON_DB = {
     -- ── LEGENDARY (Gold / Amber) ──
-    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG", icon = "" },
-    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "gold", "golden"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY", icon = "" },
-    { keys = {"flamethrower", "grenadelauncher"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "FLM", icon = "" },
+    { keys = {"rpg", "rocket", "launcher", "missile", "bazooka"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "RPG" },
+    { keys = {"minigun", "heavy", "plasma", "railgun", "laser", "flamethrower", "gold", "golden"}, rarity = "Legendary", color = C3(255, 190, 20), symbol = "HVY" },
 
     -- ── EPIC (Purple / Amethyst) ──
-    { keys = {"sniper", "awp", "barrett", "marksman", "scout", "hunting"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP", icon = "" },
-    { keys = {"deagle", "desert", "magnum", "python", "revolver50"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL", icon = "" },
-    { keys = {"katana", "sword", "blade", "machete", "scythe", "lightsaber"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "BLD", icon = "" },
+    { keys = {"barrett", "50cal", "m82"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "50C" },
+    { keys = {"awp", "sniper", "marksman", "scout", "hunting", "dragunov", "svd", "r700"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "AWP" },
+    { keys = {"g3", "g3a3", "fal", "sa58"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "G3" },
+    { keys = {"deagle", "desert", "magnum", "python"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "DGL" },
+    { keys = {"katana", "sword", "blade", "machete", "scythe"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "KAT" },
+    { keys = {"pan", "frying", "padella"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "PAN" },
+    { keys = {"quantum", "hack", "atm"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "HCK" },
 
     -- ── RARE (Cyan / Electric Blue) ──
-    { keys = {"shotgun", "spas", "spas12", "pump", "double", "scatter", "tactical", "mossberg", "remington"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG", icon = "" },
-    { keys = {"ak", "ak47", "m4", "m4a1", "ar", "scar", "rifle", "famas", "aug", "galil", "m16", "hk416"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR", icon = "" },
+    { keys = {"remington", "r870", "870"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "REM" },
+    { keys = {"spas", "spas12"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SPAS" },
+    { keys = {"shotgun", "pump", "double", "scatter", "mossberg"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SG" },
+    { keys = {"mp5", "mp5sd", "mp5k"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "MP5" },
+    { keys = {"vector", "p90"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "SMG" },
+    { keys = {"ak47", "ak-47", "ak", "akm", "draco"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AK" },
+    { keys = {"m4a1", "m4", "ar15", "ar-15", "m16", "scar", "famas", "aug", "galil", "416", "hk416", "rifle"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "AR" },
+    { keys = {"fishing", "rod", "pesca"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "ROD" },
+    { keys = {"energy", "drink", "shot", "booster", "stim"}, rarity = "Rare", color = C3(250, 204, 21), symbol = "NRG" },
 
     -- ── UNCOMMON (Emerald Green) ──
-    { keys = {"smg", "mp5", "uzi", "mac10", "p90", "vector", "mp7", "tec9", "bizon"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG", icon = "" },
-    { keys = {"pistol", "glock", "revolver", "colt", "beretta", "1911", "usp", "walther", "m9", "p250", "five-seven"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST", icon = "" },
-    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke", "dynamite"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP", icon = "" },
+    { keys = {"glock", "g17", "g18", "g19"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "GLK" },
+    { keys = {"h9", "hudson"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "H9" },
+    { keys = {"p226", "226", "sig"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "226" },
+    { keys = {"uzi", "mac10", "mac-10", "mp7", "tec9", "tec-9", "bizon"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "SMG" },
+    { keys = {"colt", "1911", "m1911", "beretta", "m9", "usp", "revolver", "pistol", "walther"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "PST" },
+    { keys = {"lockpick", "lock"}, rarity = "Uncommon", color = C3(34, 197, 94), symbol = "LCK" },
+    { keys = {"grenade", "c4", "bomb", "flash", "molotov", "smoke", "dynamite"}, rarity = "Uncommon", color = C3(251, 146, 60), symbol = "EXP" },
 
-    -- ── BLOCKSPIN SPECIAL / UTILITY / MELEE ITEMS ──
-    { keys = {"fishing", "rod", "pesca"}, rarity = "Rare", color = C3(56, 189, 248), symbol = "ROD", icon = "" },
-    { keys = {"pan", "frying", "padella"}, rarity = "Epic", color = C3(168, 85, 247), symbol = "PAN", icon = "" },
-    { keys = {"energy", "drink", "shot", "booster", "adrenaline", "stim"}, rarity = "Rare", color = C3(250, 204, 21), symbol = "NRG", icon = "" },
-    { keys = {"medkit", "heal", "bandage", "potion", "firstaid", "syringe"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED", icon = "" },
-    { keys = {"bat", "baseball", "crowbar", "wrench", "pipe", "hammer", "knife", "fist"}, rarity = "Common", color = C3(180, 180, 195), symbol = "MEL", icon = "" }
+    -- ── MEDICAL & MELEE (Common / Utility) ──
+    { keys = {"blood", "medkit", "heal", "bandage", "firstaid", "syringe"}, rarity = "Utility", color = C3(52, 211, 153), symbol = "MED" },
+    { keys = {"bat", "baseball", "crowbar", "wrench", "pipe", "hammer", "knife", "fist", "shiesty", "glove"}, rarity = "Common", color = C3(180, 180, 195), symbol = "MEL" }
 }
 
 function Util.GetWeaponDetails(tool, isEquipped)
