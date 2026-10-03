@@ -914,8 +914,20 @@ function Util.ResolveToolInfo(tool)
     end
 
     -- ── 2. Known weapon whitelist ──
-    if not realName then
-        local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
+    -- NOTA: nomi generici (pistol, shotgun, rifle, smg, ecc.) vengono marcati per
+    -- la disambiguation — NON ritornati subito, perché BlockSpin usa questi come
+    -- container e il nome specifico è dentro l'oggetto
+    local GENERIC_CATEGORIES = {
+        ["pistol"]=true, ["shotgun"]=true, ["rifle"]=true, ["smg"]=true,
+        ["sniper"]=true, ["gun"]=true, ["weapon"]=true, ["melee"]=true,
+        ["bat"]=true, ["knife"]=true, ["sword"]=true, ["axe"]=true,
+        ["hammer"]=true, ["bow"]=true, ["crossbow"]=true,
+    }
+
+    local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
+    local isGeneric = GENERIC_CATEGORIES[lowRaw]
+
+    if not realName and not isGeneric then
         if KNOWN_WEAPONS[lowRaw] then
             realName = rawName:match("^%s*(.-)%s*$")
         elseif BLOCKSPIN_RARITIES[lowRaw] then
@@ -923,24 +935,172 @@ function Util.ResolveToolInfo(tool)
         end
     end
 
-    -- ── 3. tool.Name if human-readable ──
-    if not realName and not Util.IsGarbageName(rawName) then
+    -- ── 3. tool.Name se non generico ──
+    if not realName and not isGeneric and not Util.IsGarbageName(rawName) then
         local cleaned = Util.CleanToolName(rawName)
         if cleaned then realName = cleaned end
     end
 
-    -- ── Shotgun disambiguation ──
-    if realName and realName:lower() == "shotgun" then
+    -- ═══════════════════════════════════════════════════
+    -- DISAMBIGUATION UNIVERSALE (BlockSpin usa nomi generici come container)
+    -- Cerca il nome specifico dell'arma dentro il tool stesso
+    -- Questo vale per: Pistol, Shotgun, Rifle, SMG, Sniper, ecc.
+    -- ═══════════════════════════════════════════════════
+    local needsDisambig = isGeneric or (realName and GENERIC_CATEGORIES[realName:lower()])
+    if needsDisambig then
         local found = nil
+
         pcall(function()
-            for _, desc in ipairs(tool:GetDescendants()) do
-                local dn = desc.Name:lower()
-                if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
-                if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
-                if dn:find("remington") or dn:find("870") then found = "Remington"; return end
+            -- PASS 1: Attributi — BlockSpin spesso mette il nome specifico qui
+            local attrKeys = {
+                "WeaponName","weaponName","GunName","gunName","ItemName","itemName",
+                "DisplayName","displayName","Name","name","Title","title",
+                "WeaponType","weaponType","GunType","gunType","WeaponID","weaponID",
+                "ItemID","itemID","SkinName","skinName","ModelName","modelName",
+                "Label","label","Type","Rarity","rarity",
+            }
+            for _, key in ipairs(attrKeys) do
+                if found then return end
+                local val = tool:GetAttribute(key)
+                if type(val) == "string" and #val > 1 and #val < 50 then
+                    local valTrim = val:match("^%s*(.-)%s*$")
+                    local valLow = valTrim:lower()
+                    -- Accetta se è nella whitelist O se sembra un nome proprio (non generico)
+                    if (KNOWN_WEAPONS[valLow] or BLOCKSPIN_RARITIES[valLow])
+                       and not GENERIC_CATEGORIES[valLow] then
+                        found = valTrim
+                        return
+                    end
+                    -- Accetta anche se non è garbage e non è generico
+                    if not Util.IsGarbageName(valTrim) and not GENERIC_CATEGORIES[valLow] then
+                        local cleaned = Util.CleanToolName(valTrim)
+                        if cleaned and not GENERIC_CATEGORIES[cleaned:lower()] then
+                            found = cleaned
+                            return
+                        end
+                    end
+                end
             end
         end)
-        realName = found or "Remington"
+
+        -- PASS 2: StringValue figli/discendenti — nome specifico spesso qui
+        if not found then
+            pcall(function()
+                for _, desc in ipairs(tool:GetDescendants()) do
+                    if found then return end
+                    if desc:IsA("StringValue") then
+                        local sv = desc.Value
+                        if type(sv) == "string" and #sv > 1 and #sv < 50 then
+                            local svLow = sv:lower():match("^%s*(.-)%s*$")
+                            if (KNOWN_WEAPONS[svLow] or BLOCKSPIN_RARITIES[svLow])
+                               and not GENERIC_CATEGORIES[svLow] then
+                                found = sv:match("^%s*(.-)%s*$")
+                                return
+                            end
+                            -- Anche se il nome del child suggerisce che è un nome arma
+                            local childNameLow = desc.Name:lower()
+                            if (childNameLow:find("name") or childNameLow:find("weapon") or
+                                childNameLow:find("gun") or childNameLow:find("label") or
+                                childNameLow:find("display") or childNameLow:find("title")) then
+                                if not Util.IsGarbageName(sv) and not GENERIC_CATEGORIES[svLow] then
+                                    local cleaned = Util.CleanToolName(sv)
+                                    if cleaned and not GENERIC_CATEGORIES[cleaned:lower()] then
+                                        found = cleaned
+                                        return
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+
+        -- PASS 3: Nome dei figli/modelli che matchano un'arma specifica
+        if not found then
+            pcall(function()
+                -- Prima: figli diretti con nomi nella whitelist
+                for _, child in ipairs(tool:GetChildren()) do
+                    if found then return end
+                    local dn = child.Name
+                    local dnLow = dn:lower()
+                    if (KNOWN_WEAPONS[dnLow] or BLOCKSPIN_RARITIES[dnLow])
+                       and not GENERIC_CATEGORIES[dnLow] then
+                        found = dn
+                        return
+                    end
+                end
+                -- Secondo: prefix da animation names (es. "Remington_Shoot")
+                for _, desc in ipairs(tool:GetDescendants()) do
+                    if found then return end
+                    if desc:IsA("Animation") and desc.Name:find("_") then
+                        local prefix = desc.Name:split("_")[1]
+                        if prefix and #prefix > 2 then
+                            local prefLow = prefix:lower()
+                            if (KNOWN_WEAPONS[prefLow] or BLOCKSPIN_RARITIES[prefLow])
+                               and not GENERIC_CATEGORIES[prefLow] then
+                                found = prefix
+                                return
+                            end
+                        end
+                    end
+                    -- Cerca anche nei descendant names per pattern specifici
+                    if not found then
+                        local dn = desc.Name:lower()
+                        -- Shotgun specifics
+                        if lowRaw == "shotgun" or (realName and realName:lower() == "shotgun") then
+                            if dn:find("remington") or dn:find("870") then found = "Remington"; return end
+                            if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
+                            if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
+                            if dn:find("spas") then found = "SPAS-12"; return end
+                            if dn:find("aa12") or dn:find("aa-12") then found = "AA-12"; return end
+                        end
+                        -- Pistol specifics
+                        if lowRaw == "pistol" then
+                            if dn:find("glock") then found = "Glock"; return end
+                            if dn:find("deagle") or dn:find("desert") then found = "Desert Eagle"; return end
+                            if dn:find("anaconda") then found = "Anaconda"; return end
+                            if dn:find("p226") then found = "P226"; return end
+                            if dn:find("1911") or dn:find("m1911") then found = "M1911"; return end
+                            if dn:find("revolver") then found = "Revolver"; return end
+                        end
+                        -- Rifle/AR specifics
+                        if lowRaw == "rifle" then
+                            if dn:find("ak") then found = "AK-47"; return end
+                            if dn:find("m16") then found = "M16"; return end
+                            if dn:find("m4") or dn:find("m4a1") then found = "M4A1"; return end
+                            if dn:find("scar") then found = "SCAR"; return end
+                            if dn:find("aug") then found = "AUG"; return end
+                            if dn:find("famas") then found = "FAMAS"; return end
+                        end
+                        -- SMG specifics
+                        if lowRaw == "smg" then
+                            if dn:find("mp5") then found = "MP5"; return end
+                            if dn:find("mp7") then found = "MP7"; return end
+                            if dn:find("uzi") then found = "UZI"; return end
+                            if dn:find("mac10") or dn:find("mac-10") then found = "MAC-10"; return end
+                            if dn:find("p90") then found = "P90"; return end
+                            if dn:find("vector") then found = "Vector"; return end
+                        end
+                        -- Sniper specifics
+                        if lowRaw == "sniper" then
+                            if dn:find("barrett") or dn:find("50") then found = "Barrett .50 Cal"; return end
+                            if dn:find("awp") then found = "AWP"; return end
+                            if dn:find("dragunov") then found = "Dragunov"; return end
+                        end
+                    end
+                end
+            end)
+        end
+
+        if found then
+            realName = found
+        else
+            -- Nessuna info specifica trovata: usa il nome generico con categoria
+            -- Es: "Pistol" → "Pistol", "Shotgun" → "Shotgun"
+            -- Meglio di niente
+            realName = rawName:match("^%s*(.-)%s*$")
+        end
     end
 
     -- ── 4-10. Deep inspection (only when we still have no name) ──
