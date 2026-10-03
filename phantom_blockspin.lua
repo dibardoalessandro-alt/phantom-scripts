@@ -1962,7 +1962,7 @@ local function updateWatermark() end -- no-op
 -- ═══════════════════════════════════════════════════
 -- PRV SERVICE CYBER-NEON V8.5 (Flawless Inset Borders · Pure Smooth Curves · Mouse Unlocker · Safe Tabs · Draggable Pill)
 -- ═══════════════════════════════════════════════════
-local PRV SERVICEUI = {}
+local PRVServiceUI = {}
 local NativeGUI = nil
 local cursorConnection = nil
 
@@ -3048,8 +3048,8 @@ local function BuildNativeGUI()
     Notify.Send("PRV SERVICE Pronta! [K] per il menu", C3(168, 85, 247), 4)
 end
 
-PRV SERVICEUI.Build = BuildNativeGUI
-PRV SERVICEUI.Toggle = function()
+PRVServiceUI.Build = BuildNativeGUI
+PRVServiceUI.Toggle = function()
     if NativeGUI and NativeGUI:FindFirstChild("MainWindow") then
         local win = NativeGUI.MainWindow
         local pill = NativeGUI:FindFirstChild("FloatPill")
@@ -3061,7 +3061,7 @@ PRV SERVICEUI.Toggle = function()
         end
     end
 end
-PRV SERVICEUI.Destroy = function()
+PRVServiceUI.Destroy = function()
     pcall(function()
         SetCursorState(false)
         if NativeGUI then NativeGUI:Destroy() end
@@ -3069,7 +3069,7 @@ PRV SERVICEUI.Destroy = function()
 end
 
 task.spawn(function()
-    local ok, err = pcall(PRV SERVICEUI.Build)
+    local ok, err = pcall(PRVServiceUI.Build)
     if not ok then
         warn("[PRV SERVICE] Ultra GUI Error: " .. tostring(err))
         Notify.Send("GUI Error: " .. tostring(err), C3(255, 60, 60), 6)
@@ -3089,7 +3089,7 @@ end
 local function OnInputBegan(input, gp)
     -- K or G = Toggle GUI (Always responsive!)
     if input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.G or input.KeyCode == Config.Misc.GUIToggleKey then
-        PRV SERVICEUI.Toggle()
+        PRVServiceUI.Toggle()
         return
     end
 
@@ -3354,7 +3354,7 @@ local function Unload()
     for _, n in ipairs(State.Notifications) do pcall(function() n.Drawing:Remove() end) end
 
     -- Destroy GUI
-    pcall(function() PRV SERVICEUI.Destroy() end)
+    pcall(function() PRVServiceUI.Destroy() end)
 
     Notify.Send("PRV SERVICE Unloaded!", C3(255, 80, 80), 2)
 end
