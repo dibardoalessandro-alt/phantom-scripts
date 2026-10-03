@@ -1,11 +1,11 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PHANTOM v3.7 · BlockSpin Stealth Suite                    ║
-    ║     Fluent UI Edition · Built for Xeno                        ║
+    ║     PHANTOM v3.8 · BlockSpin Stealth Suite                    ║
+    ║     Native Cyber UI Edition · Built for Xeno                  ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi G per aprire/chiudere il menu                          ║
-    ║  v3.7: FLUENT UI UPGRADE — Windows 11 Modern Acrylic Style,   ║
-    ║        Ultra-fluid 60 FPS, Zero Frame Drops, Lucide Icons,    ║
+    ║  v3.8: NATIVE CYBER UI — 100% Standalone (Zero HttpGet UI),  ║
+    ║        Ultra-fluid 60 FPS, Zero Bugs, Pure TweenService,      ║
     ║        Native ESP Highlight + BillboardGui engine             ║
     ╚═══════════════════════════════════════════════════════════════╝
 --]]
@@ -1728,915 +1728,843 @@ local _wm = {}
 local function updateWatermark() end -- no-op
 
 -- ═══════════════════════════════════════════════════
--- LOAD FLUENT UI (Modern, Ultra-Fluid, Zero-Lag)
 -- ═══════════════════════════════════════════════════
-local Fluent
-local Window
-local Tabs = {}
+-- PHANTOM ELITE NATIVE GUI (100% Standalone · Zero HttpGet · Pure TweenService · 60 FPS Locked)
+-- ═══════════════════════════════════════════════════
+local PhantomUI = {}
+local NativeGUI = nil
 
-local guiOk, guiErr = pcall(function()
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dibardoalessandro-alt/phantom-scripts/main/fluent.lua"))()
-    
-    local SaveManager
-    local InterfaceManager
+local function BuildNativeGUI()
+    -- Rimuovi istanze precedenti se presenti
+    local coreGui = game:GetService("CoreGui")
+    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    local parentTarget = coreGui
     pcall(function()
-        SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-        InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+        if not pcall(function() return coreGui.Name end) then
+            parentTarget = playerGui
+        end
     end)
 
-    Window = Fluent:CreateWindow({
-        Title = "PHANTOM v3.7",
-        SubTitle = "BlockSpin Stealth Suite",
-        TabWidth = 160,
-        Size = UDim2.fromOffset(590, 470),
-        Acrylic = false, -- false di default per garantire 60 FPS senza cali su qualsiasi executor (anche Xeno)
-        Theme = "Dark",
-        MinimizeKey = Config.Misc.GUIToggleKey or Enum.KeyCode.G
-    })
+    pcall(function()
+        local old = parentTarget:FindFirstChild("PHANTOM_SUITE_GUI")
+        if old then old:Destroy() end
+        if playerGui then
+            local old2 = playerGui:FindFirstChild("PHANTOM_SUITE_GUI")
+            if old2 then old2:Destroy() end
+        end
+    end)
 
-    -- ╔═══════════════════════════════════════╗
-    -- ║              TABS SETUP               ║
-    -- ╚═══════════════════════════════════════╝
-    Tabs = {
-        ESP        = Window:AddTab({ Title = "ESP", Icon = "eye" }),
-        Inventory  = Window:AddTab({ Title = "Inventario", Icon = "box" }),
-        Aimbot     = Window:AddTab({ Title = "Aimbot", Icon = "crosshair" }),
-        Triggerbot = Window:AddTab({ Title = "Triggerbot", Icon = "target" }),
-        Player     = Window:AddTab({ Title = "Player", Icon = "user" }),
-        Settings   = Window:AddTab({ Title = "Settings", Icon = "settings" })
-    }
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "PHANTOM_SUITE_GUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.DisplayOrder = 999999
+    pcall(function() ScreenGui.IgnoreGuiInset = true end)
+    pcall(function() ScreenGui.Parent = parentTarget end)
+    if not ScreenGui.Parent and playerGui then ScreenGui.Parent = playerGui end
 
-    -- ═══════════════════════════════════════
-    -- TAB: ESP
-    -- ═══════════════════════════════════════
-    Tabs.ESP:AddSection("Generale")
+    NativeGUI = ScreenGui
 
-    Tabs.ESP:AddToggle("ESPToggle", {
-        Title = "Abilita ESP",
-        Default = Config.ESP.Enabled,
-        Callback = function(v) Config.ESP.Enabled = v end
-    })
+    -- Colors & Palettes (Sleek Dark Cyber / Violet Accent)
+    local C_BG       = Color3.fromRGB(15, 15, 20)
+    local C_SIDEBAR  = Color3.fromRGB(20, 20, 28)
+    local C_CARD     = Color3.fromRGB(24, 24, 34)
+    local C_CARD_HOV = Color3.fromRGB(30, 30, 42)
+    local C_BORDER   = Color3.fromRGB(45, 45, 65)
+    local C_ACCENT   = Color3.fromRGB(168, 85, 247)
+    local C_ACCENT_D = Color3.fromRGB(126, 34, 206)
+    local C_TEXT     = Color3.fromRGB(240, 240, 245)
+    local C_SUBTEXT  = Color3.fromRGB(150, 150, 170)
+    local C_ON       = Color3.fromRGB(168, 85, 247)
+    local C_OFF      = Color3.fromRGB(40, 40, 55)
 
-    Tabs.ESP:AddDropdown("ESPBoxStyle", {
-        Title = "Stile Box",
-        Values = {"Full", "Corner"},
-        Default = Config.ESP.BoxStyle,
-        Multi = false,
-        Callback = function(v) Config.ESP.BoxStyle = v end
-    })
+    -- Main Window Frame
+    local Main = Instance.new("Frame")
+    Main.Name = "MainFrame"
+    Main.Size = UDim2.new(0, 680, 0, 480)
+    Main.Position = UDim2.new(0.5, -340, 0.5, -240)
+    Main.BackgroundColor3 = C_BG
+    Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
+    Main.Parent = ScreenGui
 
-    Tabs.ESP:AddSlider("ESPBoxThickness", {
-        Title = "Spessore Box",
-        Min = 1,
-        Max = 5,
-        Default = Config.ESP.BoxThickness,
-        Rounding = 1,
-        Callback = function(v) Config.ESP.BoxThickness = v end
-    })
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 12)
+    MainCorner.Parent = Main
 
-    Tabs.ESP:AddToggle("ESPBoxOutline", {
-        Title = "Contorno Box (Outline)",
-        Default = Config.ESP.BoxOutline,
-        Callback = function(v) Config.ESP.BoxOutline = v end
-    })
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Color = C_BORDER
+    MainStroke.Thickness = 1.2
+    MainStroke.Parent = Main
 
-    Tabs.ESP:AddSection("Informazioni Bersaglio")
+    -- Dragging Logic
+    local dragging, dragInput, dragStart, startPos
+    local Topbar = Instance.new("Frame")
+    Topbar.Name = "Topbar"
+    Topbar.Size = UDim2.new(1, 0, 0, 48)
+    Topbar.BackgroundTransparency = 1
+    Topbar.Parent = Main
 
-    Tabs.ESP:AddToggle("ESPNames", {
-        Title = "Mostra Nomi",
-        Default = Config.ESP.Names,
-        Callback = function(v) Config.ESP.Names = v end
-    })
+    Topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    Topbar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
-    Tabs.ESP:AddSlider("ESPNameSize", {
-        Title = "Dimensione Nome",
-        Min = 10,
-        Max = 24,
-        Default = Config.ESP.NameSize,
-        Rounding = 0,
-        Callback = function(v) Config.ESP.NameSize = v end
-    })
+    -- Title & Badge
+    local LogoIcon = Instance.new("TextLabel")
+    LogoIcon.Size = UDim2.new(0, 26, 0, 26)
+    LogoIcon.Position = UDim2.new(0, 16, 0.5, -13)
+    LogoIcon.BackgroundColor3 = C_ACCENT
+    LogoIcon.Text = "⚡"
+    LogoIcon.TextSize = 14
+    LogoIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+    LogoIcon.Font = Enum.Font.GothamBold
+    LogoIcon.Parent = Topbar
+    local LCorner = Instance.new("UICorner")
+    LCorner.CornerRadius = UDim.new(0, 7)
+    LCorner.Parent = LogoIcon
 
-    Tabs.ESP:AddToggle("ESPDistance", {
-        Title = "Mostra Distanza",
-        Default = Config.ESP.Distance,
-        Callback = function(v) Config.ESP.Distance = v end
-    })
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Position = UDim2.new(0, 50, 0, 8)
+    TitleLabel.Size = UDim2.new(0, 200, 0, 18)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = "PHANTOM <font color=\"#c084fc\">v3.8</font>"
+    TitleLabel.RichText = true
+    TitleLabel.TextColor3 = C_TEXT
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 15
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = Topbar
 
-    Tabs.ESP:AddToggle("ESPHealthBar", {
-        Title = "Barra Vita",
-        Default = Config.ESP.HealthBar,
-        Callback = function(v) Config.ESP.HealthBar = v end
-    })
+    local SubLabel = Instance.new("TextLabel")
+    SubLabel.Position = UDim2.new(0, 50, 0, 26)
+    SubLabel.Size = UDim2.new(0, 250, 0, 14)
+    SubLabel.BackgroundTransparency = 1
+    SubLabel.Text = "BlockSpin Stealth Suite · 60 FPS Native"
+    SubLabel.TextColor3 = C_SUBTEXT
+    SubLabel.Font = Enum.Font.GothamMedium
+    SubLabel.TextSize = 11
+    SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SubLabel.Parent = Topbar
 
-    Tabs.ESP:AddDropdown("ESPHealthBarPos", {
-        Title = "Posizione Barra Vita",
-        Values = {"Left", "Right"},
-        Default = Config.ESP.HealthBarPos,
-        Multi = false,
-        Callback = function(v) Config.ESP.HealthBarPos = v end
-    })
+    -- Window Controls (Minimize / Close)
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+    CloseBtn.Position = UDim2.new(1, -38, 0.5, -14)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(35, 25, 35)
+    CloseBtn.Text = "✕"
+    CloseBtn.TextColor3 = Color3.fromRGB(230, 100, 120)
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 13
+    CloseBtn.Parent = Topbar
+    local CBCorner = Instance.new("UICorner")
+    CBCorner.CornerRadius = UDim.new(0, 6)
+    CBCorner.Parent = CloseBtn
 
-    Tabs.ESP:AddToggle("ESPHealthText", {
-        Title = "Mostra HP Numerico",
-        Default = Config.ESP.HealthText,
-        Callback = function(v) Config.ESP.HealthText = v end
-    })
+    CloseBtn.MouseButton1Click:Connect(function()
+        State.GUIVisible = false
+        Main.Visible = false
+    end)
 
-    Tabs.ESP:AddToggle("ESPLookVector", {
-        Title = "Mostra Angolo Visuale",
-        Default = Config.ESP.LookVector,
-        Callback = function(v) Config.ESP.LookVector = v end
-    })
+    -- Divider
+    local TopDivider = Instance.new("Frame")
+    TopDivider.Size = UDim2.new(1, 0, 0, 1)
+    TopDivider.Position = UDim2.new(0, 0, 0, 48)
+    TopDivider.BackgroundColor3 = C_BORDER
+    TopDivider.BorderSizePixel = 0
+    TopDivider.Parent = Main
 
-    Tabs.ESP:AddSlider("ESPLookVectorLen", {
-        Title = "Lunghezza Linea Sguardo",
-        Min = 5,
-        Max = 30,
-        Default = Config.ESP.LookVectorLength,
-        Rounding = 0,
-        Callback = function(v) Config.ESP.LookVectorLength = v end
-    })
+    -- Sidebar (Tabs list)
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 170, 1, -49)
+    Sidebar.Position = UDim2.new(0, 0, 0, 49)
+    Sidebar.BackgroundColor3 = C_SIDEBAR
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = Main
 
-    Tabs.ESP:AddSection("Tracers")
+    local SideLayout = Instance.new("UIListLayout")
+    SideLayout.Padding = UDim.new(0, 6)
+    SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    SideLayout.Parent = Sidebar
 
-    Tabs.ESP:AddToggle("ESPTracers", {
-        Title = "Abilita Tracers",
-        Default = Config.ESP.Tracers,
-        Callback = function(v) Config.ESP.Tracers = v end
-    })
+    local SidePad = Instance.new("UIPadding")
+    SidePad.PaddingTop = UDim.new(0, 12)
+    SidePad.PaddingBottom = UDim.new(0, 12)
+    SidePad.PaddingLeft = UDim.new(0, 10)
+    SidePad.PaddingRight = UDim.new(0, 10)
+    SidePad.Parent = Sidebar
 
-    Tabs.ESP:AddDropdown("ESPTracerOrigin", {
-        Title = "Origine Tracers",
-        Values = {"Bottom", "Center", "Mouse"},
-        Default = Config.ESP.TracerOrigin,
-        Multi = false,
-        Callback = function(v) Config.ESP.TracerOrigin = v end
-    })
+    -- Content Area
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Name = "ContentHolder"
+    ContentHolder.Size = UDim2.new(1, -170, 1, -49)
+    ContentHolder.Position = UDim2.new(0, 170, 0, 49)
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.Parent = Main
 
-    Tabs.ESP:AddSlider("ESPTracerThickness", {
-        Title = "Spessore Tracers",
-        Min = 1,
-        Max = 4,
-        Default = Config.ESP.TracerThickness,
-        Rounding = 1,
-        Callback = function(v) Config.ESP.TracerThickness = v end
-    })
+    -- Tab Management
+    local Tabs = {}
+    local TabButtons = {}
+    local activeTab = nil
 
-    Tabs.ESP:AddSection("Skeleton ESP")
+    local function SwitchTab(tabName)
+        for name, container in pairs(Tabs) do
+            local isTarget = (name == tabName)
+            container.Visible = isTarget
+            local btn = TabButtons[name]
+            if btn then
+                TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = isTarget and C_ACCENT or Color3.fromRGB(26, 26, 36),
+                    TextColor3 = isTarget and Color3.fromRGB(255, 255, 255) or C_SUBTEXT
+                }):Play()
+            end
+        end
+        activeTab = tabName
+    end
 
-    Tabs.ESP:AddToggle("ESPSkeleton", {
-        Title = "Abilita Scheletro",
-        Default = Config.ESP.Skeleton,
-        Callback = function(v) Config.ESP.Skeleton = v end
-    })
+    local function CreateTab(name, icon)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 0, 38)
+        btn.BackgroundColor3 = Color3.fromRGB(26, 26, 36)
+        btn.BorderSizePixel = 0
+        btn.Text = "  " .. icon .. "  " .. name
+        btn.TextColor3 = C_SUBTEXT
+        btn.Font = Enum.Font.GothamMedium
+        btn.TextSize = 13
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.Parent = Sidebar
 
-    Tabs.ESP:AddColorpicker("ESPSkeletonColor", {
-        Title = "Colore Scheletro",
-        Default = Config.ESP.SkeletonColor,
-        Callback = function(v) Config.ESP.SkeletonColor = v end
-    })
+        local bCorner = Instance.new("UICorner")
+        bCorner.CornerRadius = UDim.new(0, 8)
+        bCorner.Parent = btn
 
-    Tabs.ESP:AddSlider("ESPSkeletonThickness", {
-        Title = "Spessore Scheletro",
-        Min = 1,
-        Max = 4,
-        Default = Config.ESP.SkeletonThickness,
-        Rounding = 1,
-        Callback = function(v) Config.ESP.SkeletonThickness = v end
-    })
+        local Scroll = Instance.new("ScrollingFrame")
+        Scroll.Name = name .. "_Page"
+        Scroll.Size = UDim2.new(1, 0, 1, 0)
+        Scroll.BackgroundTransparency = 1
+        Scroll.ScrollBarThickness = 3
+        Scroll.ScrollBarImageColor3 = C_BORDER
+        Scroll.BorderSizePixel = 0
+        Scroll.Visible = false
+        Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+        Scroll.Parent = ContentHolder
 
-    Tabs.ESP:AddSection("Chams (Highlight)")
+        local pLayout = Instance.new("UIListLayout")
+        pLayout.Padding = UDim.new(0, 10)
+        pLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        pLayout.Parent = Scroll
 
-    Tabs.ESP:AddToggle("ESPChams", {
-        Title = "Abilita Chams",
-        Default = Config.ESP.Chams,
-        Callback = function(v)
-            Config.ESP.Chams = v
-            if not v then
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character then
-                        local h = p.Character:FindFirstChild("PHANTOM_Highlight")
-                        if h then h:Destroy() end
-                    end
+        local pPad = Instance.new("UIPadding")
+        pPad.PaddingTop = UDim.new(0, 16)
+        pPad.PaddingBottom = UDim.new(0, 20)
+        pPad.PaddingLeft = UDim.new(0, 18)
+        pPad.PaddingRight = UDim.new(0, 18)
+        pPad.Parent = Scroll
+
+        Tabs[name] = Scroll
+        TabButtons[name] = btn
+
+        btn.MouseButton1Click:Connect(function()
+            SwitchTab(name)
+        end)
+
+        local tabMethods = {}
+
+        function tabMethods:AddSection(secName)
+            local SecFrame = Instance.new("Frame")
+            SecFrame.Size = UDim2.new(1, 0, 0, 24)
+            SecFrame.BackgroundTransparency = 1
+            SecFrame.Parent = Scroll
+
+            local SecLabel = Instance.new("TextLabel")
+            SecLabel.Size = UDim2.new(1, 0, 1, 0)
+            SecLabel.BackgroundTransparency = 1
+            SecLabel.Text = string.upper(secName)
+            SecLabel.TextColor3 = C_ACCENT
+            SecLabel.Font = Enum.Font.GothamBold
+            SecLabel.TextSize = 11
+            SecLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SecLabel.Parent = SecFrame
+        end
+
+        function tabMethods:AddToggle(title, defaultVal, callback)
+            local Card = Instance.new("Frame")
+            Card.Size = UDim2.new(1, 0, 0, 42)
+            Card.BackgroundColor3 = C_CARD
+            Card.BorderSizePixel = 0
+            Card.Parent = Scroll
+
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.Parent = Card
+
+            local cStroke = Instance.new("UIStroke")
+            cStroke.Color = C_BORDER
+            cStroke.Thickness = 1
+            cStroke.Parent = Card
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -60, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = title
+            Label.TextColor3 = C_TEXT
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Card
+
+            local Switch = Instance.new("TextButton")
+            Switch.Size = UDim2.new(0, 40, 0, 22)
+            Switch.Position = UDim2.new(1, -50, 0.5, -11)
+            Switch.BackgroundColor3 = defaultVal and C_ON or C_OFF
+            Switch.Text = ""
+            Switch.AutoButtonColor = false
+            Switch.Parent = Card
+
+            local sCorner = Instance.new("UICorner")
+            sCorner.CornerRadius = UDim.new(1, 0)
+            sCorner.Parent = Switch
+
+            local Knob = Instance.new("Frame")
+            Knob.Size = UDim2.new(0, 16, 0, 16)
+            Knob.Position = defaultVal and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+            Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Knob.BorderSizePixel = 0
+            Knob.Parent = Switch
+
+            local kCorner = Instance.new("UICorner")
+            kCorner.CornerRadius = UDim.new(1, 0)
+            kCorner.Parent = Knob
+
+            local state = defaultVal
+
+            local function updateToggle(val)
+                state = val
+                TweenService:Create(Switch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = state and C_ON or C_OFF
+                }):Play()
+                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+                }):Play()
+                pcall(callback, state)
+            end
+
+            Switch.MouseButton1Click:Connect(function()
+                updateToggle(not state)
+            end)
+        end
+
+        function tabMethods:AddSlider(title, min, max, defaultVal, suffix, step, callback)
+            suffix = suffix or ""
+            step = step or 1
+            local Card = Instance.new("Frame")
+            Card.Size = UDim2.new(1, 0, 0, 56)
+            Card.BackgroundColor3 = C_CARD
+            Card.BorderSizePixel = 0
+            Card.Parent = Scroll
+
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.Parent = Card
+
+            local cStroke = Instance.new("UIStroke")
+            cStroke.Color = C_BORDER
+            cStroke.Thickness = 1
+            cStroke.Parent = Card
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(0.7, 0, 0, 24)
+            Label.Position = UDim2.new(0, 14, 0, 6)
+            Label.BackgroundTransparency = 1
+            Label.Text = title
+            Label.TextColor3 = C_TEXT
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Card
+
+            local ValLabel = Instance.new("TextLabel")
+            ValLabel.Size = UDim2.new(0.3, -24, 0, 24)
+            ValLabel.Position = UDim2.new(0.7, 10, 0, 6)
+            ValLabel.BackgroundTransparency = 1
+            ValLabel.Text = tostring(defaultVal) .. suffix
+            ValLabel.TextColor3 = C_ACCENT
+            ValLabel.Font = Enum.Font.GothamBold
+            ValLabel.TextSize = 12
+            ValLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ValLabel.Parent = Card
+
+            local Track = Instance.new("TextButton")
+            Track.Size = UDim2.new(1, -28, 0, 6)
+            Track.Position = UDim2.new(0, 14, 0, 36)
+            Track.BackgroundColor3 = Color3.fromRGB(38, 38, 52)
+            Track.Text = ""
+            Track.AutoButtonColor = false
+            Track.Parent = Card
+
+            local tCorner = Instance.new("UICorner")
+            tCorner.CornerRadius = UDim.new(1, 0)
+            tCorner.Parent = Track
+
+            local curRatio = math.clamp((defaultVal - min) / (max - min), 0, 1)
+            local Fill = Instance.new("Frame")
+            Fill.Size = UDim2.new(curRatio, 0, 1, 0)
+            Fill.BackgroundColor3 = C_ACCENT
+            Fill.BorderSizePixel = 0
+            Fill.Parent = Track
+
+            local fCorner = Instance.new("UICorner")
+            fCorner.CornerRadius = UDim.new(1, 0)
+            fCorner.Parent = Fill
+
+            local sliding = false
+            local function updateSlide(input)
+                local pos = input.Position.X
+                local trackStart = Track.AbsolutePosition.X
+                local trackWidth = Track.AbsoluteSize.X
+                local ratio = math.clamp((pos - trackStart) / trackWidth, 0, 1)
+                local rawVal = min + ratio * (max - min)
+                local snapped = math.floor(rawVal / step + 0.5) * step
+                snapped = math.clamp(snapped, min, max)
+                Fill.Size = UDim2.new(ratio, 0, 1, 0)
+                ValLabel.Text = tostring(math.floor(snapped * 100) / 100) .. suffix
+                pcall(callback, snapped)
+            end
+
+            Track.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    sliding = true
+                    updateSlide(input)
+                end
+            end)
+            Track.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    sliding = false
+                end
+            end)
+            UserInputService.InputChanged:Connect(function(input)
+                if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateSlide(input)
+                end
+            end)
+        end
+
+        function tabMethods:AddDropdown(title, options, defaultVal, callback)
+            local Card = Instance.new("Frame")
+            Card.Size = UDim2.new(1, 0, 0, 44)
+            Card.BackgroundColor3 = C_CARD
+            Card.BorderSizePixel = 0
+            Card.ClipsDescendants = true
+            Card.Parent = Scroll
+
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.Parent = Card
+
+            local cStroke = Instance.new("UIStroke")
+            cStroke.Color = C_BORDER
+            cStroke.Thickness = 1
+            cStroke.Parent = Card
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(0.5, 0, 0, 44)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = title
+            Label.TextColor3 = C_TEXT
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Card
+
+            local DropBtn = Instance.new("TextButton")
+            DropBtn.Size = UDim2.new(0.48, -14, 0, 28)
+            DropBtn.Position = UDim2.new(0.52, 0, 0, 8)
+            DropBtn.BackgroundColor3 = Color3.fromRGB(34, 34, 48)
+            DropBtn.Text = tostring(defaultVal) .. "  ▼"
+            DropBtn.TextColor3 = C_TEXT
+            DropBtn.Font = Enum.Font.GothamMedium
+            DropBtn.TextSize = 12
+            DropBtn.Parent = Card
+
+            local dCorner = Instance.new("UICorner")
+            dCorner.CornerRadius = UDim.new(0, 6)
+            dCorner.Parent = DropBtn
+
+            local dList = Instance.new("Frame")
+            dList.Size = UDim2.new(1, -28, 0, #options * 28 + 4)
+            dList.Position = UDim2.new(0, 14, 0, 48)
+            dList.BackgroundTransparency = 1
+            dList.Parent = Card
+
+            local dlLayout = Instance.new("UIListLayout")
+            dlLayout.Padding = UDim.new(0, 3)
+            dlLayout.Parent = dList
+
+            local isOpen = false
+            for _, opt in ipairs(options) do
+                local oBtn = Instance.new("TextButton")
+                oBtn.Size = UDim2.new(1, 0, 0, 26)
+                oBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
+                oBtn.Text = "  " .. tostring(opt)
+                oBtn.TextColor3 = (opt == defaultVal) and C_ACCENT or C_SUBTEXT
+                oBtn.Font = Enum.Font.Gotham
+                oBtn.TextSize = 12
+                oBtn.TextXAlignment = Enum.TextXAlignment.Left
+                oBtn.Parent = dList
+                local oCorner = Instance.new("UICorner")
+                oCorner.CornerRadius = UDim.new(0, 5)
+                oCorner.Parent = oBtn
+
+                oBtn.MouseButton1Click:Connect(function()
+                    DropBtn.Text = tostring(opt) .. "  ▼"
+                    isOpen = false
+                    TweenService:Create(Card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(1, 0, 0, 44)
+                    }):Play()
+                    pcall(callback, opt)
+                end)
+            end
+
+            DropBtn.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                local targetH = isOpen and (48 + #options * 29 + 6) or 44
+                TweenService:Create(Card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, targetH)
+                }):Play()
+            end)
+        end
+
+        function tabMethods:AddButton(title, desc, callback)
+            local Card = Instance.new("TextButton")
+            Card.Size = UDim2.new(1, 0, 0, 42)
+            Card.BackgroundColor3 = Color3.fromRGB(30, 30, 44)
+            Card.BorderSizePixel = 0
+            Card.AutoButtonColor = false
+            Card.Text = ""
+            Card.Parent = Scroll
+
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.Parent = Card
+
+            local cStroke = Instance.new("UIStroke")
+            cStroke.Color = C_BORDER
+            cStroke.Thickness = 1
+            cStroke.Parent = Card
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -28, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = title
+            Label.TextColor3 = C_TEXT
+            Label.Font = Enum.Font.GothamBold
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Card
+
+            Card.MouseButton1Click:Connect(function()
+                TweenService:Create(Card, TweenInfo.new(0.1), { BackgroundColor3 = C_ACCENT }):Play()
+                task.delay(0.15, function()
+                    TweenService:Create(Card, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(30, 30, 44) }):Play()
+                end)
+                pcall(callback)
+            end)
+        end
+
+        function tabMethods:AddColorPicker(title, defaultColor, callback)
+            local Card = Instance.new("Frame")
+            Card.Size = UDim2.new(1, 0, 0, 42)
+            Card.BackgroundColor3 = C_CARD
+            Card.BorderSizePixel = 0
+            Card.Parent = Scroll
+
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 8)
+            cCorner.Parent = Card
+
+            local cStroke = Instance.new("UIStroke")
+            cStroke.Color = C_BORDER
+            cStroke.Thickness = 1
+            cStroke.Parent = Card
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -70, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = title
+            Label.TextColor3 = C_TEXT
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Card
+
+            local Preview = Instance.new("TextButton")
+            Preview.Size = UDim2.new(0, 38, 0, 22)
+            Preview.Position = UDim2.new(1, -50, 0.5, -11)
+            Preview.BackgroundColor3 = defaultColor
+            Preview.Text = ""
+            Preview.AutoButtonColor = false
+            Preview.Parent = Card
+
+            local pCorner = Instance.new("UICorner")
+            pCorner.CornerRadius = UDim.new(0, 6)
+            pCorner.Parent = Preview
+
+            -- Palette rapida al click
+            local palette = {
+                Color3.fromRGB(255, 60, 60),
+                Color3.fromRGB(60, 255, 120),
+                Color3.fromRGB(60, 150, 255),
+                Color3.fromRGB(168, 85, 247),
+                Color3.fromRGB(255, 220, 50),
+                Color3.fromRGB(255, 120, 30),
+                Color3.fromRGB(255, 255, 255)
+            }
+            local curIdx = 1
+            Preview.MouseButton1Click:Connect(function()
+                curIdx = (curIdx % #palette) + 1
+                local picked = palette[curIdx]
+                Preview.BackgroundColor3 = picked
+                pcall(callback, picked)
+            end)
+        end
+
+        return tabMethods
+    end
+
+    -- Create Native Tabs
+    local tESP      = CreateTab("ESP", "👁")
+    local tInv      = CreateTab("Inventario", "📦")
+    local tAim      = CreateTab("Aimbot", "🎯")
+    local tTrig     = CreateTab("Triggerbot", "⚡")
+    local tPlayer   = CreateTab("Player", "🏃")
+    local tSettings = CreateTab("Settings", "⚙")
+
+    -- ──────────────────────────────────────────
+    -- 1. POPULATE ESP
+    -- ──────────────────────────────────────────
+    tESP:AddSection("Generale")
+    tESP:AddToggle("Abilita ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
+    tESP:AddDropdown("Stile Box", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
+    tESP:AddSlider("Spessore Box", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
+    tESP:AddToggle("Contorno Box (Outline)", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
+
+    tESP:AddSection("Dettagli Giocatore")
+    tESP:AddToggle("Mostra Nomi", Config.ESP.Names, function(v) Config.ESP.Names = v end)
+    tESP:AddSlider("Dimensione Nome", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
+    tESP:AddToggle("Mostra Distanza", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
+    tESP:AddToggle("Barra Vita (HealthBar)", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
+    tESP:AddDropdown("Posizione Barra Vita", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
+    tESP:AddToggle("Mostra HP Numerico", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
+
+    tESP:AddSection("Tracers & Sguardo")
+    tESP:AddToggle("Abilita Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
+    tESP:AddDropdown("Origine Tracers", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
+    tESP:AddSlider("Spessore Tracers", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
+    tESP:AddToggle("Mostra Direzione Sguardo", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
+
+    tESP:AddSection("Skeleton & Chams")
+    tESP:AddToggle("Abilita Scheletro (Skeleton)", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
+    tESP:AddColorPicker("Colore Scheletro", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
+    tESP:AddToggle("Abilita Chams Highlight", Config.ESP.Chams, function(v)
+        Config.ESP.Chams = v
+        if not v then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    local h = p.Character:FindFirstChild("PHANTOM_Highlight")
+                    if h then h:Destroy() end
                 end
             end
         end
-    })
+    end)
+    tESP:AddColorPicker("Colore Chams (Visibile)", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
+    tESP:AddColorPicker("Colore Chams (Nascosto)", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
 
-    Tabs.ESP:AddColorpicker("ESPChamsVisColor", {
-        Title = "Colore Chams (Visibile)",
-        Default = Config.ESP.ChamsVisibleColor,
-        Callback = function(v) Config.ESP.ChamsVisibleColor = v end
-    })
+    tESP:AddSection("Filtri & Colori")
+    tESP:AddToggle("Controllo Visibilita (Wall)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
+    tESP:AddToggle("Ignora Compagni di Squadra", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
+    tESP:AddSlider("Distanza Massima", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
 
-    Tabs.ESP:AddColorpicker("ESPChamsHidColor", {
-        Title = "Colore Chams (Nascosto)",
-        Default = Config.ESP.ChamsHiddenColor,
-        Callback = function(v) Config.ESP.ChamsHiddenColor = v end
-    })
+    -- ──────────────────────────────────────────
+    -- 2. POPULATE INVENTARIO
+    -- ──────────────────────────────────────────
+    tInv:AddSection("Generale")
+    tInv:AddToggle("Abilita Inventory ESP", Config.InventoryESP.Enabled, function(v) Config.InventoryESP.Enabled = v end)
+    tInv:AddToggle("Mostra Tool in Mano (⚔)", Config.InventoryESP.ShowEquipped, function(v) Config.InventoryESP.ShowEquipped = v end)
+    tInv:AddToggle("Mostra Tool nello Zaino (📦)", Config.InventoryESP.ShowBackpack, function(v) Config.InventoryESP.ShowBackpack = v end)
+    tInv:AddToggle("Mostra Danno Rilevato", Config.InventoryESP.ShowDamage, function(v) Config.InventoryESP.ShowDamage = v end)
+    tInv:AddToggle("Pulisci Nomi Tool", Config.InventoryESP.CleanNames, function(v) Config.InventoryESP.CleanNames = v end)
+    tInv:AddSlider("Max Oggetti Visualizzati", 3, 15, Config.InventoryESP.MaxItems, "", 1, function(v) Config.InventoryESP.MaxItems = v end)
+    tInv:AddSlider("Dimensione Testo", 8, 20, Config.InventoryESP.TextSize, "pt", 1, function(v) Config.InventoryESP.TextSize = v end)
 
-    Tabs.ESP:AddSlider("ESPChamsTrans", {
-        Title = "Trasparenza Chams",
-        Min = 0,
-        Max = 0.9,
-        Default = Config.ESP.ChamsTransparency,
-        Rounding = 2,
-        Callback = function(v) Config.ESP.ChamsTransparency = v end
-    })
-
-    Tabs.ESP:AddSection("Colori & Visibilita")
-
-    Tabs.ESP:AddToggle("ESPVisCheck", {
-        Title = "Check Visibilita (verde/rosso)",
-        Default = Config.ESP.VisibilityCheck,
-        Callback = function(v) Config.ESP.VisibilityCheck = v end
-    })
-
-    Tabs.ESP:AddToggle("ESPShowTeamColor", {
-        Title = "Mostra Colore Squadra",
-        Default = Config.ESP.ShowTeamColor,
-        Callback = function(v) Config.ESP.ShowTeamColor = v end
-    })
-
-    Tabs.ESP:AddColorpicker("ESPVisibleColor", {
-        Title = "Colore Visibile",
-        Default = Config.ESP.VisibleColor,
-        Callback = function(v) Config.ESP.VisibleColor = v end
-    })
-
-    Tabs.ESP:AddColorpicker("ESPNotVisibleColor", {
-        Title = "Colore Non Visibile",
-        Default = Config.ESP.NotVisibleColor,
-        Callback = function(v) Config.ESP.NotVisibleColor = v end
-    })
-
-    Tabs.ESP:AddColorpicker("ESPDefaultColor", {
-        Title = "Colore Default",
-        Default = Config.ESP.DefaultColor,
-        Callback = function(v) Config.ESP.DefaultColor = v end
-    })
-
-    Tabs.ESP:AddColorpicker("ESPNameColor", {
-        Title = "Colore Nome",
-        Default = Config.ESP.NameColor,
-        Callback = function(v) Config.ESP.NameColor = v end
-    })
-
-    Tabs.ESP:AddSection("Limiti")
-
-    Tabs.ESP:AddSlider("ESPMaxDist", {
-        Title = "Distanza Massima (studs)",
-        Min = 100,
-        Max = 2000,
-        Default = Config.ESP.MaxDistance,
-        Rounding = 0,
-        Callback = function(v) Config.ESP.MaxDistance = v end
-    })
-
-    Tabs.ESP:AddToggle("ESPTeamCheck", {
-        Title = "Ignora Squadra",
-        Default = Config.ESP.TeamCheck,
-        Callback = function(v) Config.ESP.TeamCheck = v end
-    })
-
-    -- ═══════════════════════════════════════
-    -- TAB: INVENTARIO
-    -- ═══════════════════════════════════════
-    Tabs.Inventory:AddSection("Generale")
-
-    Tabs.Inventory:AddToggle("InvEnabled", {
-        Title = "Abilita Inventory ESP",
-        Default = Config.InventoryESP.Enabled,
-        Callback = function(v) Config.InventoryESP.Enabled = v end
-    })
-
-    Tabs.Inventory:AddToggle("InvShowEquipped", {
-        Title = "Mostra Tool Equipaggiati (⚔)",
-        Default = Config.InventoryESP.ShowEquipped,
-        Callback = function(v) Config.InventoryESP.ShowEquipped = v end
-    })
-
-    Tabs.Inventory:AddToggle("InvShowBackpack", {
-        Title = "Mostra Tool nello Zaino (📦)",
-        Default = Config.InventoryESP.ShowBackpack,
-        Callback = function(v) Config.InventoryESP.ShowBackpack = v end
-    })
-
-    Tabs.Inventory:AddSection("Visualizzazione")
-
-    Tabs.Inventory:AddToggle("InvShowToolTip", {
-        Title = "Mostra ToolTip / Descrizione",
-        Default = Config.InventoryESP.ShowToolTip,
-        Callback = function(v) Config.InventoryESP.ShowToolTip = v end
-    })
-
-    Tabs.Inventory:AddToggle("InvShowDamage", {
-        Title = "Mostra Danno (se rilevato)",
-        Default = Config.InventoryESP.ShowDamage,
-        Callback = function(v) Config.InventoryESP.ShowDamage = v end
-    })
-
-    Tabs.Inventory:AddToggle("InvCleanNames", {
-        Title = "Pulisci Nomi (rimuovi prefissi)",
-        Default = Config.InventoryESP.CleanNames,
-        Callback = function(v) Config.InventoryESP.CleanNames = v end
-    })
-
-    Tabs.Inventory:AddSlider("InvMaxItems", {
-        Title = "Max Items Mostrati",
-        Min = 3,
-        Max = 15,
-        Default = Config.InventoryESP.MaxItems,
-        Rounding = 0,
-        Callback = function(v) Config.InventoryESP.MaxItems = v end
-    })
-
-    Tabs.Inventory:AddSection("Colori & Font")
-
-    Tabs.Inventory:AddColorpicker("InvTextColor", {
-        Title = "Colore Testo",
-        Default = Config.InventoryESP.TextColor,
-        Callback = function(v) Config.InventoryESP.TextColor = v end
-    })
-
-    Tabs.Inventory:AddColorpicker("InvEquippedColor", {
-        Title = "Colore Equipaggiato",
-        Default = Config.InventoryESP.EquippedColor,
-        Callback = function(v) Config.InventoryESP.EquippedColor = v end
-    })
-
-    Tabs.Inventory:AddSlider("InvTextSize", {
-        Title = "Dimensione Testo",
-        Min = 8,
-        Max = 24,
-        Default = Config.InventoryESP.TextSize,
-        Rounding = 0,
-        Callback = function(v) Config.InventoryESP.TextSize = v end
-    })
-
-    -- ═══════════════════════════════════════
-    -- TAB: AIMBOT
-    -- ═══════════════════════════════════════
-    Tabs.Aimbot:AddSection("Generale")
-
-    Tabs.Aimbot:AddToggle("AimEnabled", {
-        Title = "Abilita Aimbot",
-        Default = Config.Aimbot.Enabled,
-        Callback = function(v) Config.Aimbot.Enabled = v end
-    })
-
-    Tabs.Aimbot:AddDropdown("AimActivationMode", {
-        Title = "Modalita Attivazione",
-        Values = {"Hold", "Toggle"},
-        Default = Config.Aimbot.ActivationMode,
-        Multi = false,
-        Callback = function(v)
-            Config.Aimbot.ActivationMode = v
-            State.AimbotToggled = false
+    -- ──────────────────────────────────────────
+    -- 3. POPULATE AIMBOT
+    -- ──────────────────────────────────────────
+    tAim:AddSection("Stato & Attivazione")
+    tAim:AddToggle("Abilita Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
+    tAim:AddDropdown("Modalita Attivazione", {"Hold", "Toggle"}, Config.Aimbot.ActivationMode, function(v)
+        Config.Aimbot.ActivationMode = v
+        State.AimbotToggled = false
+    end)
+    tAim:AddDropdown("🔑 Tasto Aimbot", KeybindOptions, Config.Aimbot.KeybindName, function(v)
+        Config.Aimbot.KeybindName = v
+        local bind = KeybindMap[v]
+        if bind then
+            Config.Aimbot.ActivationKey = bind.Value
+            Config.Aimbot.ActivationKeyType = bind.Type
+            Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
         end
-    })
-
-    Tabs.Aimbot:AddDropdown("AimKeybind", {
-        Title = "🔑 Tasto Aimbot",
-        Values = KeybindOptions,
-        Default = Config.Aimbot.KeybindName,
-        Multi = false,
-        Callback = function(v)
-            Config.Aimbot.KeybindName = v
-            local bind = KeybindMap[v]
-            if bind then
-                Config.Aimbot.ActivationKey = bind.Value
-                Config.Aimbot.ActivationKeyType = bind.Type
-                Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
-            end
-        end
-    })
-
-    Tabs.Aimbot:AddToggle("AimAssistToggle", {
-        Title = "Aim Assist (piu leggero)",
-        Default = Config.Aimbot.AimAssist,
-        Callback = function(v) Config.Aimbot.AimAssist = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimAssistStrength", {
-        Title = "Forza Aim Assist",
-        Min = 4,
-        Max = 30,
-        Default = Config.Aimbot.AssistStrength,
-        Rounding = 0,
-        Callback = function(v) Config.Aimbot.AssistStrength = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimSilentAim", {
-        Title = "🔇 Silent Aim (sperimentale)",
-        Default = Config.Aimbot.SilentAim,
-        Callback = function(v) Config.Aimbot.SilentAim = v end
-    })
-
-    Tabs.Aimbot:AddSection("Targeting")
-
-    Tabs.Aimbot:AddDropdown("AimTargetPart", {
-        Title = "Parte del Corpo",
-        Values = {"Head", "UpperTorso", "HumanoidRootPart", "LowerTorso"},
-        Default = Config.Aimbot.TargetPart,
-        Multi = false,
-        Callback = function(v) Config.Aimbot.TargetPart = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimBonePriority", {
-        Title = "🦴 Auto Bone Priority (visibile)",
-        Default = Config.Aimbot.BonePriority,
-        Callback = function(v) Config.Aimbot.BonePriority = v end
-    })
-
-    Tabs.Aimbot:AddDropdown("AimTargetMode", {
-        Title = "Modalita Target",
-        Values = {"Crosshair", "Distance"},
-        Default = Config.Aimbot.TargetMode,
-        Multi = false,
-        Callback = function(v) Config.Aimbot.TargetMode = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimMaxDist", {
-        Title = "Distanza Massima",
-        Min = 100,
-        Max = 1000,
-        Default = Config.Aimbot.MaxDistance,
-        Rounding = 0,
-        Callback = function(v) Config.Aimbot.MaxDistance = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimWallCheck", {
-        Title = "Wall Check (controllo ostacoli)",
-        Default = Config.Aimbot.WallCheck,
-        Callback = function(v) Config.Aimbot.WallCheck = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimVisibleCheck", {
-        Title = "Check Visibilita",
-        Default = Config.Aimbot.VisibleCheck,
-        Callback = function(v) Config.Aimbot.VisibleCheck = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimTeamCheck", {
-        Title = "Ignora Squadra",
-        Default = Config.Aimbot.TeamCheck,
-        Callback = function(v) Config.Aimbot.TeamCheck = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimIgnoreKnocked", {
-        Title = "Ignora Knockati / Morti",
-        Default = Config.Aimbot.IgnoreKnocked,
-        Callback = function(v) Config.Aimbot.IgnoreKnocked = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimForcefieldCheck", {
-        Title = "Bypass / Ignora Forcefield",
-        Default = Config.Aimbot.ForcefieldCheck,
-        Callback = function(v) Config.Aimbot.ForcefieldCheck = v end
-    })
-
-    Tabs.Aimbot:AddSection("FOV")
-
-    Tabs.Aimbot:AddSlider("AimFOVRadius", {
-        Title = "Raggio FOV",
-        Min = 20,
-        Max = 500,
-        Default = Config.Aimbot.FOV,
-        Rounding = 0,
-        Callback = function(v) Config.Aimbot.FOV = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimShowFOV", {
-        Title = "Mostra Cerchio FOV",
-        Default = Config.Aimbot.ShowFOV,
-        Callback = function(v) Config.Aimbot.ShowFOV = v end
-    })
-
-    Tabs.Aimbot:AddColorpicker("AimFOVColor", {
-        Title = "Colore Cerchio FOV",
-        Default = Config.Aimbot.FOVColor,
-        Callback = function(v) Config.Aimbot.FOVColor = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimFOVSides", {
-        Title = "Lati Cerchio FOV (qualita)",
-        Min = 12,
-        Max = 64,
-        Default = Config.Aimbot.FOVSides,
-        Rounding = 0,
-        Callback = function(v) Config.Aimbot.FOVSides = v end
-    })
-
-    Tabs.Aimbot:AddSection("Smoothing & Umanizzazione")
-
-    Tabs.Aimbot:AddSlider("AimSmoothing", {
-        Title = "Smoothing",
-        Min = 1,
-        Max = 20,
-        Default = Config.Aimbot.Smoothness,
-        Rounding = 1,
-        Callback = function(v) Config.Aimbot.Smoothness = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimDynamicSmoothing", {
-        Title = "Dynamic Smoothing (distanza)",
-        Default = Config.Aimbot.DynamicSmoothing,
-        Callback = function(v) Config.Aimbot.DynamicSmoothing = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimMinSmoothing", {
-        Title = "Smoothing Minimo",
-        Min = 1,
-        Max = 10,
-        Default = Config.Aimbot.MinSmoothing,
-        Rounding = 1,
-        Callback = function(v) Config.Aimbot.MinSmoothing = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimMaxSmoothing", {
-        Title = "Smoothing Massimo",
-        Min = 5,
-        Max = 30,
-        Default = Config.Aimbot.MaxSmoothing,
-        Rounding = 0,
-        Callback = function(v) Config.Aimbot.MaxSmoothing = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimHumanize", {
-        Title = "Humanize (movimento naturale)",
-        Default = Config.Aimbot.Humanize,
-        Callback = function(v) Config.Aimbot.Humanize = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimHumanizeFactor", {
-        Title = "Intensita Humanize",
-        Min = 0.5,
-        Max = 5,
-        Default = Config.Aimbot.HumanizeFactor,
-        Rounding = 1,
-        Callback = function(v) Config.Aimbot.HumanizeFactor = v end
-    })
-
-    Tabs.Aimbot:AddSection("Predizione Movimento")
-
-    Tabs.Aimbot:AddToggle("AimPrediction", {
-        Title = "Predizione Attiva",
-        Default = Config.Aimbot.Prediction,
-        Callback = function(v) Config.Aimbot.Prediction = v end
-    })
-
-    Tabs.Aimbot:AddSlider("AimPredictionAmount", {
-        Title = "Intensita Predizione",
-        Min = 0.05,
-        Max = 0.5,
-        Default = Config.Aimbot.PredictionAmount,
-        Rounding = 2,
-        Callback = function(v) Config.Aimbot.PredictionAmount = v end
-    })
-
-    Tabs.Aimbot:AddSection("Indicatori Visivi")
-
-    Tabs.Aimbot:AddToggle("AimTargetDot", {
-        Title = "Punto sul Bersaglio",
-        Default = Config.Aimbot.TargetDot,
-        Callback = function(v) Config.Aimbot.TargetDot = v end
-    })
-
-    Tabs.Aimbot:AddColorpicker("AimTargetDotColor", {
-        Title = "Colore Punto Bersaglio",
-        Default = Config.Aimbot.TargetDotColor,
-        Callback = function(v) Config.Aimbot.TargetDotColor = v end
-    })
-
-    Tabs.Aimbot:AddToggle("AimSnapLine", {
-        Title = "Snap Line (linea al bersaglio)",
-        Default = Config.Aimbot.SnapLine,
-        Callback = function(v) Config.Aimbot.SnapLine = v end
-    })
-
-    Tabs.Aimbot:AddColorpicker("AimSnapLineColor", {
-        Title = "Colore Snap Line",
-        Default = Config.Aimbot.SnapLineColor,
-        Callback = function(v) Config.Aimbot.SnapLineColor = v end
-    })
-
-    -- ═══════════════════════════════════════
-    -- TAB: TRIGGERBOT
-    -- ═══════════════════════════════════════
-    Tabs.Triggerbot:AddSection("Generale")
-
-    Tabs.Triggerbot:AddToggle("TrigEnabled", {
-        Title = "Abilita Triggerbot",
-        Default = Config.Triggerbot.Enabled,
-        Callback = function(v) Config.Triggerbot.Enabled = v end
-    })
-
-    Tabs.Triggerbot:AddDropdown("TrigActivationMode", {
-        Title = "Modalita Attivazione",
-        Values = {"Hold", "Toggle", "Always"},
-        Default = Config.Triggerbot.ActivationMode,
-        Multi = false,
-        Callback = function(v) Config.Triggerbot.ActivationMode = v end
-    })
-
-    Tabs.Triggerbot:AddDropdown("TrigKeybind", {
-        Title = "🔑 Tasto Triggerbot",
-        Values = KeybindOptions,
-        Default = Config.Triggerbot.KeybindName,
-        Multi = false,
-        Callback = function(v)
-            Config.Triggerbot.KeybindName = v
-            local bind = KeybindMap[v]
-            if bind then
-                Config.Triggerbot.ActivationKey = bind.Value
-                Config.Triggerbot.ActivationKeyType = bind.Type
-                Notify.Send("Triggerbot Key: " .. v, C3(255, 200, 50), 2)
-            end
-        end
-    })
-
-    Tabs.Triggerbot:AddSection("Fire Mode")
-
-    Tabs.Triggerbot:AddToggle("TrigAutoShoot", {
-        Title = "Auto Shoot (sparo continuo)",
-        Default = Config.Triggerbot.AutoShoot,
-        Callback = function(v) Config.Triggerbot.AutoShoot = v end
-    })
-
-    Tabs.Triggerbot:AddToggle("TrigSpray", {
-        Title = "Spray Mode (full auto simulato)",
-        Default = Config.Triggerbot.Spray,
-        Callback = function(v) Config.Triggerbot.Spray = v end
-    })
-
-    Tabs.Triggerbot:AddSlider("TrigSprayRate", {
-        Title = "Spray Rate (delay tra colpi)",
-        Min = 0,
-        Max = 0.1,
-        Default = Config.Triggerbot.SprayRate,
-        Rounding = 3,
-        Callback = function(v) Config.Triggerbot.SprayRate = v end
-    })
-
-    Tabs.Triggerbot:AddSection("FOV Triggerbot")
-
-    Tabs.Triggerbot:AddToggle("TrigUseFOV", {
-        Title = "Usa FOV (spara se nemico nel cerchio)",
-        Default = Config.Triggerbot.UseFOV,
-        Callback = function(v) Config.Triggerbot.UseFOV = v end
-    })
-
-    Tabs.Triggerbot:AddSlider("TrigFOVRadius", {
-        Title = "FOV Raggio",
-        Min = 20,
-        Max = 300,
-        Default = Config.Triggerbot.FOV,
-        Rounding = 0,
-        Callback = function(v) Config.Triggerbot.FOV = v end
-    })
-
-    Tabs.Triggerbot:AddToggle("TrigShowFOV", {
-        Title = "Mostra Cerchio FOV",
-        Default = Config.Triggerbot.ShowFOV,
-        Callback = function(v) Config.Triggerbot.ShowFOV = v end
-    })
-
-    Tabs.Triggerbot:AddColorpicker("TrigFOVColor", {
-        Title = "Colore FOV Triggerbot",
-        Default = Config.Triggerbot.FOVColor,
-        Callback = function(v) Config.Triggerbot.FOVColor = v end
-    })
-
-    Tabs.Triggerbot:AddSection("Targeting")
-
-    Tabs.Triggerbot:AddSlider("TrigMaxDist", {
-        Title = "Distanza Massima",
-        Min = 50,
-        Max = 500,
-        Default = Config.Triggerbot.MaxDistance,
-        Rounding = 0,
-        Callback = function(v) Config.Triggerbot.MaxDistance = v end
-    })
-
-    Tabs.Triggerbot:AddSlider("TrigHitChance", {
-        Title = "Hit Chance (% probabilita)",
-        Min = 1,
-        Max = 100,
-        Default = Config.Triggerbot.HitChance,
-        Rounding = 0,
-        Callback = function(v) Config.Triggerbot.HitChance = v end
-    })
-
-    Tabs.Triggerbot:AddToggle("TrigHeadshotOnly", {
-        Title = "Solo Headshot",
-        Default = Config.Triggerbot.HeadshotOnly,
-        Callback = function(v) Config.Triggerbot.HeadshotOnly = v end
-    })
-
-    Tabs.Triggerbot:AddToggle("TrigTeamCheck", {
-        Title = "Ignora Squadra",
-        Default = Config.Triggerbot.TeamCheck,
-        Callback = function(v) Config.Triggerbot.TeamCheck = v end
-    })
-
-    Tabs.Triggerbot:AddSection("Burst Mode")
-
-    Tabs.Triggerbot:AddToggle("TrigBurstMode", {
-        Title = "Burst Mode",
-        Default = Config.Triggerbot.BurstMode,
-        Callback = function(v) Config.Triggerbot.BurstMode = v end
-    })
-
-    Tabs.Triggerbot:AddSlider("TrigBurstCount", {
-        Title = "Colpi per Burst",
-        Min = 2,
-        Max = 8,
-        Default = Config.Triggerbot.BurstCount,
-        Rounding = 0,
-        Callback = function(v) Config.Triggerbot.BurstCount = v end
-    })
-
-    Tabs.Triggerbot:AddSlider("TrigBurstDelay", {
-        Title = "Delay tra Colpi",
-        Min = 0.01,
-        Max = 0.15,
-        Default = Config.Triggerbot.BurstDelay,
-        Rounding = 2,
-        Callback = function(v) Config.Triggerbot.BurstDelay = v end
-    })
-
-    -- ═══════════════════════════════════════
-    -- TAB: PLAYER
-    -- ═══════════════════════════════════════
-    Tabs.Player:AddSection("Velocita")
-
-    Tabs.Player:AddToggle("PlayerSpeedToggle", {
-        Title = "🏃 Speed Hack",
-        Default = Config.Player.SpeedEnabled,
-        Callback = function(v) Config.Player.SpeedEnabled = v end
-    })
-
-    Tabs.Player:AddSlider("PlayerSpeedSlider", {
-        Title = "WalkSpeed",
-        Min = 16,
-        Max = 200,
-        Default = Config.Player.WalkSpeed,
-        Rounding = 0,
-        Callback = function(v) Config.Player.WalkSpeed = v end
-    })
-
-    Tabs.Player:AddSection("Salto")
-
-    Tabs.Player:AddToggle("PlayerJumpToggle", {
-        Title = "🦘 Jump Hack",
-        Default = Config.Player.JumpEnabled,
-        Callback = function(v) Config.Player.JumpEnabled = v end
-    })
-
-    Tabs.Player:AddSlider("PlayerJumpSlider", {
-        Title = "JumpPower",
-        Min = 50,
-        Max = 300,
-        Default = Config.Player.JumpPower,
-        Rounding = 0,
-        Callback = function(v) Config.Player.JumpPower = v end
-    })
-
-    Tabs.Player:AddToggle("PlayerInfJumpToggle", {
-        Title = "∞ Infinite Jump",
-        Default = Config.Player.InfiniteJump,
-        Callback = function(v) Config.Player.InfiniteJump = v end
-    })
-
-    Tabs.Player:AddSection("Movimento Speciale")
-
-    Tabs.Player:AddToggle("PlayerNoclipToggle", {
-        Title = "👻 Noclip (attraversa muri)",
-        Default = Config.Player.NoclipEnabled,
-        Callback = function(v) Config.Player.NoclipEnabled = v end
-    })
-
-    Tabs.Player:AddToggle("PlayerFlyToggle", {
-        Title = "🦅 Fly (WASD + Space/Shift)",
-        Default = Config.Player.FlyEnabled,
-        Callback = function(v)
-            Config.Player.FlyEnabled = v
-            PlayerMods.SetupFly()
-            if v then
-                Notify.Send("FLY ON - WASD per muoverti", C3(50, 200, 255), 3)
-            else
-                Notify.Send("FLY OFF", C3(200, 200, 200), 2)
-            end
-        end
-    })
-
-    Tabs.Player:AddSlider("PlayerFlySpeed", {
-        Title = "Velocita Volo",
-        Min = 10,
-        Max = 200,
-        Default = Config.Player.FlySpeed,
-        Rounding = 0,
-        Callback = function(v) Config.Player.FlySpeed = v end
-    })
-
-    -- ═══════════════════════════════════════
-    -- TAB: SETTINGS
-    -- ═══════════════════════════════════════
-    Tabs.Settings:AddSection("Interfaccia & HUD")
-
-    Tabs.Settings:AddToggle("MiscWatermark", {
-        Title = "Mostra Watermark",
-        Default = Config.Misc.ShowWatermark,
-        Callback = function(v) Config.Misc.ShowWatermark = v end
-    })
-
-    Tabs.Settings:AddToggle("MiscKillFeed", {
-        Title = "Mostra Kill Feed",
-        Default = Config.Misc.ShowKillFeed,
-        Callback = function(v) Config.Misc.ShowKillFeed = v end
-    })
-
-    Tabs.Settings:AddParagraph({
-        Title = "Comandi Menu",
-        Content = "Premi G per aprire o nascondere il menu.\nInterfaccia Fluent ultra-leggera, 60fps locked."
-    })
-
-    Tabs.Settings:AddSection("Audio & Effetti")
-
-    Tabs.Settings:AddToggle("MiscHitSound", {
-        Title = "🔊 Hit Sound",
-        Default = Config.Misc.HitSound,
-        Callback = function(v) Config.Misc.HitSound = v end
-    })
-
-    Tabs.Settings:AddSection("Utilita & Protezione")
-
-    Tabs.Settings:AddToggle("MiscAntiAFK", {
-        Title = "🛡️ Anti-AFK",
-        Default = Config.Misc.AntiAFK,
-        Callback = function(v)
-            Config.Misc.AntiAFK = v
-            PlayerMods.SetupAntiAFK()
-        end
-    })
-
-    Tabs.Settings:AddToggle("MiscFullbright", {
-        Title = "💡 Fullbright (rimuovi ombre)",
-        Default = Config.Misc.Fullbright,
-        Callback = function(v)
-            Config.Misc.Fullbright = v
-            PlayerMods.SetupFullbright()
-        end
-    })
-
-    Tabs.Settings:AddSection("Statistiche Sessione")
-
-    Tabs.Settings:AddButton({
-        Title = "🔄 Reset Stats",
-        Description = "Azzera contatore Kills e Hits",
-        Callback = function()
-            State.KillCount = 0
-            State.HitCount = 0
-            State.SessionStart = Tick()
-            Notify.Send("Stats resettate!", C3(200, 200, 200), 2)
-        end
-    })
-
-    Tabs.Settings:AddSection("Pericolo / Unload")
-
-    Tabs.Settings:AddButton({
-        Title = "❌ UNLOAD (Rimuovi Phantom)",
-        Description = "Chiude il menu e rimuove tutti i componenti di gioco",
-        Callback = function()
-            State.Running = false
-        end
-    })
-
-    -- Config & Interface Addons (Fluent)
-    pcall(function()
-        if InterfaceManager and SaveManager then
-            InterfaceManager:SetLibrary(Fluent)
-            SaveManager:SetLibrary(Fluent)
-            SaveManager:IgnoreThemeSettings()
-            SaveManager:SetIgnoreIndexes({})
-            InterfaceManager:SetFolder("PhantomSuite")
-            SaveManager:SetFolder("PhantomSuite/BlockSpin")
-            InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-            SaveManager:BuildConfigSection(Tabs.Settings)
+    end)
+    tAim:AddToggle("Silent Aim (Sperimentale)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
+    tAim:AddToggle("Aim Assist Leggero", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
+    tAim:AddSlider("Forza Aim Assist", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
+
+    tAim:AddSection("Targeting")
+    tAim:AddDropdown("Parte del Corpo", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
+    tAim:AddToggle("Priorita Ossa Visibili", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
+    tAim:AddDropdown("Priorita Bersaglio", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
+    tAim:AddToggle("Controllo Ostacoli (Wall Check)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
+    tAim:AddToggle("Ignora Squadra", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
+    tAim:AddToggle("Ignora Morti / Atterrati", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
+
+    tAim:AddSection("FOV & Precisione")
+    tAim:AddSlider("Raggio FOV", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
+    tAim:AddToggle("Mostra Cerchio FOV", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
+    tAim:AddColorPicker("Colore Cerchio FOV", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
+    tAim:AddSlider("Smoothing (Fluidita)", 1, 20, Config.Aimbot.Smoothness, "", 0.5, function(v) Config.Aimbot.Smoothness = v end)
+    tAim:AddToggle("Umanizza Movimento", Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
+    tAim:AddToggle("Predizione Movimento", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
+
+    -- ──────────────────────────────────────────
+    -- 4. POPULATE TRIGGERBOT
+    -- ──────────────────────────────────────────
+    tTrig:AddSection("Generale")
+    tTrig:AddToggle("Abilita Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
+    tTrig:AddDropdown("Modalita", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
+    tTrig:AddDropdown("🔑 Tasto Triggerbot", KeybindOptions, Config.Triggerbot.KeybindName, function(v)
+        Config.Triggerbot.KeybindName = v
+        local bind = KeybindMap[v]
+        if bind then
+            Config.Triggerbot.ActivationKey = bind.Value
+            Config.Triggerbot.ActivationKeyType = bind.Type
+            Notify.Send("Triggerbot Key: " .. v, C3(255, 200, 50), 2)
         end
     end)
 
-    Window:SelectTab(1)
-    Notify.Send("Fluent GUI Caricata! Premi G", C3(180, 80, 255), 3)
+    tTrig:AddSection("Parametri Sparo")
+    tTrig:AddToggle("Auto Shoot Continuo", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
+    tTrig:AddToggle("Spray Mode", Config.Triggerbot.Spray, function(v) Config.Triggerbot.Spray = v end)
+    tTrig:AddSlider("Delay tra Colpi", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
+    tTrig:AddSlider("Probabilita Colpo (Hit Chance)", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
+    tTrig:AddToggle("Solo Headshot", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
+
+    -- ──────────────────────────────────────────
+    -- 5. POPULATE PLAYER
+    -- ──────────────────────────────────────────
+    tPlayer:AddSection("Movimento")
+    tPlayer:AddToggle("🏃 Speed Hack", Config.Player.SpeedEnabled, function(v) Config.Player.SpeedEnabled = v end)
+    tPlayer:AddSlider("Velocita Corsa", 16, 200, Config.Player.WalkSpeed, " studs", 2, function(v) Config.Player.WalkSpeed = v end)
+    tPlayer:AddToggle("🦘 Super Salto", Config.Player.JumpEnabled, function(v) Config.Player.JumpEnabled = v end)
+    tPlayer:AddSlider("Forza Salto", 50, 300, Config.Player.JumpPower, "", 5, function(v) Config.Player.JumpPower = v end)
+    tPlayer:AddToggle("∞ Infinite Jump", Config.Player.InfiniteJump, function(v) Config.Player.InfiniteJump = v end)
+
+    tPlayer:AddSection("Bypass Movimento")
+    tPlayer:AddToggle("👻 Noclip (Attraversa Muri)", Config.Player.NoclipEnabled, function(v) Config.Player.NoclipEnabled = v end)
+    tPlayer:AddToggle("🦅 Volo (WASD + Space/Shift)", Config.Player.FlyEnabled, function(v)
+        Config.Player.FlyEnabled = v
+        PlayerMods.SetupFly()
+        if v then
+            Notify.Send("FLY ATTIVO - WASD per muoverti", C3(50, 200, 255), 3)
+        else
+            Notify.Send("FLY DISATTIVATO", C3(200, 200, 200), 2)
+        end
+    end)
+    tPlayer:AddSlider("Velocita Volo", 10, 200, Config.Player.FlySpeed, "", 5, function(v) Config.Player.FlySpeed = v end)
+
+    -- ──────────────────────────────────────────
+    -- 6. POPULATE SETTINGS
+    -- ──────────────────────────────────────────
+    tSettings:AddSection("Interfaccia")
+    tSettings:AddToggle("Mostra Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
+    tSettings:AddToggle("Suono Uccisione (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
+
+    tSettings:AddSection("Utility")
+    tSettings:AddToggle("🛡️ Anti-AFK", Config.Misc.AntiAFK, function(v)
+        Config.Misc.AntiAFK = v
+        PlayerMods.SetupAntiAFK()
+    end)
+    tSettings:AddToggle("💡 Fullbright (Luce Massima)", Config.Misc.Fullbright, function(v)
+        Config.Misc.Fullbright = v
+        PlayerMods.SetupFullbright()
+    end)
+
+    tSettings:AddSection("Comandi")
+    tSettings:AddButton("🔄 Reset Statistiche Sessione", "", function()
+        State.KillCount = 0
+        State.HitCount = 0
+        State.SessionStart = Tick()
+        Notify.Send("Stats Azzerate!", C3(200, 200, 200), 2)
+    end)
+
+    tSettings:AddButton("❌ UNLOAD (Chiudi Tutto)", "", function()
+        State.Running = false
+    end)
+
+    -- Avvia sulla prima tab
+    SwitchTab("ESP")
+    State.GUIVisible = true
+
+    Notify.Send("PHANTOM v3.8 Native GUI Pronta! [G]", C3(168, 85, 247), 4)
+end
+
+PhantomUI.Build = BuildNativeGUI
+PhantomUI.Toggle = function()
+    if NativeGUI and NativeGUI:FindFirstChild("MainFrame") then
+        local main = NativeGUI.MainFrame
+        State.GUIVisible = not State.GUIVisible
+        main.Visible = State.GUIVisible
+    end
+end
+PhantomUI.Destroy = function()
+    pcall(function()
+        if NativeGUI then NativeGUI:Destroy() end
+    end)
+end
+
+-- Avvia GUI Nativa
+task.spawn(function()
+    local ok, err = pcall(PhantomUI.Build)
+    if not ok then
+        warn("[PHANTOM] Native GUI Error: " .. tostring(err))
+        Notify.Send("Errore GUI: " .. tostring(err), C3(255, 60, 60), 6)
+    end
 end)
 
-if not guiOk then
-    warn("[PHANTOM] Fluent GUI Error: " .. tostring(guiErr))
-    Notify.Send("GUI Error - vedi console (F9)", C3(255, 0, 0), 5)
-end
--- ═══════════════════════════════════════════════════
 -- INPUT HANDLER (v3: updated for custom keybinds)
 -- ═══════════════════════════════════════════════════
 local function matchesBind(input, bindValue, bindType)
@@ -2663,9 +2591,9 @@ local function OnInputBegan(input, gp)
         return
     end
 
-    -- G = Toggle GUI (Fluent handles MinimizeKey natively)
+    -- G = Toggle GUI
     if input.KeyCode == Config.Misc.GUIToggleKey then
-        State.GUIVisible = not State.GUIVisible
+        PhantomUI.Toggle()
         return
     end
 
@@ -2914,8 +2842,8 @@ local function Unload()
     for _, d in pairs(_wm) do pcall(function() d:Remove() end) end
     for _, n in ipairs(State.Notifications) do pcall(function() n.Drawing:Remove() end) end
 
-    -- Destroy Fluent
-    pcall(function() Fluent:Destroy() end)
+    -- Destroy GUI
+    pcall(function() PhantomUI.Destroy() end)
 
     Notify.Send("PHANTOM Unloaded!", C3(255, 80, 80), 2)
 end
@@ -2956,9 +2884,9 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PHANTOM v3.7 Loaded!", C3(180, 80, 255), 4)
-    Notify.Send("Premi G per il menu Fluent", C3(200, 200, 200), 5)
-    Notify.Send("v3.7: Fluent UI — 60 FPS, Fluido, Zero Lag!", C3(50, 255, 100), 6)
+    Notify.Send("PHANTOM v3.8 Native Loaded!", C3(168, 85, 247), 4)
+    Notify.Send("Premi G per aprire/chiudere il menu", C3(200, 200, 200), 5)
+    Notify.Send("v3.8: Native Cyber UI — 60 FPS, Zero Bugs!", C3(60, 255, 120), 6)
 end
 
 local ok, err = pcall(Init)
