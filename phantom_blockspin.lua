@@ -1,4 +1,4 @@
-﻿--[[
+--[[
     ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
     Ôòæ     PRV SERVICE v8.5 ┬À BlockSpin Master Cyber Edition             Ôòæ
     Ôòæ     Mouse Unlock ┬À Tab Fix ┬À Floating Pill ┬À Built for Xeno   Ôòæ
@@ -1212,28 +1212,37 @@ end
 local function RunGetsenvScan()
     if _genvDone then return end
     _genvDone = true
-    pcall(function()
+    task.spawn(function()
+        -- Scansiona TUTTI gli script — nessun filtro sul nome
         for _, sc in ipairs(game:GetDescendants()) do
             pcall(function()
-                if (sc:IsA("LocalScript") or sc:IsA("ModuleScript")) and _looksWS(sc.Name) then
-                    local ok2, env = pcall(getsenv, sc)
-                    if ok2 and type(env) == "table" then
+                if sc:IsA("LocalScript") or sc:IsA("ModuleScript") then
+                    -- Metodo 1: getsenv (variabili ambiente)
+                    local ok1, env = pcall(getsenv, sc)
+                    if ok1 and type(env) == "table" then
                         _extractIDMap(env, 0)
-                        for varN, varV in pairs(env) do
-                            if type(varN) == "string" then
-                                local vn = varN:lower()
-                                if vn:find("weapon") or vn:find("item") or vn:find("catalog") or vn:find("data") then
-                                    _extractIDMap(varV, 1)
-                                end
+                        for _, varV in pairs(env) do
+                            if type(varV) == "table" then
+                                _extractIDMap(varV, 1)
+                            end
+                        end
+                    end
+                    -- Metodo 2: getupvalues (variabili upvalue delle closures)
+                    local ok2, ups = pcall(getupvalues, sc)
+                    if ok2 and type(ups) == "table" then
+                        for _, uv in pairs(ups) do
+                            if type(uv) == "table" then
+                                _extractIDMap(uv, 1)
                             end
                         end
                     end
                 end
             end)
+            task.wait() -- yield ogni script per non laggare
         end
     end)
 end
-task.delay(2, RunGetsenvScan)
+task.delay(3, RunGetsenvScan)
 
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
