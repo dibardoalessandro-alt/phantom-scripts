@@ -443,31 +443,29 @@ end
 -- Colors: Legendary = Gold, Epic = Purple, Rare = Cyan, Uncommon = Green, Utility = Mint, Common = Silver
 -- ═══════════════════════════════════════════════════
 local WEAPON_DB = {
+    -- ── MYTHIC (Crimson Red / #EF4444) ──
+    { name = "Anaconda", rarity = "Mythic", color = C3(239, 68, 68), keys = {"anaconda", "colt anaconda", "revolver", "python", "magnum"} },
+
     -- ── LEGENDARY (Gold / #FFBE14) ──
+    { name = "Remington", rarity = "Legendary", color = C3(255, 190, 20), keys = {"remington", "r870", "870", "pump"} },
+    { name = "MP5", rarity = "Legendary", color = C3(255, 190, 20), keys = {"mp5sd", "mp5k", "mp5"} },
     { name = "RPG", rarity = "Legendary", color = C3(255, 190, 20), keys = {"rpg", "rocket launcher", "missile launcher", "bazooka"} },
     { name = "Minigun", rarity = "Legendary", color = C3(255, 190, 20), keys = {"minigun", "microgun"} },
     { name = "Flamethrower", rarity = "Legendary", color = C3(255, 190, 20), keys = {"flamethrower", "lanciafiamme"} },
-    { name = "Golden Deagle", rarity = "Legendary", color = C3(255, 190, 20), keys = {"golden deagle", "gold deagle"} },
 
     -- ── EPIC (Purple / #A855F7) ──
+    { name = "Double Barrel", rarity = "Epic", color = C3(168, 85, 247), keys = {"double barrel", "doublebarrel", "double-barrel", "db"} },
     { name = "G3", rarity = "Epic", color = C3(168, 85, 247), keys = {"g3a3", "hk g3", "g3"} },
     { name = "Barrett .50 Cal", rarity = "Epic", color = C3(168, 85, 247), keys = {"barrett", "50cal", "50 cal", "m82"} },
-    { name = "Sniper Rifle", rarity = "Epic", color = C3(168, 85, 247), keys = {"sniper rifle", "sniper", "awp", "dragunov", "svd", "r700", "hunting rifle"} },
-    { name = "Desert Eagle", rarity = "Epic", color = C3(168, 85, 247), keys = {"desert eagle", "deagle"} },
-    { name = "Katana", rarity = "Epic", color = C3(168, 85, 247), keys = {"katana", "samurai sword"} },
-    { name = "Tactical Pan", rarity = "Epic", color = C3(168, 85, 247), keys = {"tactical pan", "frying pan", "padella", "pan"} },
+    { name = "Sniper Rifle", rarity = "Epic", color = C3(168, 85, 247), keys = {"sniper rifle", "sniper", "dragunov", "svd", "r700", "hunting rifle"} },
     { name = "Quantum Hack Tool", rarity = "Epic", color = C3(168, 85, 247), keys = {"quantum hack", "hack tool", "hacker tool", "quantum", "atm hack"} },
 
     -- ── RARE (Cyan / #38BDF8) ──
-    { name = "Remington 870", rarity = "Rare", color = C3(56, 189, 248), keys = {"remington 870", "remington", "r870", "870"} },
-    { name = "Double Barrel", rarity = "Rare", color = C3(56, 189, 248), keys = {"double barrel", "doublebarrel", "double-barrel"} },
-    { name = "Sawed-Off", rarity = "Rare", color = C3(56, 189, 248), keys = {"sawed-off", "sawed off", "sawedoff", "sawn off"} },
-    { name = "SPAS-12", rarity = "Rare", color = C3(56, 189, 248), keys = {"spas-12", "spas12", "spas"} },
-    { name = "Shotgun", rarity = "Rare", color = C3(56, 189, 248), keys = {"shotgun", "mossberg", "pump shotgun"} },
-    { name = "AC-9", rarity = "Rare", color = C3(56, 189, 248), keys = {"ac-9", "ac9"} },
-    { name = "MP5", rarity = "Rare", color = C3(56, 189, 248), keys = {"mp5sd", "mp5k", "mp5"} },
-    { name = "AK-47", rarity = "Rare", color = C3(56, 189, 248), keys = {"ak-47", "ak47", "akm", "draco"} },
+    { name = "Sawed-Off", rarity = "Rare", color = C3(56, 189, 248), keys = {"sawed-off", "sawed off", "sawedoff", "sawn off", "sawn-off", "sawed", "sawn"} },
+    { name = "Frying Pan", rarity = "Rare", color = C3(56, 189, 248), keys = {"frying pan", "frying", "tactical pan", "padella", "pan"} },
+    { name = "AK-47", rarity = "Rare", color = C3(56, 189, 248), keys = {"ak-47", "ak47", "akm", "ak", "draco"} },
     { name = "M16", rarity = "Rare", color = C3(56, 189, 248), keys = {"m16a4", "m16a2", "m16"} },
+    { name = "AC-9", rarity = "Rare", color = C3(56, 189, 248), keys = {"ac-9", "ac9"} },
     { name = "M4A1", rarity = "Rare", color = C3(56, 189, 248), keys = {"m4a1", "m4", "ar-15", "ar15", "hk416", "416"} },
     { name = "SCAR", rarity = "Rare", color = C3(56, 189, 248), keys = {"scar-l", "scar-h", "scar"} },
     { name = "Vector", rarity = "Rare", color = C3(56, 189, 248), keys = {"kriss vector", "vector"} },
@@ -476,22 +474,22 @@ local WEAPON_DB = {
     { name = "Energy Shot", rarity = "Rare", color = C3(250, 204, 21), keys = {"energy shot", "energy drink", "energy", "booster", "stim"} },
 
     -- ── UNCOMMON (Green / #22C55E) ──
-    { name = "Hudson H9", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"hudson h9", "hudson", "h9"} },
-    { name = "Glock 17", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"glock 17", "glock 18", "glock 19", "glock", "g17", "g18", "g19"} },
-    { name = "Sig P226", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"sig p226", "p226", "sig sauer", "226"} },
+    { name = "H9", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"hudson h9", "h9", "hudson"} },
+    { name = "Glock", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"glock 17", "glock 18", "glock 19", "glock", "g17", "g18", "g19"} },
+    { name = "P226", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"sig p226", "p226", "sig sauer", "226"} },
     { name = "Uzi", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"micro uzi", "uzi"} },
     { name = "MAC-10", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"mac-10", "mac10", "mac 10"} },
     { name = "TEC-9", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"tec-9", "tec9"} },
-    { name = "Revolver", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"magnum", "python", "revolver", "colt", "1911", "m1911", "beretta"} },
     { name = "Lockpick", rarity = "Uncommon", color = C3(34, 197, 94), keys = {"lockpick", "grimaldello"} },
-    { name = "C4 / Grenade", rarity = "Uncommon", color = C3(251, 146, 60), keys = {"grenade", "c4", "granata", "pipe bomb", "dynamite", "molotov"} },
+    { name = "C4", rarity = "Uncommon", color = C3(251, 146, 60), keys = {"c4", "grenade", "granata", "pipe bomb", "dynamite", "molotov"} },
 
     -- ── UTILITY / MEDICAL (Mint / #34D399) ──
+    { name = "Blood Bag", rarity = "Utility", color = C3(52, 211, 153), keys = {"blood bag", "bloodbag", "sacca di sangue", "blood"} },
     { name = "Medkit", rarity = "Utility", color = C3(52, 211, 153), keys = {"medkit", "medical kit", "first aid"} },
     { name = "Bandage", rarity = "Utility", color = C3(52, 211, 153), keys = {"bandage", "bende", "benda"} },
-    { name = "Blood Bag", rarity = "Utility", color = C3(52, 211, 153), keys = {"blood bag", "bloodbag", "sacca di sangue", "blood"} },
 
     -- ── COMMON / MELEE (Silver / #D1D5DB) ──
+    { name = "Machete", rarity = "Common", color = C3(209, 213, 219), keys = {"machete", "katana", "sword"} },
     { name = "Tactical Axe", rarity = "Common", color = C3(209, 213, 219), keys = {"tactical axe", "ascia tattica", "axe", "ascia", "hatchet"} },
     { name = "Combat Knife", rarity = "Common", color = C3(209, 213, 219), keys = {"combat knife", "tactical knife", "coltello tattico", "coltello da combattimento", "knife", "coltello", "dagger"} },
     { name = "Baseball Bat", rarity = "Common", color = C3(209, 213, 219), keys = {"baseball bat", "baseball", "bat", "mazza"} },
@@ -501,6 +499,19 @@ local WEAPON_DB = {
 function Util.MatchKnownWeapon(text)
     if not text or type(text) ~= "string" then return nil, nil end
     local lower = text:lower()
+
+    -- Special BlockSpin Shotgun disambiguation:
+    -- In BlockSpin, there are only 3 shotguns: Double Barrel (Epic), Sawed-Off (Rare), Remington (Legendary)
+    if lower == "shotgun" or lower:find("shotgun", 1, true) then
+        if lower:find("double") or lower:find("barrel") or lower:find("db") then
+            return "Double Barrel", { name = "Double Barrel", rarity = "Epic", color = C3(168, 85, 247) }
+        elseif lower:find("sawed") or lower:find("sawn") then
+            return "Sawed-Off", { name = "Sawed-Off", rarity = "Rare", color = C3(56, 189, 248) }
+        else
+            return "Remington", { name = "Remington", rarity = "Legendary", color = C3(255, 190, 20) }
+        end
+    end
+
     for _, w in ipairs(WEAPON_DB) do
         for _, k in ipairs(w.keys) do
             if lower == k or lower:find(k, 1, true) then
@@ -546,7 +557,35 @@ end
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
-    -- Priority 1: Check tool.Name directly if it's a valid string (most BlockSpin weapons are named directly!)
+    -- Check if tool is generic "Shotgun": inspect descendants first to find which of the 3 shotguns it is!
+    local rawLower = (type(tool.Name) == "string") and tool.Name:lower() or ""
+    if rawLower == "shotgun" or rawLower:find("shotgun") then
+        local foundType = nil
+        pcall(function()
+            for _, desc in ipairs(tool:GetDescendants()) do
+                local dn = desc.Name:lower()
+                if dn:find("sawed") or dn:find("sawn") then
+                    foundType = "Sawed-Off"
+                    return
+                elseif dn:find("double") or dn:find("db") then
+                    foundType = "Double Barrel"
+                    return
+                elseif dn:find("remington") or dn:find("870") then
+                    foundType = "Remington"
+                    return
+                end
+            end
+        end)
+        if foundType == "Sawed-Off" then
+            return "Sawed-Off", "Rare", C3(56, 189, 248)
+        elseif foundType == "Double Barrel" then
+            return "Double Barrel", "Epic", C3(168, 85, 247)
+        else
+            return "Remington", "Legendary", C3(255, 190, 20)
+        end
+    end
+
+    -- Priority 1: Check tool.Name directly if it's a valid string
     if not Util.IsGarbageName(tool.Name) then
         local matchName, matchObj = Util.MatchKnownWeapon(tool.Name)
         if matchName and matchObj then
@@ -558,7 +597,6 @@ function Util.ResolveToolInfo(tool)
             if cm and co then
                 return cm, co.rarity, co.color
             end
-            -- Valid name directly from game, show as is!
             return cleaned, "Common", C3(209, 213, 219)
         end
     end
@@ -658,7 +696,6 @@ function Util.ResolveToolInfo(tool)
     end)
     if strValMatch then return strValMatch.name, strValMatch.rarity, strValMatch.color end
 
-    -- Nothing valid found - return nil (Never show fake abbreviations or numbers!)
     return nil, nil, nil
 end
 
@@ -1181,7 +1218,7 @@ function ESP.Update(player, d)
                 end
             end
 
-            -- Inventory ESP (RichText Colored Weapons by Rarity - Clean, 100% Readable, Zero Broken Images)
+                        -- Inventory ESP (RichText Colored Weapons by Rarity - Clean, 100% Readable, Zero Broken Images)
             if Config.InventoryESP.Enabled and d.InventoryLabel then
                 local now = Tick()
                 if not d._lastInvCheck or (now - d._lastInvCheck > 0.25) then
@@ -1189,6 +1226,7 @@ function ESP.Update(player, d)
                     local formattedItems = {}
                     local itemCount = 0
 
+                    -- Equipped weapon (always first with [E])
                     if Config.InventoryESP.ShowEquipped then
                         for _, c in ipairs(char:GetChildren()) do
                             if c:IsA("Tool") and itemCount < (Config.InventoryESP.MaxItems or 6) then
@@ -1205,21 +1243,40 @@ function ESP.Update(player, d)
                         end
                     end
 
+                    -- Backpack items with smart quantity grouping (e.g. Lockpick x3 instead of duplicates!)
                     if Config.InventoryESP.ShowBackpack then
                         local bp = player:FindFirstChild("Backpack")
                         if bp then
+                            local bpCounts = {}
+                            local bpOrder = {}
+                            local bpDetails = {}
+
                             for _, c in ipairs(bp:GetChildren()) do
                                 if c:IsA("Tool") and itemCount < (Config.InventoryESP.MaxItems or 6) then
                                     local details = Util.GetWeaponDetails(c, false)
                                     if details and details.name then
-                                        local r, g, b = math.floor(details.color.R * 255), math.floor(details.color.G * 255), math.floor(details.color.B * 255)
-                                        local hex = string.format("#%02X%02X%02X", r, g, b)
-                                        local dmgStr = (Config.InventoryESP.ShowDamage and details.damage) and (" [" .. details.damage .. "]") or ""
-                                        local str = "<font color=\"" .. hex .. "\">" .. details.name .. "</font>" .. dmgStr
-                                        tInsert(formattedItems, str)
+                                        local n = details.name
+                                        if not bpCounts[n] then
+                                            bpCounts[n] = 1
+                                            tInsert(bpOrder, n)
+                                            bpDetails[n] = details
+                                        else
+                                            bpCounts[n] = bpCounts[n] + 1
+                                        end
                                         itemCount = itemCount + 1
                                     end
                                 end
+                            end
+
+                            for _, n in ipairs(bpOrder) do
+                                local count = bpCounts[n]
+                                local details = bpDetails[n]
+                                local r, g, b = math.floor(details.color.R * 255), math.floor(details.color.G * 255), math.floor(details.color.B * 255)
+                                local hex = string.format("#%02X%02X%02X", r, g, b)
+                                local qtyStr = (count > 1) and (" x" .. count) or ""
+                                local dmgStr = (Config.InventoryESP.ShowDamage and details.damage) and (" [" .. details.damage .. "]") or ""
+                                local str = "<font color=\"" .. hex .. "\">" .. details.name .. qtyStr .. "</font>" .. dmgStr
+                                tInsert(formattedItems, str)
                             end
                         end
                     end
@@ -1233,7 +1290,7 @@ function ESP.Update(player, d)
                         d.InventoryLabel.Text = text
                     end
                     d.InventoryLabel.TextSize = Config.InventoryESP.TextSize or 11
-                    local yPos = (Config.ESP.HealthBar and (Config.ESP.HealthText and 33 or 23)) or (Config.ESP.Names and 16 or 0)
+                    local yPos = (Config.ESP.HealthBar and (Config.ESP.HealthText and 35 or 25)) or (Config.ESP.Names and 18 or 0)
                     d.InventoryLabel.Position = UDim2.new(0, 0, 0, yPos)
                     d.InventoryLabel.Visible = true
                 else
