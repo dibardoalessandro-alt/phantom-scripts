@@ -1,4 +1,4 @@
-﻿--[[
+--[[
     ╔═══════════════════════════════════════════════════════════════╗
     ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
@@ -897,6 +897,109 @@ function Util.BlockSpinResolveFromAttributes(tool)
 end
 
 -- ═══════════════════════════════════════════════════
+-- GETSENV WEAPON NAME INTERCEPTOR
+-- Legge le variabili interne degli script di BlockSpin
+-- tramite getsenv() — supportato da Xeno
+-- Costruisce una cache [numericID] = "WeaponName"
+-- ═══════════════════════════════════════════════════
+local _getsenvCache   = {}   -- ["405805"] = "Glock"
+local _getsenvDone    = false
+local _remoteIntDone  = false
+
+-- Keywords che indicano un script con dati arma
+local WEAPON_SCRIPT_HINTS = {
+    "weapon","gun","item","inventory","shop","tool","equip",
+    "loadout","arsenal","armory","backpack","store","catalog",
+}
+local function looksWeaponScript(name)
+    local low = name:lower()
+    for _, h in ipairs(WEAPON_SCRIPT_HINTS) do
+        if low:find(h, 1, true) then return true end
+    end
+    return false
+end
+
+-- Prova a estrarre [numericID] = "Name" da una qualsiasi tabella
+local function extractIDNameMap(tbl, depth)
+    if depth > 3 then return end
+    if type(tbl) ~= "table" then return end
+    for k, v in pairs(tbl) do
+        -- Pattern 1: tbl[number] = "WeaponName"
+        if type(k) == "number" and type(v) == "string" and #v > 1 and #v < 35 then
+            local vLow = v:lower()
+            if not _getsenvCache[tostring(k)] and not vLow:find("nuthing") and
+               not vLow:find("nothing") and not vLow:find("i have") then
+                _getsenvCache[tostring(k)] = v
+            end
+        end
+        -- Pattern 2: tbl[number] = { Name="WeaponName", ... } or { name=... }
+        if type(k) == "number" and type(v) == "table" then
+            local nameVal = v.Name or v.name or v.DisplayName or v.displayName or
+                            v.WeaponName or v.weaponName or v.ItemName or v.itemName or
+                            v.Label or v.label or v.Title or v.title
+            if type(nameVal) == "string" and #nameVal > 1 and #nameVal < 35 then
+                local nLow = nameVal:lower()
+                if not nLow:find("nuthing") and not nLow:find("nothing") and not nLow:find("i have") then
+                    _getsenvCache[tostring(k)] = nameVal
+                end
+            end
+            extractIDNameMap(v, depth + 1)
+        end
+        -- Pattern 3: tbl["405805"] = "WeaponName" (stringa numerica come chiave)
+        if type(k) == "string" and k:match("^%d+$") and type(v) == "string" and #v > 1 and #v < 35 then
+            local vLow = v:lower()
+            if not _getsenvCache[k] and not vLow:find("nuthing") and not vLow:find("nothing") then
+                _getsenvCache[k] = v
+            end
+        end
+    end
+end
+
+local function RunGetsenvScan()
+    if _getsenvDone then return end
+    _getsenvDone = true
+    pcall(function()
+        for _, desc in ipairs(game:GetDescendants()) do
+            local ok = pcall(function()
+                if (desc:IsA("LocalScript") or desc:IsA("ModuleScript")) and looksWeaponScript(desc.Name) then
+                    local envOk, env = pcall(getsenv, desc)
+                    if envOk and type(env) == "table" then
+                        extractIDNameMap(env, 0)
+                        -- Cerca anche variabili locali chiamate weapons/items/tools
+                        for varName, varVal in pairs(env) do
+                            if type(varName) == "string" then
+                                local vn = varName:lower()
+                                if (vn:find("weapon") or vn:find("item") or vn:find("tool") or
+                                    vn:find("gun") or vn:find("catalog") or vn:find("data")) then
+                                    extractIDNameMap(varVal, 1)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- Avvia la scan in background dopo 2s (aspetta che il gioco sia caricato)
+task.delay(2, function()
+    RunGetsenvScan()
+end)
+
+-- Funzione di lookup per tool con nome numerico
+function Util.LookupWeaponIDName(toolName)
+    -- Prova la cache getsenv prima
+    local cached = _getsenvCache[toolName]
+    if cached then return cached end
+    -- Se la scan non è ancora partita, la avvia ora
+    if not _getsenvDone then
+        task.spawn(RunGetsenvScan)
+    end
+    return nil
+end
+
+-- ═══════════════════════════════════════════════════
 -- REPLICATED STORAGE SCANNER (XENO-SAFE)
 -- NO require() — only reads Tool instances and their properties
 -- ═══════════════════════════════════════════════════
@@ -1542,16 +1645,31 @@ end
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
 
-    -- Prima prova il resolver normale (funziona per tool con nomi leggibili)
-    local name, rarity, color = Util.ResolveToolInfo(tool)
+    local rawToolName = tool.Name
+    local name, rarity, color
 
-    -- Se fallisce (tool con nome numerico come in BlockSpin), usa il categorizer per attributi
+    -- ── STEP 0: getsenv cache — se il tool ha nome numerico, cerca il nome reale
+    -- Questo usa l'interceptor che legge le variabili interne degli script di BlockSpin
+    if rawToolName:match("^%d+$") then
+        local idName = Util.LookupWeaponIDName(rawToolName)
+        if idName then
+            name   = idName
+            rarity, color = Util.GetItemRarity(tool, idName)
+        end
+    end
+
+    -- ── STEP 1: Resolver normale (per tool con nomi leggibili)
+    if not name then
+        name, rarity, color = Util.ResolveToolInfo(tool)
+    end
+
+    -- ── STEP 2: Categorizer attributi (fallback finale per numericID senza getsenv hit)
     if not name then
         local attrName, attrRarity, attrColor = Util.BlockSpinResolveFromAttributes(tool)
         if attrName then
-            name  = attrName
+            name   = attrName
             rarity = attrRarity or "Common"
-            color  = attrColor or RARITY_COLORS.Common
+            color  = attrColor  or RARITY_COLORS.Common
         end
     end
 
