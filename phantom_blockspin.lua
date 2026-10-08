@@ -40,20 +40,23 @@ local Lighting         = game:GetService("Lighting")
 local GuiService       = game:GetService("GuiService")
 
 -- ═══════════════════════════════════════════════════
--- ULTRA 120 FPS ENGINE & FRAME SMOOTHNESS SYSTEM
+-- ULTRA UNLIMITED FPS ENGINE & FRAME SMOOTHNESS SYSTEM
 -- ═══════════════════════════════════════════════════
 local function setFPS(val)
-    local target = tonumber(val) or 120
+    local target = tonumber(val) or 0
     pcall(function()
         local sfc = setfpscap or (getgenv and getgenv().setfpscap) or set_fps_cap or (getgenv and getgenv().set_fps_cap)
         if type(sfc) == "function" then
             sfc(target)
+            if target == 0 then
+                sfc(999) -- Fallback high cap for executors that treat 0 as pause
+            end
         end
     end)
 end
 
--- Immediately unlock 120 FPS target
-setFPS(120)
+-- Immediately unlock unlimited framerate (Max FPS)
+setFPS(0)
 
 local LocalPlayer = Players.LocalPlayer
 local Camera      = Workspace.CurrentCamera
@@ -1427,6 +1430,118 @@ function Notify.Send(text, color, dur)
 end
 
 -- ═══════════════════════════════════════════════════
+-- CONFIG MANAGER (Save, Load, Reset, Auto-Persistence)
+-- ═══════════════════════════════════════════════════
+local ConfigManager = {}
+local CONFIG_FILE = "phantom_blockspin_config.json"
+local HttpService = game:GetService("HttpService")
+
+local function serializeConfigValue(val)
+    local t = typeof(val)
+    if t == "Color3" then
+        return {__type = "Color3", R = val.R, G = val.G, B = val.B}
+    elseif t == "EnumItem" then
+        return {__type = "EnumItem", EnumType = tostring(val.EnumType), Name = val.Name}
+    elseif t == "table" then
+        local copy = {}
+        for k, v in pairs(val) do
+            copy[tostring(k)] = serializeConfigValue(v)
+        end
+        return copy
+    else
+        return val
+    end
+end
+
+local function deserializeConfigValue(val)
+    if type(val) == "table" then
+        if val.__type == "Color3" and val.R and val.G and val.B then
+            return Color3.new(val.R, val.G, val.B)
+        elseif val.__type == "EnumItem" and val.EnumType and val.Name then
+            local ok, item = pcall(function()
+                return Enum[val.EnumType][val.Name]
+            end)
+            if ok and item then return item end
+            return nil
+        else
+            local res = {}
+            for k, v in pairs(val) do
+                local numKey = tonumber(k)
+                local key = numKey or k
+                res[key] = deserializeConfigValue(v)
+            end
+            return res
+        end
+    else
+        return val
+    end
+end
+
+function ConfigManager.Save(silent)
+    local ok, err = pcall(function()
+        local wf = writefile or (getgenv and getgenv().writefile)
+        if not wf then
+            if not silent then Notify.Send("writefile non supportato dall'executor", C3(255, 80, 80), 3) end
+            return
+        end
+        local serialized = serializeConfigValue(Config)
+        local json = HttpService:JSONEncode(serialized)
+        wf(CONFIG_FILE, json)
+        if not silent then
+            Notify.Send("💾 Config salvata con successo!", C3(0, 255, 180), 3)
+        end
+    end)
+    if not ok and not silent then
+        Notify.Send("Errore salvataggio config: " .. tostring(err), C3(255, 80, 80), 3)
+    end
+end
+
+function ConfigManager.Load(silent)
+    local ok, err = pcall(function()
+        local rf = readfile or (getgenv and getgenv().readfile)
+        local isf = isfile or (getgenv and getgenv().isfile)
+        if not rf or not isf then return end
+        if not isf(CONFIG_FILE) then
+            if not silent then Notify.Send("Nessuna config salvata trovata!", C3(255, 200, 50), 3) end
+            return
+        end
+        local content = rf(CONFIG_FILE)
+        if not content or #content == 0 then return end
+        local raw = HttpService:JSONDecode(content)
+        local decoded = deserializeConfigValue(raw)
+
+        local function deepMerge(target, source)
+            for k, v in pairs(source) do
+                if type(v) == "table" and type(target[k]) == "table" and typeof(v) ~= "Color3" then
+                    deepMerge(target[k], v)
+                else
+                    target[k] = v
+                end
+            end
+        end
+        deepMerge(Config, decoded)
+
+        if not silent then
+            Notify.Send("📂 Config caricata con successo!", C3(56, 189, 248), 3)
+        end
+    end)
+    if not ok and not silent then
+        Notify.Send("Errore caricamento config: " .. tostring(err), C3(255, 80, 80), 3)
+    end
+end
+
+function ConfigManager.Reset()
+    pcall(function()
+        local df = delfile or (getgenv and getgenv().delfile)
+        local isf = isfile or (getgenv and getgenv().isfile)
+        if df and isf and isf(CONFIG_FILE) then
+            df(CONFIG_FILE)
+        end
+        Notify.Send("🔄 Config eliminata! Riavvia lo script per i default.", C3(255, 200, 50), 3)
+    end)
+end
+
+-- ═══════════════════════════════════════════════════
 -- ESP ENGINE (v3.6 NATIVE HIGHLIGHT & BILLBOARDGUI SYSTEM)
 -- ═══════════════════════════════════════════════════
 local ESP = {}
@@ -1715,8 +1830,14 @@ function ESP.Update(player, d)
     if not cam then ESP.HideAll(d) return end
     local camPos = cam.CFrame.Position
     local rootPos = root.Position
-    local dist = (rootPos - camPos).Magnitude
-    if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
+    if dist > Config.ESP.MaxDistance then
+        if not d._isOutOfRange then
+            ESP.HideAll(d)
+            d._isOutOfRange = true
+        end
+        return
+    end
+    d._isOutOfRange = false
 
     -- Color determination with throttled / conditional visibility check (Zero lag)
     local isVisible = false
@@ -2130,6 +2251,9 @@ function Aimbot.Predict(part, plr)
     return targetPos + lead
 end
 
+local _subPixelX = 0
+local _subPixelY = 0
+
 function Aimbot.AimAt(worldPos, smooth)
     if not HAS_MOUSEMOVEREL then return end
     local cam = Workspace.CurrentCamera
@@ -2145,13 +2269,36 @@ function Aimbot.AimAt(worldPos, smooth)
     local nowTick = Tick()
     local dt = _lastAimTick and (nowTick - _lastAimTick) or (1/120)
     _lastAimTick = nowTick
-    local fpsFactor = mClamp(dt / (1/60), 0.2, 2.0)
+    local fpsFactor = mClamp(dt / (1/60), 0.1, 2.0)
 
     local targetSmooth = math.max(smooth or 1.0, 1.0)
-    local mx = (delta.X / targetSmooth) * fpsFactor
-    local my = (delta.Y / targetSmooth) * fpsFactor
+    if targetSmooth <= 1.05 then
+        -- Strong Lock mode: 1:1 Instant lock onto target with zero lag
+        local intX = math.floor(delta.X + 0.5)
+        local intY = math.floor(delta.Y + 0.5)
+        if intX ~= 0 or intY ~= 0 then
+            mousemoverel(intX, intY)
+        end
+        _subPixelX = 0
+        _subPixelY = 0
+    else
+        -- Soft Aim mode: buttery sub-pixel smoothed movement (no lost fractional pixels)
+        local mx = (delta.X / targetSmooth) * fpsFactor
+        local my = (delta.Y / targetSmooth) * fpsFactor
 
-    mousemoverel(mx, my)
+        local toMoveX = mx + _subPixelX
+        local toMoveY = my + _subPixelY
+
+        local intX = (toMoveX > 0) and math.floor(toMoveX + 0.5) or math.ceil(toMoveX - 0.5)
+        local intY = (toMoveY > 0) and math.floor(toMoveY + 0.5) or math.ceil(toMoveY - 0.5)
+
+        _subPixelX = toMoveX - intX
+        _subPixelY = toMoveY - intY
+
+        if intX ~= 0 or intY ~= 0 then
+            mousemoverel(intX, intY)
+        end
+    end
 
     local sp = Util.W2S(worldPos)
     if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
@@ -2362,22 +2509,20 @@ end
 local PlayerMods = {}
 
 function PlayerMods.UpdateSpeed()
+    if not Config.Player.SpeedEnabled then return end
     pcall(function()
         if not LocalPlayer.Character then return end
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if not hum then return end
-        if Config.Player.SpeedEnabled then
-            hum.WalkSpeed = Config.Player.WalkSpeed
-        end
+        if hum then hum.WalkSpeed = Config.Player.WalkSpeed end
     end)
 end
 
 function PlayerMods.UpdateJump()
+    if not Config.Player.JumpEnabled then return end
     pcall(function()
         if not LocalPlayer.Character then return end
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if not hum then return end
-        if Config.Player.JumpEnabled then
+        if hum then
             hum.JumpPower = Config.Player.JumpPower
             hum.UseJumpPower = true
         end
@@ -3612,23 +3757,34 @@ local function BuildNativeGUI()
     -- ──────────────────────────────────────────
     pcall(function()
         tSettings:AddSection("Performance & Framerate")
-        tSettings:AddDropdown("FPS Cap / Unlocker", {"120 FPS (Ultra Smooth)", "144 FPS", "240 FPS", "60 FPS (Default)", "Uncapped (Max)"}, "120 FPS (Ultra Smooth)", function(v)
-            if v == "120 FPS (Ultra Smooth)" then
-                setFPS(120)
-                Notify.Send("Framerate set to 120 FPS", C3(0, 255, 180), 2)
-            elseif v == "144 FPS" then
-                setFPS(144)
-                Notify.Send("Framerate set to 144 FPS", C3(0, 255, 180), 2)
+        tSettings:AddDropdown("FPS Cap / Unlocker", {"Uncapped (Max FPS)", "240 FPS", "144 FPS", "120 FPS", "60 FPS (Default)"}, "Uncapped (Max FPS)", function(v)
+            if v == "Uncapped (Max FPS)" then
+                setFPS(0)
+                Notify.Send("Framerate Uncapped (Max FPS)", C3(0, 255, 255), 2)
             elseif v == "240 FPS" then
                 setFPS(240)
                 Notify.Send("Framerate set to 240 FPS", C3(0, 255, 180), 2)
+            elseif v == "144 FPS" then
+                setFPS(144)
+                Notify.Send("Framerate set to 144 FPS", C3(0, 255, 180), 2)
+            elseif v == "120 FPS" then
+                setFPS(120)
+                Notify.Send("Framerate set to 120 FPS", C3(0, 255, 180), 2)
             elseif v == "60 FPS (Default)" then
                 setFPS(60)
                 Notify.Send("Framerate set to 60 FPS", C3(200, 200, 200), 2)
-            elseif v == "Uncapped (Max)" then
-                setFPS(0)
-                Notify.Send("Framerate Uncapped (Max FPS)", C3(0, 255, 255), 2)
             end
+        end)
+
+        tSettings:AddSection("💾 Config Management")
+        tSettings:AddButton("💾 Save Configuration", "Salva tutte le impostazioni correnti", function()
+            ConfigManager.Save()
+        end)
+        tSettings:AddButton("📂 Load Configuration", "Ricarica le impostazioni salvate", function()
+            ConfigManager.Load()
+        end)
+        tSettings:AddButton("🔄 Reset Defaults", "Ripristina la configurazione predefinita", function()
+            ConfigManager.Reset()
         end)
 
         tSettings:AddSection("Interface")
@@ -3686,6 +3842,7 @@ PRVServiceUI.Destroy = function()
 end
 
 task.spawn(function()
+    pcall(function() ConfigManager.Load(true) end)
     local ok, err = pcall(PRVServiceUI.Build)
     if not ok then
         warn("[PRV SERVICE] Ultra GUI Error: " .. tostring(err))
@@ -3983,10 +4140,10 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    setFPS(120)
-    Notify.Send("PRV SERVICE v12.0 120 FPS Loaded!", C3(56, 189, 248), 4)
+    setFPS(0)
+    Notify.Send("PRV SERVICE v12.0 Uncapped FPS Loaded!", C3(56, 189, 248), 4)
     Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
-    Notify.Send("v8.5: Visual Badges & Full English UI!", C3(56, 189, 248), 6)
+    Notify.Send("Settings > Save Configuration per salvare!", C3(0, 255, 180), 6)
 end
 
 local ok, err = pcall(Init)
