@@ -994,83 +994,109 @@ end
 --   9. Animation prefix scan
 --  10. StringValue scan (known weapons only)
 -- ═══════════════════════════════════════════════════
+local function isValidHumanName(str)
+    if not str or type(str) ~= "string" then return false end
+    local s = str:match("^%s*(.-)%s*$")
+    if #s <= 1 or #s > 45 then return false end
+    -- Pure digits (e.g. "83570", "843997", "453488") are internal serial/asset IDs, NEVER human names!
+    if s:match("^%d+$") then return false end
+    -- UUID or pure hex hashes
+    if s:match("^%x%x%x%x%x%x%x%x%-") then return false end
+    if #s > 6 and s:match("^%x+$") and not s:match("[g-zG-Z]") then return false end
+    -- Must contain at least one letter
+    if not s:match("%a") then return false end
+    -- Ignore generic technical words
+    local low = s:lower()
+    if low == "tool" or low == "weapon" or low == "gun" or low == "item" or low == "handle" or low == "part" or low == "meshpart" or low == "model" or low == "hitbox" then
+        return false
+    end
+    return true
+end
+
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
     local realName = nil
 
-    -- 1. Check direct Attributes on the Tool (Developers often put DisplayName, ItemName, RealName here)
+    -- 1. Check known specific attributes on the Tool (DisplayName, ItemName, RealName, etc.)
     pcall(function()
-        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "Name", "Title", "Label"}) do
+        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "FishName", "FishType", "Species", "RealName", "Name", "Title", "Label", "Item", "Type"}) do
             local val = tool:GetAttribute(attr)
-            if val and type(val) == "string" and #val > 1 then
-                local s = val:match("^%s*(.-)%s*$")
-                if #s > 1 and not s:match("^%x%x%x%x%x%x%x%x%-") then
-                    realName = s
-                    return
-                end
+            if isValidHumanName(val) then
+                realName = val:match("^%s*(.-)%s*$")
+                return
             end
         end
     end)
 
-    -- 2. Check StringValue objects inside the Tool
+    -- 2. Scan ALL attributes for ANY valid human name
     if not realName then
         pcall(function()
-            for _, valName in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "Name"}) do
-                local sv = tool:FindFirstChild(valName)
-                if sv and sv:IsA("StringValue") and type(sv.Value) == "string" and #sv.Value > 1 then
-                    local s = sv.Value:match("^%s*(.-)%s*$")
-                    if #s > 1 and not s:match("^%x%x%x%x%x%x%x%x%-") then
-                        realName = s
-                        return
-                    end
+            for k, val in pairs(tool:GetAttributes()) do
+                if isValidHumanName(val) then
+                    realName = tostring(val):match("^%s*(.-)%s*$")
+                    return
                 end
             end
         end)
     end
 
-    -- 3. Check tool.ToolTip (Often set to the clean item name for hotbar tooltips)
+    -- 3. Check StringValue objects inside the Tool or descendants
+    if not realName then
+        pcall(function()
+            for _, desc in ipairs(tool:GetDescendants()) do
+                if desc:IsA("StringValue") and isValidHumanName(desc.Value) then
+                    realName = desc.Value:match("^%s*(.-)%s*$")
+                    return
+                end
+            end
+        end)
+    end
+
+    -- 4. Check tool.ToolTip
     if not realName then
         pcall(function()
             local tt = tool.ToolTip
-            if tt and type(tt) == "string" and #tt > 1 then
-                local s = tt:match("^%s*(.-)%s*$")
-                local sLow = s:lower()
-                if #s > 1 and sLow ~= "tool" and sLow ~= "weapon" and sLow ~= "item" then
-                    realName = s
-                end
+            if isValidHumanName(tt) then
+                realName = tt:match("^%s*(.-)%s*$")
             end
         end)
     end
 
-    -- 4. Check tool.Name directly (The actual in-game instance name)
+    -- 5. Check tool.Name directly (ONLY if it's NOT a raw number like 83570)
     if not realName then
         local raw = tool.Name
-        if raw and type(raw) == "string" and #raw > 0 then
+        if isValidHumanName(raw) then
             realName = raw
         end
     end
 
-    -- 5. If realName is generic ("Tool", "Weapon", "Gun", "Item"), check child models / parts / animations
-    local lowCheck = realName and realName:lower() or ""
-    if lowCheck == "tool" or lowCheck == "weapon" or lowCheck == "gun" or lowCheck == "item" or lowCheck == "handle" then
+    -- 6. Check child Models, MeshParts, or Parts (often named after the actual fish/weapon, e.g. "Salmon", "Remington")
+    if not realName then
         pcall(function()
-            -- Check child Model / MeshPart for real weapon name
-            for _, c in ipairs(tool:GetChildren()) do
-                if (c:IsA("Model") or c:IsA("BasePart")) and c.Name ~= "Handle" and c.Name ~= "Part" and #c.Name > 1 then
-                    local cn = c.Name:match("^%s*(.-)%s*$")
-                    local cnLow = cn:lower()
-                    if #cn > 1 and cnLow ~= "model" and cnLow ~= "meshpart" and cnLow ~= "part" and cnLow ~= "tool" then
-                        realName = cn
-                        return
-                    end
+            for _, desc in ipairs(tool:GetChildren()) do
+                if (desc:IsA("Model") or desc:IsA("MeshPart") or desc:IsA("BasePart")) and isValidHumanName(desc.Name) then
+                    realName = desc.Name
+                    return
                 end
             end
-            -- Check child animations (e.g. Remington_Shoot, MP5_Reload)
+            -- Check deeper descendants
+            for _, desc in ipairs(tool:GetDescendants()) do
+                if (desc:IsA("Model") or desc:IsA("MeshPart")) and isValidHumanName(desc.Name) then
+                    realName = desc.Name
+                    return
+                end
+            end
+        end)
+    end
+
+    -- 7. Check animations and sounds (e.g. "Remington_Shoot", "MP5_Reload")
+    if not realName then
+        pcall(function()
             for _, desc in ipairs(tool:GetDescendants()) do
                 if desc:IsA("Animation") or desc:IsA("Sound") then
                     local prefix = desc.Name:match("^([%a%d%s%-]+)_")
-                    if prefix and #prefix > 1 then
+                    if isValidHumanName(prefix) then
                         local pLow = prefix:lower()
                         if pLow ~= "idle" and pLow ~= "shoot" and pLow ~= "equip" and pLow ~= "reload" and pLow ~= "fire" then
                             realName = prefix
@@ -1082,21 +1108,56 @@ function Util.ResolveToolInfo(tool)
         end)
     end
 
-    if not realName or #realName == 0 then
-        realName = tool.Name or "Item"
+    -- 8. Fallback for Fishing / Catch items:
+    -- In BlockSpin, caught fish Tools are named with numeric IDs, but have Weight, Fish, or Caught attributes!
+    if not realName then
+        pcall(function()
+            local weight = tool:GetAttribute("Weight") or tool:GetAttribute("weight") or tool:GetAttribute("FishWeight")
+            local isFish = tool:GetAttribute("Fish") or tool:GetAttribute("Fishing") or tool:GetAttribute("Caught")
+            if weight or isFish then
+                if type(weight) == "number" and weight > 0 then
+                    realName = "Fish [" .. string.format("%.1f", weight) .. "kg]"
+                else
+                    realName = "Fish"
+                end
+            end
+        end)
+    end
+
+    -- 9. Check tool type clues (Damage -> Weapon, HealthRestore -> Medkit)
+    if not realName then
+        pcall(function()
+            local hp = tool:GetAttribute("HealthRestoreAmount") or tool:GetAttribute("HealthRestore")
+            local dmg = tool:GetAttribute("Damage") or tool:GetAttribute("BaseDamage")
+            local ammo = tool:GetAttribute("MaxAmmo") or tool:GetAttribute("Ammo")
+            if type(hp) == "number" and hp > 0 then
+                realName = "Medkit"
+            elseif type(dmg) == "number" and dmg > 0 or type(ammo) == "number" then
+                realName = "Weapon"
+            end
+        end)
+    end
+
+    -- 10. ReplicatedStorage cross-reference
+    if not realName and tool.Name then
+        local rsMap = BuildRSWeaponMap()
+        if rsMap then
+            local hit = rsMap[tool.Name:lower()]
+            if isValidHumanName(hit) then realName = hit end
+        end
+    end
+
+    -- IF STILL NOT FOUND OR NUMERIC, DO NOT RETURN NUMERIC SERIAL NUMBER!
+    if not realName or not isValidHumanName(realName) then
+        return nil, nil, nil
     end
 
     -- Clean formatting:
-    -- Remove technical prefixes if any (Tool_, Weapon_, Gun_, Item_)
     realName = realName:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
     realName = realName:gsub("_", " "):match("^%s*(.-)%s*$")
-
-    -- Clean capitalization
     realName = CapitalizeName(realName)
 
-    -- Dynamic Rarity & Color Detection (Checks attributes, dictionary, or semantic color)
     local rarity, color = Util.GetItemRarity(tool, realName)
-
     return realName, rarity, color
 end
 
