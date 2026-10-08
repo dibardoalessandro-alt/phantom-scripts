@@ -119,40 +119,39 @@ table.sort(KeybindOptions)
 local Config = {
     -- ── ESP ──
     ESP = {
-        Enabled         = false,
-        BoxStyle        = "Full",       -- "Full" / "Corner"
-        BoxThickness    = 1.3,
-        BoxOutline      = true,
+        Enabled         = true,
+        -- Chams (Player Highlight - Xeno)
+        Chams           = true,
+        ChamsVisibleColor = C3(255, 50, 50),
+        ChamsHiddenColor  = C3(160, 20, 20),
+        ChamsTransparency = 0.35,
+
+        -- 3D Box
+        Boxes           = false,
+
+        -- Info
         Names           = true,
-        NameSize        = 14,
-        HealthBar       = true,
-        HealthBarPos    = "Left",       -- "Left" / "Right"
-        HealthBarWidth  = 3,
-        HealthText      = false,        -- v3: show HP numbers
         Distance        = true,
-        Tracers         = false,
-        TracerOrigin    = "Bottom",     -- "Bottom" / "Center" / "Top" / "Mouse"
-        TracerThickness = 1,
-        HeadDot         = false,
-        HeadDotSize     = 3,
-        VisibilityCheck = true,
-        VisibleColor    = C3(255, 40, 40),
-        NotVisibleColor = C3(160, 20, 20),
-        DefaultColor    = C3(255, 40, 40),
-        NameColor       = C3(255, 255, 255),
-        DistanceColor   = C3(200, 200, 200),
-        MaxDistance      = math.huge,
-        TeamCheck        = false,
-        ShowTeamColor    = false,
-        -- v3: Skeleton ESP
+        HealthBar       = true,
+        HealthText      = true,
+
+        -- Skeleton & Tracers
         Skeleton        = false,
         SkeletonColor   = C3(255, 255, 255),
         SkeletonThickness = 1.5,
-        -- v3: Chams
-        Chams           = false,
-        ChamsVisibleColor   = C3(255, 40, 40),
-        ChamsHiddenColor    = C3(160, 20, 20),
-        ChamsTransparency   = 0.3,
+        Tracers         = false,
+        TracerOrigin    = "Bottom",
+        TracerThickness = 1,
+
+        -- Settings
+        VisibilityCheck = true,
+        VisibleColor    = C3(255, 50, 50),
+        NotVisibleColor = C3(160, 20, 20),
+        DefaultColor    = C3(255, 50, 50),
+        NameColor       = C3(255, 255, 255),
+        MaxDistance     = 1000,
+        TeamCheck       = false,
+        ShowTeamColor   = false,
     },
 
     -- ── INVENTORY ESP ──
@@ -1388,7 +1387,7 @@ function ESP.Create(player)
     pcall(function()
         local hl = Instance.new("Highlight")
         hl.Name = "P_HL_" .. (player and player.UserId or mRandom(1000, 9999))
-        hl.DepthMode = Enum.HighlightDepthMode.Occluded
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         hl.FillTransparency = 0.85
         hl.OutlineTransparency = 0
         hl.Enabled = false
@@ -1685,47 +1684,43 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
-    -- 1. NATIVE HIGHLIGHT (Outline / Chams - Dirty checked to eliminate Roblox C++ overhead)
+    -- 1. NATIVE HIGHLIGHT (Chams / Player Highlight - AlwaysOnTop for Xeno)
     if d.Highlight then
-        if (Config.ESP.Chams or (Config.ESP.Enabled and Config.ESP.BoxStyle == "Highlight")) and dist < 350 then
+        if Config.ESP.Chams and dist <= (Config.ESP.MaxDistance or 1000) then
             if d.Highlight.Parent ~= char then d.Highlight.Parent = char end
             if d.Highlight.Adornee ~= char then d.Highlight.Adornee = char end
+            if d.Highlight.DepthMode ~= Enum.HighlightDepthMode.AlwaysOnTop then
+                d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            end
+
+            local chamsFill = isVisible and Config.ESP.ChamsVisibleColor or Config.ESP.ChamsHiddenColor
+            if d._lastFillCol ~= chamsFill then
+                d._lastFillCol = chamsFill
+                d.Highlight.FillColor = chamsFill
+            end
             if d._lastOutlineCol ~= col then
                 d._lastOutlineCol = col
                 d.Highlight.OutlineColor = col
             end
-            if Config.ESP.Chams then
-                local fillColor = isVisible and Config.ESP.ChamsVisibleColor or Config.ESP.ChamsHiddenColor
-                if d._lastFillCol ~= fillColor then
-                    d._lastFillCol = fillColor
-                    d.Highlight.FillColor = fillColor
-                end
-                d.Highlight.FillTransparency = Config.ESP.ChamsTransparency
-                d.Highlight.OutlineTransparency = 0
-            else
-                if d._lastFillCol ~= col then
-                    d._lastFillCol = col
-                    d.Highlight.FillColor = col
-                end
-                d.Highlight.FillTransparency = 0.85
-                d.Highlight.OutlineTransparency = 0
-            end
+
+            d.Highlight.FillTransparency = Config.ESP.ChamsTransparency or 0.35
+            d.Highlight.OutlineTransparency = 0
             if not d.Highlight.Enabled then d.Highlight.Enabled = true end
         else
             if d.Highlight.Enabled then d.Highlight.Enabled = false end
         end
     end
 
-    -- 2. NATIVE SELECTIONBOX (3D Box bounding character - Dirty checked)
+    -- 2. NATIVE SELECTIONBOX (3D Box around player)
     if d.SelectionBox then
-        if Config.ESP.Enabled and Config.ESP.BoxStyle ~= "None" then
+        if Config.ESP.Boxes and dist <= (Config.ESP.MaxDistance or 1000) then
             if d.SelectionBox.Parent ~= char then d.SelectionBox.Parent = char end
             if d.SelectionBox.Adornee ~= char then d.SelectionBox.Adornee = char end
             if d._lastBoxCol ~= col then
                 d._lastBoxCol = col
                 d.SelectionBox.Color3 = col
             end
-            d.SelectionBox.LineThickness = (Config.ESP.BoxThickness or 1.3) * 0.025
+            d.SelectionBox.LineThickness = 0.035
             if not d.SelectionBox.Visible then d.SelectionBox.Visible = true end
         else
             if d.SelectionBox.Visible then d.SelectionBox.Visible = false end
@@ -1734,7 +1729,7 @@ function ESP.Update(player, d)
 
     -- 3. NATIVE BILLBOARDGUI (Name, Distance, Health, Inventory - Zero frame drop updates)
     if d.Billboard then
-        local showGui = Config.ESP.Enabled or Config.InventoryESP.Enabled
+        local showGui = Config.ESP.Names or Config.ESP.Distance or Config.ESP.HealthBar or Config.InventoryESP.Enabled
         if showGui then
             local adorneePart = head or root
             if d.Billboard.Parent ~= char then d.Billboard.Parent = char end
@@ -3411,49 +3406,45 @@ local function BuildNativeGUI()
     }
 
     -- ──────────────────────────────────────────
-    -- 1. POPULATE ESP
+    -- 1. POPULATE ESP (PULITO, ESSENZIALE & CHAMS XENO)
     -- ──────────────────────────────────────────
     pcall(function()
-        tESP:AddSection("General")
-        tESP:AddToggle("Enable ESP", Config.ESP.Enabled, function(v) Config.ESP.Enabled = v end)
-        tESP:AddDropdown("Box Style", {"Full", "Corner"}, Config.ESP.BoxStyle, function(v) Config.ESP.BoxStyle = v end)
-        tESP:AddSlider("Box Thickness", 1, 5, Config.ESP.BoxThickness, "px", 0.5, function(v) Config.ESP.BoxThickness = v end)
-        tESP:AddToggle("Box Outline", Config.ESP.BoxOutline, function(v) Config.ESP.BoxOutline = v end)
-
-        tESP:AddSection("Player Details")
-        tESP:AddToggle("Show Names", Config.ESP.Names, function(v) Config.ESP.Names = v end)
-        tESP:AddSlider("Name Size", 10, 22, Config.ESP.NameSize, "pt", 1, function(v) Config.ESP.NameSize = v end)
-        tESP:AddToggle("Show Distance", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
-        tESP:AddToggle("Health Bar", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
-        tESP:AddDropdown("Health Bar Position", {"Left", "Right"}, Config.ESP.HealthBarPos, function(v) Config.ESP.HealthBarPos = v end)
-        tESP:AddToggle("Show Numeric HP", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
-
-        tESP:AddSection("Tracers & Look Vector")
-        tESP:AddToggle("Enable Tracers", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
-        tESP:AddDropdown("Tracer Origin", {"Bottom", "Center", "Mouse"}, Config.ESP.TracerOrigin, function(v) Config.ESP.TracerOrigin = v end)
-        tESP:AddSlider("Tracer Thickness", 1, 4, Config.ESP.TracerThickness, "px", 0.5, function(v) Config.ESP.TracerThickness = v end)
-        tESP:AddToggle("Show Look Vector", Config.ESP.LookVector, function(v) Config.ESP.LookVector = v end)
-
-        tESP:AddSection("Skeleton & Chams")
-        tESP:AddToggle("Enable Skeleton", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
-        tESP:AddColorPicker("Skeleton Color", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
-        tESP:AddToggle("Enable Chams Highlight", Config.ESP.Chams, function(v)
+        tESP:AddSection("✨ Chams (Highlight Attraverso i Muri - Xeno)")
+        tESP:AddToggle("Enable Chams", Config.ESP.Chams, function(v)
             Config.ESP.Chams = v
             if not v then
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character then
-                        local h = p.Character:FindFirstChild("PRV_Highlight")
-                        if h then h:Destroy() end
-                    end
+                for _, d in pairs(State.ESPCache) do
+                    if d.Highlight then d.Highlight.Enabled = false end
                 end
             end
         end)
-        tESP:AddColorPicker("Chams Visible Color", Config.ESP.ChamsVisibleColor, function(v) Config.ESP.ChamsVisibleColor = v end)
-        tESP:AddColorPicker("Chams Hidden Color", Config.ESP.ChamsHiddenColor, function(v) Config.ESP.ChamsHiddenColor = v end)
+        tESP:AddSlider("Chams Transparency", 0.0, 1.0, Config.ESP.ChamsTransparency, "", 0.05, function(v)
+            Config.ESP.ChamsTransparency = v
+        end)
+        tESP:AddColorPicker("Visible Color (In Vista)", Config.ESP.ChamsVisibleColor, function(v)
+            Config.ESP.ChamsVisibleColor = v
+        end)
+        tESP:AddColorPicker("Hidden Color (Dietro i Muri)", Config.ESP.ChamsHiddenColor, function(v)
+            Config.ESP.ChamsHiddenColor = v
+        end)
 
-        tESP:AddSection("Filters & Range")
-        tESP:AddToggle("Wall Check (Visibility)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
-        tESP:AddToggle("Team Check (Ignore Team)", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
+        tESP:AddSection("📦 Box & Tracers")
+        tESP:AddToggle("3D Box ESP", Config.ESP.Boxes, function(v) Config.ESP.Boxes = v end)
+        tESP:AddToggle("Tracers (Linee al Bersaglio)", Config.ESP.Tracers, function(v) Config.ESP.Tracers = v end)
+
+        tESP:AddSection("👤 Info Bersaglio (Nomi & Vita)")
+        tESP:AddToggle("Show Names", Config.ESP.Names, function(v) Config.ESP.Names = v end)
+        tESP:AddToggle("Show Distance [m]", Config.ESP.Distance, function(v) Config.ESP.Distance = v end)
+        tESP:AddToggle("Health Bar", Config.ESP.HealthBar, function(v) Config.ESP.HealthBar = v end)
+        tESP:AddToggle("Numeric HP", Config.ESP.HealthText, function(v) Config.ESP.HealthText = v end)
+
+        tESP:AddSection("🦴 Scheletro")
+        tESP:AddToggle("Enable Skeleton", Config.ESP.Skeleton, function(v) Config.ESP.Skeleton = v end)
+        tESP:AddColorPicker("Skeleton Color", Config.ESP.SkeletonColor, function(v) Config.ESP.SkeletonColor = v end)
+
+        tESP:AddSection("⚙️ Filtri & Distanza")
+        tESP:AddToggle("Wall Check (Color Swap)", Config.ESP.VisibilityCheck, function(v) Config.ESP.VisibilityCheck = v end)
+        tESP:AddToggle("Ignore Teammates", Config.ESP.TeamCheck, function(v) Config.ESP.TeamCheck = v end)
         tESP:AddSlider("Max Distance", 100, 2000, Config.ESP.MaxDistance, " studs", 50, function(v) Config.ESP.MaxDistance = v end)
     end)
 
