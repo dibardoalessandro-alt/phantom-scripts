@@ -199,7 +199,8 @@ local Config = {
         SoftKeyType          = "Key",
         SoftPart             = "UpperTorso",
         SoftFOV              = 180,
-        SoftSmooth           = 1.0,
+        SoftStrength         = 5,          -- 1 = Leggero, 10 = Stra Forte
+        SoftSmooth           = 5,
 
         -- Vehicle Fix & Shared
         VehiclePenetration   = true,
@@ -2315,7 +2316,7 @@ local _subPixelX = 0
 local _subPixelY = 0
 local _lastAimTick = nil
 
-function Aimbot.AimAt(worldPos, smooth)
+function Aimbot.AimAt(worldPos, smoothVal, isStrong)
     if not HAS_MOUSEMOVEREL then return end
     local cam = Workspace.CurrentCamera
     if not cam then return end
@@ -2332,9 +2333,8 @@ function Aimbot.AimAt(worldPos, smooth)
     _lastAimTick = nowTick
     dt = mClamp(dt, 0.001, 0.05)
 
-    local targetSmooth = math.max(tonumber(smooth) or 1.0, 0.3)
-    if targetSmooth <= 0.6 then
-        -- Rage / 1:1 Instant lock onto target with zero lag
+    if isStrong then
+        -- Strong Lock mode: 1:1 Instant lock onto target with zero lag
         local intX = math.floor(delta.X + 0.5)
         local intY = math.floor(delta.Y + 0.5)
         if intX ~= 0 or intY ~= 0 then
@@ -2343,10 +2343,17 @@ function Aimbot.AimAt(worldPos, smooth)
         _subPixelX = 0
         _subPixelY = 0
     else
-        -- ULTRA-HIGH POWER FRAMERATE-INDEPENDENT MAGNETIC PULL
-        -- Aggressive speed curve with micro-magnetic snapping
-        local speed = 150 / math.max(targetSmooth - 0.2, 0.1)
-        local alpha = mClamp(1 - math.exp(-speed * dt), 0.15, 1.0)
+        -- PROGRESSIVE SOFT AIM: 1 = Leggero, 5 = Medio, 10 = Stra Forte
+        local strength = mClamp(tonumber(smoothVal) or 5, 1, 10)
+
+        -- Smooth quadratic scaling:
+        -- strength 1: speed 6   (~9.5% pull in 16ms, light & legit)
+        -- strength 5: speed 40  (~48% pull in 16ms, solid balanced assist)
+        -- strength 8: speed 111 (~84% pull in 16ms, aggressive magnetic pull)
+        -- strength 10: speed 180 (~95% pull in 16ms, ultra-powerful magnetic beast)
+        local speed = 6 + (strength - 1) * (strength - 1) * 2.15
+        local minAlpha = 0.02 + (strength / 10) * 0.12
+        local alpha = mClamp(1 - math.exp(-speed * dt), minAlpha, 1.0)
 
         local toMoveX = (delta.X * alpha) + _subPixelX
         local toMoveY = (delta.Y * alpha) + _subPixelY
@@ -2354,12 +2361,14 @@ function Aimbot.AimAt(worldPos, smooth)
         local intX = (toMoveX > 0) and math.floor(toMoveX + 0.5) or math.ceil(toMoveX - 0.5)
         local intY = (toMoveY > 0) and math.floor(toMoveY + 0.5) or math.ceil(toMoveY - 0.5)
 
-        -- Micro-magnetic snap: if within 1-3 pixels, force snap to stick right on target center
-        if intX == 0 and math.abs(delta.X) >= 1 and math.abs(toMoveX) >= 0.25 then
-            intX = (delta.X > 0) and 1 or -1
-        end
-        if intY == 0 and math.abs(delta.Y) >= 1 and math.abs(toMoveY) >= 0.25 then
-            intY = (delta.Y > 0) and 1 or -1
+        -- Micro-magnetic snap only at high strength (>= 7) to lock onto target center
+        if strength >= 7 then
+            if intX == 0 and math.abs(delta.X) >= 1 and math.abs(toMoveX) >= 0.25 then
+                intX = (delta.X > 0) and 1 or -1
+            end
+            if intY == 0 and math.abs(delta.Y) >= 1 and math.abs(toMoveY) >= 0.25 then
+                intY = (delta.Y > 0) and 1 or -1
+            end
         end
 
         _subPixelX = toMoveX - intX
@@ -3771,7 +3780,10 @@ local function BuildNativeGUI()
                 Notify.Send("Soft Aim Key: " .. v, C3(100, 255, 150), 2)
             end
         end)
-        tAim:AddSlider("Potenza / Smoothness (0.5=Iper Magnetico, 5.0=Legit)", 0.5, 6.0, Config.Aimbot.SoftSmooth, "", 0.1, function(v) Config.Aimbot.SoftSmooth = v end)
+        tAim:AddSlider("Potenza Soft Aim (1=Leggero, 10=Stra Forte)", 1, 10, Config.Aimbot.SoftStrength or 5, "", 1, function(v)
+            Config.Aimbot.SoftStrength = v
+            Config.Aimbot.SoftSmooth = v
+        end)
         tAim:AddSlider("FOV Radius", 30, 500, Config.Aimbot.SoftFOV, "px", 5, function(v) Config.Aimbot.SoftFOV = v end)
         tAim:AddDropdown("Target Bone", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.SoftPart, function(v) Config.Aimbot.SoftPart = v end)
 
@@ -4091,14 +4103,14 @@ local function RenderLoop()
     if activeMode then
         local targetPart = (activeMode == "Strong") and Config.Aimbot.StrongPart or Config.Aimbot.SoftPart
         local targetFOV = (activeMode == "Strong") and Config.Aimbot.StrongFOV or Config.Aimbot.SoftFOV
-        local smoothVal = (activeMode == "Strong") and (Config.Aimbot.StrongSmooth or 1.0) or (Config.Aimbot.SoftSmooth or 1.0)
+        local smoothVal = (activeMode == "Strong") and (Config.Aimbot.StrongSmooth or 1.0) or (Config.Aimbot.SoftStrength or Config.Aimbot.SoftSmooth or 5)
 
         local target = Aimbot.FindTarget(targetFOV, targetPart)
         if target and target.Character then
             local part = target.Character:FindFirstChild(targetPart) or target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("UpperTorso")
             if part then
                 local predictedPos = Aimbot.Predict(part, target)
-                Aimbot.AimAt(predictedPos, smoothVal)
+                Aimbot.AimAt(predictedPos, smoothVal, activeMode == "Strong")
             end
         else
             if TargetDot then pcall(function() TargetDot.Visible = false end) end
