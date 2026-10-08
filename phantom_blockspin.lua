@@ -485,56 +485,61 @@ end
 -- If a string matches here, it's ALWAYS valid — skip garbage checks
 -- ───────────────────────────────────────────────────
 local KNOWN_WEAPONS = {
-    -- BlockSpin confirmed weapons
+    -- BlockSpin confirmed firearms & special weapons
     ["anaconda"]=true, ["remington"]=true, ["mp5"]=true, ["rpg"]=true,
     ["minigun"]=true, ["flamethrower"]=true, ["double barrel"]=true,
-    ["machete"]=true, ["barrett .50 cal"]=true, ["barrett"]=true,
-    ["sniper rifle"]=true, ["quantum hack tool"]=true,
-    ["sawed-off"]=true, ["sawed off"]=true, ["sawn-off"]=true,
-    ["frying pan"]=true, ["pan"]=true, ["glock"]=true, ["p226"]=true,
-    ["ak-47"]=true, ["ak47"]=true, ["m16"]=true, ["m4a1"]=true,
-    ["scar"]=true, ["vector"]=true, ["p90"]=true,
+    ["machete"]=true, ["machette"]=true, ["barrett .50 cal"]=true, ["barrett"]=true,
+    ["sniper rifle"]=true, ["quantum hack tool"]=true, ["m24"]=true,
+    ["sawed-off"]=true, ["sawed off"]=true, ["sawn-off"]=true, ["sawnoff"]=true, ["sawedoff"]=true,
+    ["frying pan"]=true, ["pan"]=true, ["glock"]=true, ["glock 17"]=true, ["glock17"]=true,
+    ["p226"]=true, ["ak-47"]=true, ["ak47"]=true, ["m16"]=true, ["m4a1"]=true,
+    ["scar"]=true, ["vector"]=true, ["p90"]=true, ["draco"]=true,
+    ["skorpion"]=true, ["c9"]=true, ["crossbow"]=true,
     ["fishing rod"]=true, ["energy shot"]=true,
     ["ac-9"]=true, ["ac9"]=true, ["g3"]=true, ["uzi"]=true,
     ["mac-10"]=true, ["mac10"]=true, ["tec-9"]=true, ["tec9"]=true,
-    ["lockpick"]=true, ["c4"]=true,
-    ["blood bag"]=true, ["medkit"]=true, ["bandage"]=true,
-    ["tactical axe"]=true, ["combat knife"]=true,
-    ["baseball bat"]=true, ["crowbar"]=true,
-    ["shotgun"]=true, ["pistol"]=true, ["rifle"]=true, ["smg"]=true, ["sniper"]=true,
-    ["katana"]=true, ["sword"]=true, ["hammer"]=true, ["wrench"]=true,
-    ["grenade"]=true, ["molotov"]=true, ["flashbang"]=true,
-    ["smoke grenade"]=true, ["deagle"]=true, ["desert eagle"]=true,
-    ["revolver"]=true, ["m1911"]=true, ["beretta"]=true,
+    ["lockpick"]=true, ["c4"]=true, ["taser"]=true, ["stun gun"]=true,
+    ["molotov"]=true, ["grenade"]=true, ["flashbang"]=true, ["smoke grenade"]=true,
+    ["deagle"]=true, ["desert eagle"]=true, ["revolver"]=true, ["m1911"]=true, ["beretta"]=true,
     ["spas-12"]=true, ["spas12"]=true, ["aa-12"]=true, ["aa12"]=true,
     ["mp7"]=true, ["ump45"]=true, ["ump-45"]=true, ["aug"]=true,
     ["famas"]=true, ["m249"]=true, ["awp"]=true, ["dragunov"]=true,
-    ["crossbow"]=true, ["bow"]=true, ["knife"]=true, ["axe"]=true,
-    ["bat"]=true, ["pipe"]=true, ["shovel"]=true, ["pickaxe"]=true,
-    ["hatchet"]=true, ["cleaver"]=true, ["baton"]=true,
-    ["first aid kit"]=true, ["health pack"]=true, ["syringe"]=true,
-    ["adrenaline"]=true, ["armor vest"]=true, ["helmet"]=true,
-    ["flare gun"]=true, ["riot shield"]=true, ["tomahawk"]=true,
-    ["throwing knife"]=true, ["binoculars"]=true,
-    -- BlockSpin unique weapons / melee tools
-    ["diamond mop"]=true, ["mop"]=true, ["broom"]=true, ["plunger"]=true,
-    ["golf club"]=true, ["pool cue"]=true, ["cane"]=true, ["ruler"]=true,
-    ["umbrella"]=true, ["briefcase"]=true, ["guitar"]=true, ["skateboard"]=true,
-    ["fists"]=true, ["brass knuckles"]=true, ["knuckles"]=true,
     ["gold pistol"]=true, ["gold ak"]=true, ["gold uzi"]=true,
     ["gold shotgun"]=true, ["golden gun"]=true,
-    ["taser"]=true, ["stun gun"]=true, ["pepper spray"]=true,
-    ["brass bat"]=true, ["spiked bat"]=true, ["nail bat"]=true,
-    ["fire axe"]=true, ["chainsaw"]=true, ["cleaver"]=true,
-    ["hunting rifle"]=true, ["lever action"]=true, ["revolver rifle"]=true,
-    ["lmg"]=true, ["hmg"]=true, ["heavy machine gun"]=true,
-    ["smg 45"]=true, ["smg45"]=true, ["smg-45"]=true,
     ["laser gun"]=true, ["plasma gun"]=true, ["future gun"]=true,
     ["firework launcher"]=true, ["confetti gun"]=true, ["water gun"]=true,
     ["super soaker"]=true, ["nerf gun"]=true, ["toy gun"]=true,
     ["bb gun"]=true, ["slingshot"]=true, ["potato gun"]=true,
     ["blaster"]=true, ["ray gun"]=true, ["freeze gun"]=true,
 
+    -- BlockSpin crate & loot melee weapons
+    ["tactical axe"]=true, ["tactical knife"]=true, ["tactical shovel"]=true,
+    ["sledge hammer"]=true, ["combat knife"]=true, ["baseball bat"]=true,
+    ["crowbar"]=true, ["rusty shovel"]=true, ["tire iron"]=true,
+    ["hammer"]=true, ["nailed wooden board"]=true, ["chair leg"]=true,
+    ["shank"]=true, ["dumbbell plate"]=true, ["brick"]=true,
+    ["metal pipe"]=true, ["bowling pin"]=true, ["rolling pin"]=true,
+    ["jar"]=true, ["wooden board"]=true, ["bottle"]=true,
+    ["mug"]=true, ["glass"]=true, ["cinder block"]=true,
+    ["bike lock"]=true, ["pool cue"]=true, ["spray can"]=true,
+    ["soda can"]=true, ["rock"]=true, ["knife"]=true,
+    ["axe"]=true, ["bat"]=true, ["pipe"]=true, ["shovel"]=true,
+    ["pickaxe"]=true, ["hatchet"]=true, ["cleaver"]=true, ["baton"]=true,
+    ["katana"]=true, ["sword"]=true, ["wrench"]=true,
+    ["diamond mop"]=true, ["mop"]=true, ["broom"]=true, ["plunger"]=true,
+    ["golf club"]=true, ["cane"]=true, ["ruler"]=true,
+    ["umbrella"]=true, ["briefcase"]=true, ["guitar"]=true, ["skateboard"]=true,
+    ["brass knuckles"]=true, ["knuckles"]=true, ["pepper spray"]=true,
+    ["brass bat"]=true, ["spiked bat"]=true, ["nail bat"]=true,
+    ["fire axe"]=true, ["chainsaw"]=true,
+
+    -- Utilities, Cures, Heals & Throwables
+    ["blood bag"]=true, ["medkit"]=true, ["bandage"]=true,
+    ["first aid kit"]=true, ["health pack"]=true, ["syringe"]=true,
+    ["adrenaline"]=true, ["jerry can"]=true, ["fire cracker"]=true,
+    ["armor vest"]=true, ["helmet"]=true, ["flare gun"]=true,
+    ["riot shield"]=true, ["tomahawk"]=true, ["throwing knife"]=true,
+    ["binoculars"]=true,
 }
 
 -- ───────────────────────────────────────────────────
@@ -691,7 +696,7 @@ local function CapitalizeName(name)
         ["rpg"]=true, ["mp5"]=true, ["mp7"]=true, ["m16"]=true, ["m4a1"]=true,
         ["p90"]=true, ["p226"]=true, ["g3"]=true, ["c4"]=true, ["uzi"]=true,
         ["awp"]=true, ["aug"]=true, ["m249"]=true, ["m1911"]=true,
-        ["ump45"]=true, ["famas"]=true,
+        ["ump45"]=true, ["famas"]=true, ["m24"]=true, ["c9"]=true,
     }
     if ALL_CAPS[low] then return name:upper() end
 
@@ -746,69 +751,119 @@ local RARITY_COLORS = {
 }
 
 local BLOCKSPIN_RARITIES = {
-    ["anaconda"]          = { r = "Mythic",    c = RARITY_COLORS.Mythic },
-    ["remington"]         = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["mp5"]               = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["rpg"]               = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["minigun"]           = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["flamethrower"]      = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["gold ak"]           = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["golden gun"]        = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["gold pistol"]       = { r = "Legendary", c = RARITY_COLORS.Legendary },
-    ["double barrel"]     = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["machete"]           = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["barrett .50 cal"]   = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["barrett"]           = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["sniper rifle"]      = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["awp"]               = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["katana"]            = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["g3"]                = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["deagle"]            = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["desert eagle"]      = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["quantum hack tool"] = { r = "Epic",      c = RARITY_COLORS.Epic },
-    ["sawed-off"]         = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["sawed off"]         = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["sawn-off"]          = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["frying pan"]        = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["pan"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["glock"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["glock 17"]          = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["glock17"]           = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["p226"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["ak-47"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["ak47"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["m16"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["m4a1"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["scar"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["vector"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["p90"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["fishing rod"]       = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["energy shot"]       = { r = "Rare",      c = RARITY_COLORS.Rare },
-    ["ac-9"]              = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["ac9"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["uzi"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["mac-10"]            = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["mac10"]             = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["tec-9"]             = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["tec9"]              = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["lockpick"]          = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["c4"]                = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
-    ["blood bag"]         = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["medkit"]            = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["bandage"]           = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["first aid kit"]     = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["syringe"]           = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["adrenaline"]        = { r = "Utility",   c = RARITY_COLORS.Utility },
-    ["tactical axe"]      = { r = "Common",    c = RARITY_COLORS.Common },
-    ["combat knife"]      = { r = "Common",    c = RARITY_COLORS.Common },
-    ["baseball bat"]      = { r = "Common",    c = RARITY_COLORS.Common },
-    ["crowbar"]           = { r = "Common",    c = RARITY_COLORS.Common },
-    ["knife"]             = { r = "Common",    c = RARITY_COLORS.Common },
-    ["axe"]               = { r = "Common",    c = RARITY_COLORS.Common },
-    ["bat"]               = { r = "Common",    c = RARITY_COLORS.Common },
-    ["pipe"]              = { r = "Common",    c = RARITY_COLORS.Common },
-    ["shovel"]            = { r = "Common",    c = RARITY_COLORS.Common },
-    ["hatchet"]           = { r = "Common",    c = RARITY_COLORS.Common },
+    -- Mythic (Red)
+    ["anaconda"]            = { r = "Mythic",    c = RARITY_COLORS.Mythic },
+
+    -- Legendary (Gold)
+    ["remington"]           = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["mp5"]                 = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["rpg"]                 = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["minigun"]             = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["flamethrower"]        = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["gold ak"]             = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["golden gun"]          = { r = "Legendary", c = RARITY_COLORS.Legendary },
+    ["gold pistol"]         = { r = "Legendary", c = RARITY_COLORS.Legendary },
+
+    -- Epic (Purple)
+    ["double barrel"]       = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["machete"]             = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["machette"]            = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["barrett .50 cal"]     = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["barrett"]             = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["sniper rifle"]        = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["awp"]                 = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["m24"]                 = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["katana"]              = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["g3"]                  = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["deagle"]              = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["desert eagle"]        = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["quantum hack tool"]   = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["crossbow"]            = { r = "Epic",      c = RARITY_COLORS.Epic },
+
+    -- Rare (Blue / Cyan)
+    ["sawed-off"]           = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["sawed off"]           = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["sawn-off"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["sawnoff"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["sawedoff"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["frying pan"]          = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["pan"]                 = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["glock"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["glock 17"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["glock17"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["p226"]                = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["ak-47"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["ak47"]                = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["m16"]                 = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["m4a1"]                = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["scar"]                = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["vector"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["p90"]                 = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["draco"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["fishing rod"]         = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["energy shot"]         = { r = "Rare",      c = RARITY_COLORS.Rare },
+
+    -- Uncommon (Green)
+    ["ac-9"]                = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["ac9"]                 = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["uzi"]                 = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["mac-10"]              = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["mac10"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["tec-9"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["tec9"]                = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["skorpion"]            = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["c9"]                  = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["lockpick"]            = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["c4"]                  = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["taser"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["molotov"]             = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["sledge hammer"]       = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+
+    -- Utility (Teal / Medical)
+    ["blood bag"]           = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["medkit"]              = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["bandage"]             = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["first aid kit"]       = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["syringe"]             = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["adrenaline"]          = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["jerry can"]           = { r = "Utility",   c = RARITY_COLORS.Utility },
+    ["fire cracker"]        = { r = "Utility",   c = RARITY_COLORS.Utility },
+
+    -- Common (Grey / Silver)
+    ["tactical axe"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["tactical knife"]      = { r = "Common",    c = RARITY_COLORS.Common },
+    ["tactical shovel"]     = { r = "Common",    c = RARITY_COLORS.Common },
+    ["combat knife"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["baseball bat"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["crowbar"]             = { r = "Common",    c = RARITY_COLORS.Common },
+    ["rusty shovel"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["tire iron"]           = { r = "Common",    c = RARITY_COLORS.Common },
+    ["hammer"]              = { r = "Common",    c = RARITY_COLORS.Common },
+    ["nailed wooden board"] = { r = "Common",    c = RARITY_COLORS.Common },
+    ["chair leg"]           = { r = "Common",    c = RARITY_COLORS.Common },
+    ["shank"]               = { r = "Common",    c = RARITY_COLORS.Common },
+    ["dumbbell plate"]      = { r = "Common",    c = RARITY_COLORS.Common },
+    ["brick"]               = { r = "Common",    c = RARITY_COLORS.Common },
+    ["metal pipe"]          = { r = "Common",    c = RARITY_COLORS.Common },
+    ["bowling pin"]         = { r = "Common",    c = RARITY_COLORS.Common },
+    ["rolling pin"]         = { r = "Common",    c = RARITY_COLORS.Common },
+    ["jar"]                 = { r = "Common",    c = RARITY_COLORS.Common },
+    ["wooden board"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["bottle"]              = { r = "Common",    c = RARITY_COLORS.Common },
+    ["mug"]                 = { r = "Common",    c = RARITY_COLORS.Common },
+    ["glass"]               = { r = "Common",    c = RARITY_COLORS.Common },
+    ["cinder block"]        = { r = "Common",    c = RARITY_COLORS.Common },
+    ["bike lock"]           = { r = "Common",    c = RARITY_COLORS.Common },
+    ["pool cue"]            = { r = "Common",    c = RARITY_COLORS.Common },
+    ["spray can"]           = { r = "Common",    c = RARITY_COLORS.Common },
+    ["soda can"]            = { r = "Common",    c = RARITY_COLORS.Common },
+    ["rock"]                = { r = "Common",    c = RARITY_COLORS.Common },
+    ["knife"]               = { r = "Common",    c = RARITY_COLORS.Common },
+    ["axe"]                 = { r = "Common",    c = RARITY_COLORS.Common },
+    ["bat"]                 = { r = "Common",    c = RARITY_COLORS.Common },
+    ["pipe"]                = { r = "Common",    c = RARITY_COLORS.Common },
+    ["shovel"]              = { r = "Common",    c = RARITY_COLORS.Common },
+    ["hatchet"]             = { r = "Common",    c = RARITY_COLORS.Common },
     ["baton"]             = { r = "Common",    c = RARITY_COLORS.Common },
 }
 
@@ -1015,6 +1070,8 @@ local BANNED_NAME_WORDS = {
     ["none"]=true, ["nil"]=true, ["null"]=true, ["unknown"]=true,
     ["unarmed"]=true, ["hands"]=true, ["fist"]=true, ["fists"]=true,
     ["emote"]=true, ["emotes"]=true, ["action"]=true,
+    -- Generic weapon classes that are NOT specific weapons:
+    ["shotgun"]=true, ["pistol"]=true, ["rifle"]=true, ["smg"]=true, ["sniper"]=true,
 }
 
 local function isIgnoredEmoteOrCiv(name)
@@ -1062,8 +1119,17 @@ function Util.ResolveToolInfo(tool)
 
     local realName = nil
 
+    -- Specific BlockSpin weapon alias mapping on tool.Name (e.g. if tool is called "Shotgun", it's the Sawed-Off!)
+    if lowToolName == "shotgun" or lowToolName == "sawnoff" or lowToolName == "sawn-off" or lowToolName == "sawed off" or lowToolName == "sawedoff" then
+        realName = "Sawed-Off"
+    elseif lowToolName == "machette" then
+        realName = "Machete"
+    elseif lowToolName == "ak47" then
+        realName = "AK-47"
+    end
+
     -- 1. Whitelist direct check on tool.Name (Katana, Remington, Sawed-Off, Lockpick, Medkit, etc.)
-    if KNOWN_WEAPONS[lowToolName] then
+    if not realName and KNOWN_WEAPONS[lowToolName] then
         realName = rawToolName:match("^%s*(.-)%s*$")
     end
 
@@ -1216,7 +1282,17 @@ function Util.ResolveToolInfo(tool)
     -- Clean formatting:
     realName = realName:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
     realName = realName:gsub("_", " "):match("^%s*(.-)%s*$")
-    realName = CapitalizeName(realName)
+
+    local lowFinal = realName:lower()
+    if lowFinal == "shotgun" or lowFinal == "sawnoff" or lowFinal == "sawn-off" or lowFinal == "sawed off" or lowFinal == "sawedoff" then
+        realName = "Sawed-Off"
+    elseif lowFinal == "machette" then
+        realName = "Machete"
+    elseif lowFinal == "ak47" then
+        realName = "AK-47"
+    else
+        realName = CapitalizeName(realName)
+    end
 
     local rarity, color = Util.GetItemRarity(tool, realName)
     return realName, rarity, color
