@@ -1,6 +1,6 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PRV SERVICE v8.5 · BlockSpin Master Cyber Edition             ║
+    ║     PRV SERVICE v12.0 · 120 FPS Ultra-Fluid Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi K per aprire/chiudere il menu                          ║
@@ -38,6 +38,22 @@ local TweenService     = game:GetService("TweenService")
 local Workspace        = game:GetService("Workspace")
 local Lighting         = game:GetService("Lighting")
 local GuiService       = game:GetService("GuiService")
+
+-- ═══════════════════════════════════════════════════
+-- ULTRA 120 FPS ENGINE & FRAME SMOOTHNESS SYSTEM
+-- ═══════════════════════════════════════════════════
+local function setFPS(val)
+    local target = tonumber(val) or 120
+    pcall(function()
+        local sfc = setfpscap or (getgenv and getgenv().setfpscap) or set_fps_cap or (getgenv and getgenv().set_fps_cap)
+        if type(sfc) == "function" then
+            sfc(target)
+        end
+    end)
+end
+
+-- Immediately unlock 120 FPS target
+setFPS(120)
 
 local LocalPlayer = Players.LocalPlayer
 local Camera      = Workspace.CurrentCamera
@@ -373,13 +389,25 @@ function Util.Alive(p)
     return true
 end
 
-function Util.Visible(origin, target, plr)
-    local params = RParams()
-    params.FilterType = Enum.RaycastFilterType.Exclude
+local _sharedRayParams = RParams()
+_sharedRayParams.FilterType = Enum.RaycastFilterType.Exclude
+_sharedRayParams.IgnoreWater = true
+
+local function updateSharedRayFilter()
     local fl = {Camera}
     if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
-    params.FilterDescendantsInstances = fl
-    local r = Workspace:Raycast(origin, target - origin, params)
+    _sharedRayParams.FilterDescendantsInstances = fl
+end
+updateSharedRayFilter()
+pcall(function()
+    LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(0.1)
+        pcall(updateSharedRayFilter)
+    end)
+end)
+
+function Util.Visible(origin, target, plr)
+    local r = Workspace:Raycast(origin, target - origin, _sharedRayParams)
     if not r then return true end
     if plr and plr.Character and r.Instance:IsDescendantOf(plr.Character) then return true end
     return false
@@ -1594,8 +1622,17 @@ function ESP.Update(player, d)
     local dist = (rootPos - camPos).Magnitude
     if dist > Config.ESP.MaxDistance then ESP.HideAll(d) return end
 
-    -- Color determination
-    local isVisible = Util.Visible(camPos, rootPos, player)
+    -- Color determination with throttled / conditional visibility check (Zero lag)
+    local isVisible = false
+    if Config.ESP.VisibilityCheck or Config.ESP.Chams then
+        local now = Tick()
+        if not d._lastVisCheck or (now - d._lastVisCheck > 0.06) then
+            d._lastVisCheck = now
+            d._cachedVisible = Util.Visible(camPos, rootPos, player)
+        end
+        isVisible = d._cachedVisible or false
+    end
+
     local col
     if Config.ESP.ShowTeamColor and player.Team then
         col = player.TeamColor.Color
@@ -1605,41 +1642,54 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
-    -- 1. NATIVE HIGHLIGHT (Outline / Chams - Depth Mode Occluded to prevent map flickering)
+    -- 1. NATIVE HIGHLIGHT (Outline / Chams - Dirty checked to eliminate Roblox C++ overhead)
     if d.Highlight then
         if (Config.ESP.Chams or (Config.ESP.Enabled and Config.ESP.BoxStyle == "Highlight")) and dist < 350 then
             if d.Highlight.Parent ~= char then d.Highlight.Parent = char end
             if d.Highlight.Adornee ~= char then d.Highlight.Adornee = char end
-            d.Highlight.OutlineColor = col
+            if d._lastOutlineCol ~= col then
+                d._lastOutlineCol = col
+                d.Highlight.OutlineColor = col
+            end
             if Config.ESP.Chams then
-                d.Highlight.FillColor = isVisible and Config.ESP.ChamsVisibleColor or Config.ESP.ChamsHiddenColor
+                local fillColor = isVisible and Config.ESP.ChamsVisibleColor or Config.ESP.ChamsHiddenColor
+                if d._lastFillCol ~= fillColor then
+                    d._lastFillCol = fillColor
+                    d.Highlight.FillColor = fillColor
+                end
                 d.Highlight.FillTransparency = Config.ESP.ChamsTransparency
                 d.Highlight.OutlineTransparency = 0
             else
-                d.Highlight.FillColor = col
+                if d._lastFillCol ~= col then
+                    d._lastFillCol = col
+                    d.Highlight.FillColor = col
+                end
                 d.Highlight.FillTransparency = 0.85
                 d.Highlight.OutlineTransparency = 0
             end
-            d.Highlight.Enabled = true
+            if not d.Highlight.Enabled then d.Highlight.Enabled = true end
         else
-            d.Highlight.Enabled = false
+            if d.Highlight.Enabled then d.Highlight.Enabled = false end
         end
     end
 
-    -- 2. NATIVE SELECTIONBOX (3D Box bounding character)
+    -- 2. NATIVE SELECTIONBOX (3D Box bounding character - Dirty checked)
     if d.SelectionBox then
         if Config.ESP.Enabled and Config.ESP.BoxStyle ~= "None" then
             if d.SelectionBox.Parent ~= char then d.SelectionBox.Parent = char end
             if d.SelectionBox.Adornee ~= char then d.SelectionBox.Adornee = char end
-            d.SelectionBox.Color3 = col
+            if d._lastBoxCol ~= col then
+                d._lastBoxCol = col
+                d.SelectionBox.Color3 = col
+            end
             d.SelectionBox.LineThickness = (Config.ESP.BoxThickness or 1.3) * 0.025
-            d.SelectionBox.Visible = true
+            if not d.SelectionBox.Visible then d.SelectionBox.Visible = true end
         else
-            d.SelectionBox.Visible = false
+            if d.SelectionBox.Visible then d.SelectionBox.Visible = false end
         end
     end
 
-    -- 3. NATIVE BILLBOARDGUI (Name, Distance, Health, Inventory)
+    -- 3. NATIVE BILLBOARDGUI (Name, Distance, Health, Inventory - Zero frame drop updates)
     if d.Billboard then
         local showGui = Config.ESP.Enabled or Config.InventoryESP.Enabled
         if showGui then
@@ -1647,22 +1697,30 @@ function ESP.Update(player, d)
             if d.Billboard.Parent ~= char then d.Billboard.Parent = char end
             if d.Billboard.Adornee ~= adorneePart then d.Billboard.Adornee = adorneePart end
             d.Billboard.MaxDistance = math.huge
-            d.Billboard.Enabled = true
+            if not d.Billboard.Enabled then d.Billboard.Enabled = true end
 
             -- Name & Distance
             if d.NameLabel then
                 if Config.ESP.Names or Config.ESP.Distance then
-                    local txt = ""
-                    if Config.ESP.Names then txt = player.DisplayName end
-                    if Config.ESP.Distance then
-                        txt = txt .. (txt ~= "" and " " or "") .. "[" .. mFloor(dist) .. "m]"
+                    local roundedDist = mFloor(dist)
+                    if d._lastDist ~= roundedDist or not d._nameSet then
+                        d._lastDist = roundedDist
+                        d._nameSet = true
+                        local txt = ""
+                        if Config.ESP.Names then txt = player.DisplayName end
+                        if Config.ESP.Distance then
+                            txt = txt .. (txt ~= "" and " " or "") .. "[" .. roundedDist .. "m]"
+                        end
+                        d.NameLabel.Text = txt
                     end
-                    d.NameLabel.Text = txt
-                    d.NameLabel.TextColor3 = Config.ESP.NameColor
+                    if d._lastTextColor ~= Config.ESP.NameColor then
+                        d._lastTextColor = Config.ESP.NameColor
+                        d.NameLabel.TextColor3 = Config.ESP.NameColor
+                    end
                     d.NameLabel.TextSize = Config.ESP.NameSize
-                    d.NameLabel.Visible = true
+                    if not d.NameLabel.Visible then d.NameLabel.Visible = true end
                 else
-                    d.NameLabel.Visible = false
+                    if d.NameLabel.Visible then d.NameLabel.Visible = false end
                 end
             end
 
@@ -1671,24 +1729,29 @@ function ESP.Update(player, d)
                 if Config.ESP.HealthBar then
                     local maxHp = (hum.MaxHealth and hum.MaxHealth > 0) and hum.MaxHealth or 100
                     local curHp = mClamp(hum.Health, 0, maxHp)
-                    local pct = mClamp(curHp / maxHp, 0, 1)
-                    d.HealthFill.Size = UDim2.new(pct, 0, 1, 0)
-                    local hpColor = C3(mFloor((1 - pct) * 255), mFloor(pct * 255), 50)
-                    d.HealthFill.BackgroundColor3 = hpColor
-                    d.HealthBG.Visible = true
-
-                    if d.HealthText then
-                        if Config.ESP.HealthText then
+                    if d._lastCurHp ~= curHp or d._lastMaxHp ~= maxHp then
+                        d._lastCurHp = curHp
+                        d._lastMaxHp = maxHp
+                        local pct = mClamp(curHp / maxHp, 0, 1)
+                        d.HealthFill.Size = UDim2.new(pct, 0, 1, 0)
+                        local hpColor = C3(mFloor((1 - pct) * 255), mFloor(pct * 255), 50)
+                        d.HealthFill.BackgroundColor3 = hpColor
+                        if d.HealthText then
                             d.HealthText.Text = mFloor(curHp) .. " HP"
                             d.HealthText.TextColor3 = hpColor
-                            d.HealthText.Visible = true
-                        else
-                            d.HealthText.Visible = false
+                        end
+                    end
+                    if not d.HealthBG.Visible then d.HealthBG.Visible = true end
+
+                    if d.HealthText then
+                        local showHp = Config.ESP.HealthText
+                        if d.HealthText.Visible ~= showHp then
+                            d.HealthText.Visible = showHp
                         end
                     end
                 else
-                    d.HealthBG.Visible = false
-                    if d.HealthText then d.HealthText.Visible = false end
+                    if d.HealthBG.Visible then d.HealthBG.Visible = false end
+                    if d.HealthText and d.HealthText.Visible then d.HealthText.Visible = false end
                 end
             end
 
@@ -1968,8 +2031,13 @@ function Aimbot.AimAt(worldPos)
         smooth = Config.Aimbot.Smoothing
     end
 
-    local mx = delta.X / math.max(smooth, 1)
-    local my = delta.Y / math.max(smooth, 1)
+    local nowTick = Tick()
+    local dt = _lastAimTick and (nowTick - _lastAimTick) or (1/120)
+    _lastAimTick = nowTick
+    local fpsFactor = mClamp(dt / (1/60), 0.2, 2.0)
+
+    local mx = (delta.X / math.max(smooth, 1)) * fpsFactor
+    local my = (delta.Y / math.max(smooth, 1)) * fpsFactor
 
     if Config.Aimbot.HumanizeJitter then
         local js = Config.Aimbot.JitterStrength
@@ -2133,13 +2201,7 @@ function Triggerbot.Process()
         -- 2. Fallback to physical Raycast if 2D check didn't trip
         if not hasTarget then
             local ray = Camera:ViewportPointToRay(center.X, center.Y)
-            local params = RParams()
-            params.FilterType = Enum.RaycastFilterType.Exclude
-            local fl = {Camera}
-            if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
-            params.FilterDescendantsInstances = fl
-
-            local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, params)
+            local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, _sharedRayParams)
             if r and r.Instance then
                 local hitInstance = r.Instance
                 local current = hitInstance
@@ -2422,10 +2484,12 @@ local function SetCursorState(active)
         if not cursorConnection then
             cursorConnection = RunService.RenderStepped:Connect(function()
                 if State.GUIVisible then
-                    pcall(function()
-                        UserInputService.MouseIconEnabled = true
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                    end)
+                    if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
+                        pcall(function()
+                            UserInputService.MouseIconEnabled = true
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        end)
+                    end
                 else
                     if cursorConnection then
                         cursorConnection:Disconnect()
@@ -3476,6 +3540,26 @@ local function BuildNativeGUI()
     -- 6. POPULATE SETTINGS
     -- ──────────────────────────────────────────
     pcall(function()
+        tSettings:AddSection("Performance & Framerate")
+        tSettings:AddDropdown("FPS Cap / Unlocker", {"120 FPS (Ultra Smooth)", "144 FPS", "240 FPS", "60 FPS (Default)", "Uncapped (Max)"}, "120 FPS (Ultra Smooth)", function(v)
+            if v == "120 FPS (Ultra Smooth)" then
+                setFPS(120)
+                Notify.Send("Framerate set to 120 FPS", C3(0, 255, 180), 2)
+            elseif v == "144 FPS" then
+                setFPS(144)
+                Notify.Send("Framerate set to 144 FPS", C3(0, 255, 180), 2)
+            elseif v == "240 FPS" then
+                setFPS(240)
+                Notify.Send("Framerate set to 240 FPS", C3(0, 255, 180), 2)
+            elseif v == "60 FPS (Default)" then
+                setFPS(60)
+                Notify.Send("Framerate set to 60 FPS", C3(200, 200, 200), 2)
+            elseif v == "Uncapped (Max)" then
+                setFPS(0)
+                Notify.Send("Framerate Uncapped (Max FPS)", C3(0, 255, 255), 2)
+            end
+        end)
+
         tSettings:AddSection("Interface")
         tSettings:AddToggle("Show Kill Feed", Config.Misc.ShowKillFeed, function(v) Config.Misc.ShowKillFeed = v end)
         tSettings:AddToggle("Kill Sound (Hit Sound)", Config.Misc.HitSound, function(v) Config.Misc.HitSound = v end)
@@ -3757,8 +3841,12 @@ local function RenderLoop()
     PlayerMods.Noclip()
     PlayerMods.UpdateFly()
 
-    -- v3: Kill tracking
-    pcall(trackKills)
+    -- v3: Kill tracking (Throttled to 10Hz to eliminate frame drops)
+    local now = Tick()
+    if not _lastKillCheck or (now - _lastKillCheck > 0.1) then
+        _lastKillCheck = now
+        pcall(trackKills)
+    end
 
     -- Watermark
     updateWatermark()
@@ -3857,7 +3945,8 @@ local function Init()
     -- v3: Setup anti-AFK
     PlayerMods.SetupAntiAFK()
 
-    Notify.Send("PRV SERVICE v8.5 Loaded!", C3(192, 132, 252), 4)
+    setFPS(120)
+    Notify.Send("PRV SERVICE v12.0 120 FPS Loaded!", C3(56, 189, 248), 4)
     Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
     Notify.Send("v8.5: Visual Badges & Full English UI!", C3(56, 189, 248), 6)
 end
