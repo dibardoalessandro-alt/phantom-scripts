@@ -134,6 +134,8 @@ local Config = {
 
         -- Info
         Names           = true,
+        NameSize        = 13,
+        NameColor       = C3(255, 255, 255),
         Distance        = true,
         HealthBar       = true,
         HealthText      = true,
@@ -146,12 +148,15 @@ local Config = {
         TracerOrigin    = "Bottom",
         TracerThickness = 1,
 
+        -- Head Dot
+        HeadDot         = false,
+        HeadDotSize     = 3,
+
         -- Settings
         VisibilityCheck = true,
         VisibleColor    = C3(255, 50, 50),
         NotVisibleColor = C3(160, 20, 20),
         DefaultColor    = C3(255, 50, 50),
-        NameColor       = C3(255, 255, 255),
         MaxDistance     = 1000,
         TeamCheck       = false,
         ShowTeamColor   = false,
@@ -159,14 +164,14 @@ local Config = {
 
     -- ── INVENTORY ESP ──
     InventoryESP = {
-        Enabled       = false,
+        Enabled       = true,         -- Default enabled for immediate visibility
         VisualBadges  = true,         -- v8: Badge grafici con loghi e contorni di rarità
         ShowRarityGlow = true,        -- v8: Contorno Leggendario dorato (RPG, Minigun)
         BadgeSize     = 20,           -- v8.1: Dimensione badge compatta (20px)
         ShowEquipped  = true,
         ShowBackpack  = true,
         ShowToolTip   = true,         -- v3: show tool tooltip/description
-        ShowDamage       = false,        -- v9.5: Clean exact weapon names by default
+        ShowDamage    = false,        -- v9.5: Clean exact weapon names by default
         CleanNames    = true,         -- v3: remove weird prefixes/suffixes
         TextColor     = C3(0, 255, 210),
         EquippedColor = C3(255, 200, 50),  -- v3: equipped item highlight
@@ -1548,18 +1553,45 @@ local ESP = {}
 
 local _charConns = {}
 
+local function GetSafeGuiContainer()
+    local container = nil
+    pcall(function()
+        if type(gethui) == "function" then
+            container = gethui()
+        end
+    end)
+    if not container then
+        pcall(function()
+            local cg = game:GetService("CoreGui")
+            if cg and pcall(function() return cg.Name end) then
+                container = cg
+            end
+        end)
+    end
+    if not container then
+        pcall(function()
+            container = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+        end)
+    end
+    return container
+end
+
 function ESP.Create(player)
     local d = {}
     d.Player = player
+
+    local safeGui = GetSafeGuiContainer() or Workspace.CurrentCamera or Workspace
+    local safeWorld = Workspace.CurrentCamera or Workspace
 
     -- 1. Native Roblox Highlight (Silhouettes, Chams, Depth-Aware Outline)
     pcall(function()
         local hl = Instance.new("Highlight")
         hl.Name = "P_HL_" .. (player and player.UserId or mRandom(1000, 9999))
         hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        hl.FillTransparency = 0.85
+        hl.FillTransparency = Config.ESP.ChamsTransparency or 0.35
         hl.OutlineTransparency = 0
         hl.Enabled = false
+        hl.Parent = safeWorld
         d.Highlight = hl
     end)
 
@@ -1571,6 +1603,7 @@ function ESP.Create(player)
         sb.LineThickness = 0.04
         sb.SurfaceTransparency = 1
         sb.Visible = false
+        sb.Parent = safeWorld
         d.SelectionBox = sb
     end)
 
@@ -1579,21 +1612,22 @@ function ESP.Create(player)
         local bb = Instance.new("BillboardGui")
         bb.Name = "P_ESP_" .. (player and player.UserId or mRandom(1000, 9999))
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 220, 0, 120)
-        bb.StudsOffset = V3(0, 1.8, 0)
+        bb.Size = UDim2.new(0, 260, 0, 130)
+        bb.StudsOffset = V3(0, 2.2, 0)
         bb.LightInfluence = 0
         bb.MaxDistance = math.huge
         bb.Enabled = false
+        bb.Parent = safeGui
 
         -- Name & Distance Label
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Name = "NameLabel"
         nameLbl.BackgroundTransparency = 1
-        nameLbl.Size = UDim2.new(1, 0, 0, 14)
+        nameLbl.Size = UDim2.new(1, 0, 0, 15)
         nameLbl.Position = UDim2.new(0, 0, 0, 0)
         nameLbl.Font = Enum.Font.SourceSansBold
-        nameLbl.TextSize = Config.ESP.NameSize
-        nameLbl.TextColor3 = Config.ESP.NameColor
+        nameLbl.TextSize = Config.ESP.NameSize or 13
+        nameLbl.TextColor3 = Config.ESP.NameColor or C3(255, 255, 255)
         nameLbl.TextStrokeTransparency = 0
         nameLbl.TextStrokeColor3 = C3(0, 0, 0)
         nameLbl.Text = ""
@@ -1607,7 +1641,7 @@ function ESP.Create(player)
         hpBG.BackgroundColor3 = C3(20, 20, 20)
         hpBG.BorderSizePixel = 0
         hpBG.Size = UDim2.new(0, 70, 0, 4)
-        hpBG.Position = UDim2.new(0.5, -35, 0, 16)
+        hpBG.Position = UDim2.new(0.5, -35, 0, 17)
         hpBG.Visible = false
         hpBG.Parent = bb
         d.HealthBG = hpBG
@@ -1626,7 +1660,7 @@ function ESP.Create(player)
         hpText.Name = "HealthText"
         hpText.BackgroundTransparency = 1
         hpText.Size = UDim2.new(1, 0, 0, 11)
-        hpText.Position = UDim2.new(0, 0, 0, 21)
+        hpText.Position = UDim2.new(0, 0, 0, 22)
         hpText.Font = Enum.Font.SourceSans
         hpText.TextSize = 10
         hpText.TextColor3 = C3(255, 255, 255)
@@ -1641,12 +1675,12 @@ function ESP.Create(player)
         local invLbl = Instance.new("TextLabel")
         invLbl.Name = "InventoryLabel"
         invLbl.BackgroundTransparency = 1
-        invLbl.Size = UDim2.new(1, 0, 1, -20)
-        invLbl.Position = UDim2.new(0, 0, 0, 20)
+        invLbl.Size = UDim2.new(1, 0, 0, 50)
+        invLbl.Position = UDim2.new(0, 0, 0, 34)
         invLbl.Font = Enum.Font.GothamBold
         invLbl.RichText = true
-        invLbl.TextSize = Config.InventoryESP.TextSize
-        invLbl.TextColor3 = C3(255, 255, 255)  -- MUST be white so RichText <font color> tags work
+        invLbl.TextSize = (Config.InventoryESP and Config.InventoryESP.TextSize) or 12
+        invLbl.TextColor3 = C3(255, 255, 255)
         invLbl.TextStrokeTransparency = 0.2
         invLbl.TextStrokeColor3 = C3(0, 0, 0)
         invLbl.TextXAlignment = Enum.TextXAlignment.Center
@@ -1664,7 +1698,7 @@ function ESP.Create(player)
     pcall(function()
         if Drawing and Drawing.new then
             local tr = Drawing.new("Line")
-            tr.Thickness = Config.ESP.TracerThickness
+            tr.Thickness = Config.ESP.TracerThickness or 1
             tr.Visible = false
             tr.From = V2(-2000, -2000)
             tr.To = V2(-2000, -2000)
@@ -1737,8 +1771,18 @@ function ESP.Register(p)
             end
         end)
         conns.added = p.CharacterAdded:Connect(function()
+            task.wait(0.1)
             if State.ESPCache[p] then
-                ESP.HideAll(State.ESPCache[p])
+                local d = State.ESPCache[p]
+                if not d.Billboard or not d.Billboard.Parent or not d.Billboard:IsDescendantOf(game)
+                   or not d.Highlight or not d.Highlight.Parent or not d.Highlight:IsDescendantOf(game) then
+                    ESP.Destroy(d)
+                    State.ESPCache[p] = ESP.Create(p)
+                else
+                    ESP.HideAll(d)
+                end
+            else
+                State.ESPCache[p] = ESP.Create(p)
             end
         end)
     end)
@@ -1821,9 +1865,9 @@ function ESP.Update(player, d)
 
     local char = player.Character
     if not char or not char.Parent then ESP.HideAll(d) return end
-    local root = char:FindFirstChild("HumanoidRootPart")
+    local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
     local hum = char:FindFirstChildOfClass("Humanoid")
-    local head = char:FindFirstChild("Head")
+    local head = char:FindFirstChild("Head") or root
     if not root or not hum then ESP.HideAll(d) return end
 
     local cam = Workspace.CurrentCamera
@@ -1860,10 +1904,15 @@ function ESP.Update(player, d)
         col = Config.ESP.DefaultColor
     end
 
+    local safeWorld = Workspace.CurrentCamera or Workspace
+    local safeGui = GetSafeGuiContainer() or Workspace.CurrentCamera or Workspace
+
     -- 1. NATIVE HIGHLIGHT (Chams / Player Highlight - AlwaysOnTop for Xeno)
     if d.Highlight then
         if Config.ESP.Chams and dist <= (Config.ESP.MaxDistance or 1000) then
-            if d.Highlight.Parent ~= char then d.Highlight.Parent = char end
+            if not d.Highlight.Parent or not d.Highlight:IsDescendantOf(game) then
+                d.Highlight.Parent = safeWorld
+            end
             if d.Highlight.Adornee ~= char then d.Highlight.Adornee = char end
             if d.Highlight.DepthMode ~= Enum.HighlightDepthMode.AlwaysOnTop then
                 d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -1890,7 +1939,9 @@ function ESP.Update(player, d)
     -- 2. NATIVE SELECTIONBOX (3D Box around player)
     if d.SelectionBox then
         if Config.ESP.Boxes and dist <= (Config.ESP.MaxDistance or 1000) then
-            if d.SelectionBox.Parent ~= char then d.SelectionBox.Parent = char end
+            if not d.SelectionBox.Parent or not d.SelectionBox:IsDescendantOf(game) then
+                d.SelectionBox.Parent = safeWorld
+            end
             if d.SelectionBox.Adornee ~= char then d.SelectionBox.Adornee = char end
             if d._lastBoxCol ~= col then
                 d._lastBoxCol = col
@@ -1905,33 +1956,41 @@ function ESP.Update(player, d)
 
     -- 3. NATIVE BILLBOARDGUI (Name, Distance, Health, Inventory - Zero frame drop updates)
     if d.Billboard then
-        local showGui = Config.ESP.Names or Config.ESP.Distance or Config.ESP.HealthBar or Config.InventoryESP.Enabled
+        local showNames = Config.ESP.Enabled and Config.ESP.Names
+        local showDist = Config.ESP.Enabled and Config.ESP.Distance
+        local showHpBar = Config.ESP.Enabled and Config.ESP.HealthBar
+        local showInv = Config.InventoryESP and Config.InventoryESP.Enabled
+        local showGui = showNames or showDist or showHpBar or showInv
+
         if showGui then
+            if not d.Billboard.Parent or not d.Billboard:IsDescendantOf(game) then
+                d.Billboard.Parent = safeGui
+            end
             local adorneePart = head or root
-            if d.Billboard.Parent ~= char then d.Billboard.Parent = char end
             if d.Billboard.Adornee ~= adorneePart then d.Billboard.Adornee = adorneePart end
             d.Billboard.MaxDistance = math.huge
             if not d.Billboard.Enabled then d.Billboard.Enabled = true end
 
             -- Name & Distance
             if d.NameLabel then
-                if Config.ESP.Names or Config.ESP.Distance then
+                if showNames or showDist then
                     local roundedDist = mFloor(dist)
                     if d._lastDist ~= roundedDist or not d._nameSet then
                         d._lastDist = roundedDist
                         d._nameSet = true
                         local txt = ""
-                        if Config.ESP.Names then txt = player.DisplayName end
-                        if Config.ESP.Distance then
+                        if showNames then txt = player.DisplayName end
+                        if showDist then
                             txt = txt .. (txt ~= "" and " " or "") .. "[" .. roundedDist .. "m]"
                         end
                         d.NameLabel.Text = txt
                     end
-                    if d._lastTextColor ~= Config.ESP.NameColor then
-                        d._lastTextColor = Config.ESP.NameColor
-                        d.NameLabel.TextColor3 = Config.ESP.NameColor
+                    local nameCol = Config.ESP.NameColor or C3(255, 255, 255)
+                    if d._lastTextColor ~= nameCol then
+                        d._lastTextColor = nameCol
+                        d.NameLabel.TextColor3 = nameCol
                     end
-                    d.NameLabel.TextSize = Config.ESP.NameSize
+                    d.NameLabel.TextSize = Config.ESP.NameSize or 13
                     if not d.NameLabel.Visible then d.NameLabel.Visible = true end
                 else
                     if d.NameLabel.Visible then d.NameLabel.Visible = false end
@@ -1940,7 +1999,7 @@ function ESP.Update(player, d)
 
             -- Health Bar & Health Text
             if d.HealthBG and d.HealthFill then
-                if Config.ESP.HealthBar then
+                if showHpBar then
                     local maxHp = (hum.MaxHealth and hum.MaxHealth > 0) and hum.MaxHealth or 100
                     local curHp = mClamp(hum.Health, 0, maxHp)
                     if d._lastCurHp ~= curHp or d._lastMaxHp ~= maxHp then
@@ -2041,7 +2100,7 @@ function ESP.Update(player, d)
                         d.InventoryLabel.Text = text
                     end
                     d.InventoryLabel.TextSize = Config.InventoryESP.TextSize or 12
-                    local yPos = (Config.ESP.HealthBar and (Config.ESP.HealthText and 38 or 26)) or (Config.ESP.Names and 16 or 2)
+                    local yPos = (showHpBar and (Config.ESP.HealthText and 38 or 26)) or ((showNames or showDist) and 16 or 2)
                     d.InventoryLabel.Position = UDim2.new(0, 0, 0, yPos)
                     d.InventoryLabel.Visible = true
                 else
@@ -3609,6 +3668,16 @@ local function BuildNativeGUI()
     -- 1. POPULATE ESP (PULITO, ESSENZIALE & CHAMS XENO)
     -- ──────────────────────────────────────────
     pcall(function()
+        tESP:AddSection("👁️ Master ESP")
+        tESP:AddToggle("Enable Master ESP", Config.ESP.Enabled, function(v)
+            Config.ESP.Enabled = v
+            if not v then
+                for _, d in pairs(State.ESPCache) do
+                    ESP.HideAll(d)
+                end
+            end
+        end)
+
         tESP:AddSection("✨ Chams (Highlight Attraverso i Muri - Xeno)")
         tESP:AddToggle("Enable Chams", Config.ESP.Chams, function(v)
             Config.ESP.Chams = v
