@@ -1010,6 +1010,11 @@ local function isValidHumanName(str)
     if low == "tool" or low == "weapon" or low == "gun" or low == "item" or low == "handle" or low == "part" or low == "meshpart" or low == "model" or low == "hitbox" then
         return false
     end
+    -- BlockSpin default surrender / hands-up / empty-hands emote ("I Have Nuthingggggg")
+    -- When players have this, they are unarmed civilians! Do not clutter ESP with it.
+    if low:find("nuthing") or low:find("nothing") or low:find("surrender") or low:find("hands up") or low == "handsup" then
+        return false
+    end
     return true
 end
 
