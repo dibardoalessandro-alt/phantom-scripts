@@ -199,7 +199,7 @@ local Config = {
         SoftKeyType          = "Key",
         SoftPart             = "UpperTorso",
         SoftFOV              = 120,
-        SoftSmooth           = 6.0,
+        SoftSmooth           = 1.8,
 
         -- Vehicle Fix & Shared
         VehiclePenetration   = true,
@@ -2313,6 +2313,7 @@ end
 
 local _subPixelX = 0
 local _subPixelY = 0
+local _lastAimTick = nil
 
 function Aimbot.AimAt(worldPos, smooth)
     if not HAS_MOUSEMOVEREL then return end
@@ -2327,11 +2328,11 @@ function Aimbot.AimAt(worldPos, smooth)
     local delta = V2(vp.X, vp.Y) - center
 
     local nowTick = Tick()
-    local dt = _lastAimTick and (nowTick - _lastAimTick) or (1/120)
+    local dt = _lastAimTick and (nowTick - _lastAimTick) or (1/60)
     _lastAimTick = nowTick
-    local fpsFactor = mClamp(dt / (1/60), 0.1, 2.0)
+    dt = mClamp(dt, 0.001, 0.05)
 
-    local targetSmooth = math.max(smooth or 1.0, 1.0)
+    local targetSmooth = math.max(tonumber(smooth) or 1.0, 1.0)
     if targetSmooth <= 1.05 then
         -- Strong Lock mode: 1:1 Instant lock onto target with zero lag
         local intX = math.floor(delta.X + 0.5)
@@ -2342,12 +2343,13 @@ function Aimbot.AimAt(worldPos, smooth)
         _subPixelX = 0
         _subPixelY = 0
     else
-        -- Soft Aim mode: buttery sub-pixel smoothed movement (no lost fractional pixels)
-        local mx = (delta.X / targetSmooth) * fpsFactor
-        local my = (delta.Y / targetSmooth) * fpsFactor
+        -- High-power Framerate-Independent Magnetic Soft Aim
+        -- Speed: 1.0-1.2 is aggressive magnetic snap, 1.8-2.5 is strong smooth aim, 5.0+ is soft
+        local speed = 45 / (targetSmooth - 0.5)
+        local alpha = mClamp(1 - math.exp(-speed * dt), 0.08, 1.0)
 
-        local toMoveX = mx + _subPixelX
-        local toMoveY = my + _subPixelY
+        local toMoveX = (delta.X * alpha) + _subPixelX
+        local toMoveY = (delta.Y * alpha) + _subPixelY
 
         local intX = (toMoveX > 0) and math.floor(toMoveX + 0.5) or math.ceil(toMoveX - 0.5)
         local intY = (toMoveY > 0) and math.floor(toMoveY + 0.5) or math.ceil(toMoveY - 0.5)
@@ -3761,7 +3763,7 @@ local function BuildNativeGUI()
                 Notify.Send("Soft Aim Key: " .. v, C3(100, 255, 150), 2)
             end
         end)
-        tAim:AddSlider("Smoothness", 1.5, 15, Config.Aimbot.SoftSmooth, "", 0.5, function(v) Config.Aimbot.SoftSmooth = v end)
+        tAim:AddSlider("Smoothness (1.0=Max Forza, 8.0=Legit)", 1.0, 8.0, Config.Aimbot.SoftSmooth, "", 0.1, function(v) Config.Aimbot.SoftSmooth = v end)
         tAim:AddSlider("FOV Radius", 30, 400, Config.Aimbot.SoftFOV, "px", 5, function(v) Config.Aimbot.SoftFOV = v end)
         tAim:AddDropdown("Target Bone", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.SoftPart, function(v) Config.Aimbot.SoftPart = v end)
 
@@ -4081,7 +4083,7 @@ local function RenderLoop()
     if activeMode then
         local targetPart = (activeMode == "Strong") and Config.Aimbot.StrongPart or Config.Aimbot.SoftPart
         local targetFOV = (activeMode == "Strong") and Config.Aimbot.StrongFOV or Config.Aimbot.SoftFOV
-        local smoothVal = (activeMode == "Strong") and (Config.Aimbot.StrongSmooth or 1.0) or (Config.Aimbot.SoftSmooth or 6.0)
+        local smoothVal = (activeMode == "Strong") and (Config.Aimbot.StrongSmooth or 1.0) or (Config.Aimbot.SoftSmooth or 1.8)
 
         local target = Aimbot.FindTarget(targetFOV, targetPart)
         if target and target.Character then
