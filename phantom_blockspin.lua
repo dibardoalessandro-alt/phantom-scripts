@@ -1830,7 +1830,8 @@ function ESP.Update(player, d)
     if not cam then ESP.HideAll(d) return end
     local camPos = cam.CFrame.Position
     local rootPos = root.Position
-    if dist > Config.ESP.MaxDistance then
+    local dist = (rootPos - camPos).Magnitude
+    if dist > (Config.ESP.MaxDistance or 1000) then
         if not d._isOutOfRange then
             ESP.HideAll(d)
             d._isOutOfRange = true
