@@ -172,44 +172,36 @@ local Config = {
         MaxItems      = 8,           -- v3: limit display
     },
 
-    -- ── AIMBOT ──
+    -- ── AIMBOT (DUAL POWER & SOFT ENGINE) ──
     Aimbot = {
-        Enabled              = false,
-        ActivationMode       = "Hold",     -- "Hold" / "Toggle"
-        KeybindName          = "Mouse2 (RMB)",
-        ActivationKey        = Enum.UserInputType.MouseButton2,
-        ActivationKeyType    = "Mouse",    -- "Mouse" / "Key"
-        TargetPart           = "Head",     -- "Head" / "UpperTorso" / "HumanoidRootPart" / "LowerTorso"
-        TargetMode           = "Crosshair", -- "Crosshair" / "Distance"
-        MaxDistance           = 500,
-        FOV                  = 120,
+        -- Strong Aimbot (Aimbot Potente)
+        StrongEnabled        = true,
+        StrongMode           = "Hold",     -- "Hold" / "Always" / "Toggle"
+        StrongKeyName        = "Mouse2 (RMB)",
+        StrongKey            = Enum.UserInputType.MouseButton2,
+        StrongKeyType        = "Mouse",
+        StrongPart           = "Head",     -- "Head" / "UpperTorso" / "HumanoidRootPart"
+        StrongFOV            = 180,
+        StrongSmooth         = 1.0,
+
+        -- Soft Aim (Morbido / Regolabile)
+        SoftEnabled          = false,
+        SoftMode             = "Hold",     -- "Hold" / "Always" / "Toggle"
+        SoftKeyName          = "LeftAlt",
+        SoftKey              = Enum.KeyCode.LeftAlt,
+        SoftKeyType          = "Key",
+        SoftPart             = "UpperTorso",
+        SoftFOV              = 120,
+        SoftSmooth           = 6.0,
+
+        -- Vehicle Fix & Shared
+        VehiclePenetration   = true,
+        WallCheck            = true,
+        TeamCheck            = false,
         ShowFOV              = true,
         FOVColor             = C3(255, 255, 255),
-        FOVThickness         = 1,
         FOVTransparency      = 0.6,
-        FOVSides             = 64,
-        Smoothing            = 6,
-        HumanizeJitter       = true,
-        JitterStrength       = 0.4,
-        Prediction           = true,
-        PredictionMultiplier = 0.135,
-        WallCheck            = true,
-        StickyAim            = false,
-        TeamCheck            = false,
-        AimAssist            = false,
-        AssistStrength        = 12,
-        ShowTargetInfo       = true,
-        -- v3: New features
-        SilentAim            = false,       -- redirect shots server-side
-        AutoSwitch           = true,        -- switch target when current dies
-        AdaptiveSmoothing    = false,       -- closer = faster aim
-        AdaptiveMin          = 2,
-        AdaptiveMax          = 12,
-        ShowSnapLine         = false,       -- line from crosshair to target
-        SnapLineColor        = C3(255, 200, 50),
-        ShowLockIndicator    = true,        -- circle on locked target
-        LockIndicatorColor   = C3(255, 50, 80),
-        BonePriority         = false,       -- auto-pick best bone
+        PredictionMultiplier = 0.11,
     },
 
     -- ── TRIGGERBOT ──
@@ -280,6 +272,10 @@ local State = {
     Running         = true,
     AimbotHeld      = false,
     AimbotToggled   = false,
+    StrongAimHeld   = false,
+    StrongAimToggled = false,
+    SoftAimHeld     = false,
+    SoftAimToggled  = false,
     TriggerbotHeld  = false,
     CurrentTarget   = nil,
     Connections     = {},
@@ -396,6 +392,14 @@ _sharedRayParams.IgnoreWater = true
 local function updateSharedRayFilter()
     local fl = {Camera}
     if LocalPlayer.Character then tInsert(fl, LocalPlayer.Character) end
+    -- Filter out LocalPlayer's seated vehicle if driving/riding
+    pcall(function()
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum and hum.SeatPart then
+            local veh = hum.SeatPart:FindFirstAncestorOfClass("Model")
+            tInsert(fl, veh or hum.SeatPart)
+        end
+    end)
     _sharedRayParams.FilterDescendantsInstances = fl
 end
 updateSharedRayFilter()
@@ -407,9 +411,48 @@ pcall(function()
 end)
 
 function Util.Visible(origin, target, plr)
-    local r = Workspace:Raycast(origin, target - origin, _sharedRayParams)
-    if not r then return true end
-    if plr and plr.Character and r.Instance:IsDescendantOf(plr.Character) then return true end
+    local dir = target - origin
+    local currentOrigin = origin
+    local remainingDist = dir.Magnitude
+    local rayDir = dir.Unit
+
+    -- Up to 3 passes to penetrate vehicle glass, windshields, seats and car body
+    for pass = 1, 3 do
+        local r = Workspace:Raycast(currentOrigin, rayDir * remainingDist, _sharedRayParams)
+        if not r then return true end
+        local hit = r.Instance
+        if not hit then return true end
+
+        -- Direct hit on player character
+        if plr and plr.Character and hit:IsDescendantOf(plr.Character) then
+            return true
+        end
+
+        -- Check if hit is vehicle part or transparent glass
+        local isVehicleOrGlass = false
+        if plr and plr.Character then
+            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum.SeatPart then
+                local veh = hum.SeatPart:FindFirstAncestorOfClass("Model")
+                if hit:IsDescendantOf(veh or hum.SeatPart) then
+                    isVehicleOrGlass = true
+                end
+            end
+        end
+
+        if hit.Transparency >= 0.25 or not hit.CanCollide or hit:IsA("Seat") or hit:IsA("VehicleSeat") then
+            isVehicleOrGlass = true
+        end
+
+        if isVehicleOrGlass and Config.Aimbot.VehiclePenetration then
+            local hitPos = r.Position + (rayDir * 0.15)
+            remainingDist = (target - hitPos).Magnitude
+            if remainingDist <= 0.3 then return true end
+            currentOrigin = hitPos
+        else
+            return false
+        end
+    end
     return false
 end
 
@@ -1936,16 +1979,30 @@ pcall(function()
     LockIndicator.Thickness = 2; LockIndicator.Visible = false
 end)
 
-function Aimbot.IsActive()
-    if not Config.Aimbot.Enabled then return false end
-    if Config.Aimbot.ActivationMode == "Toggle" then
-        return State.AimbotToggled
-    else
-        return State.AimbotHeld
+function Aimbot.GetActiveMode()
+    -- Check Strong Aim
+    if Config.Aimbot.StrongEnabled then
+        if Config.Aimbot.StrongMode == "Always" or (Config.Aimbot.StrongMode == "Toggle" and State.StrongAimToggled) or (Config.Aimbot.StrongMode == "Hold" and State.StrongAimHeld) then
+            return "Strong"
+        end
     end
+    -- Check Soft Aim
+    if Config.Aimbot.SoftEnabled then
+        if Config.Aimbot.SoftMode == "Always" or (Config.Aimbot.SoftMode == "Toggle" and State.SoftAimToggled) or (Config.Aimbot.SoftMode == "Hold" and State.SoftAimHeld) then
+            return "Soft"
+        end
+    end
+    return nil
 end
 
-function Aimbot.FindTarget()
+function Aimbot.IsActive()
+    return Aimbot.GetActiveMode() ~= nil
+end
+
+function Aimbot.FindTarget(customFov, customPart)
+    local maxFov = customFov or 180
+    local targetBone = customPart or "Head"
+
     local best, bestVal = nil, mHuge
     local cam = Workspace.CurrentCamera
     if not cam then return nil end
@@ -1954,33 +2011,27 @@ function Aimbot.FindTarget()
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and Util.Alive(p) then
             if not (Config.Aimbot.TeamCheck and Util.IsTeam(p)) then
-                -- v3: Bone priority
-                local targetPart = Config.Aimbot.TargetPart
-                if Config.Aimbot.BonePriority and p.Character then
-                    targetPart = Util.GetBestBone(p.Character)
+                local char = p.Character
+                local part = char and char:FindFirstChild(targetBone)
+                if not part and char then
+                    part = char:FindFirstChild("Head") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("HumanoidRootPart")
                 end
 
-                local part = p.Character:FindFirstChild(targetPart)
                 if part then
                     local d3 = Util.D3(part.Position, cam.CFrame.Position)
-                    if d3 <= Config.Aimbot.MaxDistance then
+                    if d3 <= 600 then
                         local vp, on = cam:WorldToViewportPoint(part.Position)
                         if on and vp.Z > 0 then
                             local sp = V2(vp.X, vp.Y)
-                            local val
-                            if Config.Aimbot.TargetMode == "Distance" then
-                                val = d3
-                            else
-                                val = Util.D2(sp, center)
-                            end
+                            local distToCrosshair = Util.D2(sp, center)
 
-                            if val <= Config.Aimbot.FOV and val < bestVal then
+                            if distToCrosshair <= maxFov and distToCrosshair < bestVal then
                                 if Config.Aimbot.WallCheck then
                                     if Util.Visible(cam.CFrame.Position, part.Position, p) then
-                                        best = p; bestVal = val
+                                        best = p; bestVal = distToCrosshair
                                     end
                                 else
-                                    best = p; bestVal = val
+                                    best = p; bestVal = distToCrosshair
                                 end
                             end
                         end
@@ -1992,25 +2043,49 @@ function Aimbot.FindTarget()
     return best
 end
 
-function Aimbot.Predict(part)
+function Aimbot.Predict(part, plr)
     local targetPos = part.Position
-    -- Calibrate head aim down by 0.65 studs to hit direct face/chin center and eliminate overshooting above head
+    -- Calibrate head aim down to hit chin/face center
     if part.Name == "Head" then
-        targetPos = targetPos - V3(0, 0.65, 0)
+        targetPos = targetPos - V3(0, 0.45, 0)
     end
-    if not Config.Aimbot.Prediction then return targetPos end
+
+    -- VEHICLE DETECTION: if player is sitting in car/seat, NEVER apply erratic physics prediction!
+    local isSitting = false
+    if plr and plr.Character then
+        local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+        if hum and hum.Sit then
+            isSitting = true
+        end
+    end
+
+    if isSitting then
+        return targetPos
+    end
+
+    -- On foot: horizontal-only velocity prediction with strict 2.5 studs clamp (Zero sky tracking)
     local vel = V3(0,0,0)
     pcall(function() vel = part.AssemblyLinearVelocity end)
     if vel.Magnitude < 0.1 then pcall(function() vel = part.Velocity end) end
-    -- Only predict X and Z velocity to prevent vertical jumping over head
-    return targetPos + (V3(vel.X, 0, vel.Z) * Config.Aimbot.PredictionMultiplier)
+
+    local hVel = V3(vel.X, 0, vel.Z)
+    if hVel.Magnitude > 30 then
+        hVel = hVel.Unit * 30
+    end
+
+    local lead = hVel * (Config.Aimbot.PredictionMultiplier or 0.11)
+    if lead.Magnitude > 2.5 then
+        lead = lead.Unit * 2.5
+    end
+
+    return targetPos + lead
 end
 
-function Aimbot.AimAt(worldPos)
+function Aimbot.AimAt(worldPos, smooth)
     if not HAS_MOUSEMOVEREL then return end
     local cam = Workspace.CurrentCamera
     if not cam then return end
-    
+
     local vp, on = cam:WorldToViewportPoint(worldPos)
     if not on or vp.Z <= 0 then return end
 
@@ -2018,58 +2093,19 @@ function Aimbot.AimAt(worldPos)
     local center = V2(vpSize.X / 2, vpSize.Y / 2)
     local delta = V2(vp.X, vp.Y) - center
 
-    -- v3: Adaptive smoothing
-    local smooth
-    if Config.Aimbot.AdaptiveSmoothing then
-        local dist = delta.Magnitude
-        local fov = Config.Aimbot.FOV
-        local t = mClamp(dist / fov, 0, 1)
-        smooth = Config.Aimbot.AdaptiveMin + t * (Config.Aimbot.AdaptiveMax - Config.Aimbot.AdaptiveMin)
-    elseif Config.Aimbot.AimAssist then
-        smooth = Config.Aimbot.AssistStrength
-    else
-        smooth = Config.Aimbot.Smoothing
-    end
-
     local nowTick = Tick()
     local dt = _lastAimTick and (nowTick - _lastAimTick) or (1/120)
     _lastAimTick = nowTick
     local fpsFactor = mClamp(dt / (1/60), 0.2, 2.0)
 
-    local mx = (delta.X / math.max(smooth, 1)) * fpsFactor
-    local my = (delta.Y / math.max(smooth, 1)) * fpsFactor
-
-    if Config.Aimbot.HumanizeJitter then
-        local js = Config.Aimbot.JitterStrength
-        mx = mx + Util.RF(-js, js)
-        my = my + Util.RF(-js, js)
-    end
+    local targetSmooth = math.max(smooth or 1.0, 1.0)
+    local mx = (delta.X / targetSmooth) * fpsFactor
+    local my = (delta.Y / targetSmooth) * fpsFactor
 
     mousemoverel(mx, my)
 
     local sp = Util.W2S(worldPos)
-    -- Target dot
     if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
-
-    -- v3: Snap line
-    if Config.Aimbot.ShowSnapLine and SnapLine then
-        SnapLine.From = Util.Center()
-        SnapLine.To = sp
-        SnapLine.Color = Config.Aimbot.SnapLineColor
-        SnapLine.Visible = true
-    elseif SnapLine then
-        SnapLine.Visible = false
-    end
-
-    -- v3: Lock indicator
-    if Config.Aimbot.ShowLockIndicator and LockIndicator then
-        LockIndicator.Position = sp
-        LockIndicator.Radius = 15
-        LockIndicator.Color = Config.Aimbot.LockIndicatorColor
-        LockIndicator.Visible = true
-    elseif LockIndicator then
-        LockIndicator.Visible = false
-    end
 end
 
 -- v3: Silent Aim (intercept mouse direction on remote calls)
@@ -3435,55 +3471,45 @@ local function BuildNativeGUI()
     end)
 
     -- ──────────────────────────────────────────
-    -- 3. POPULATE AIMBOT
+    -- 3. POPULATE AIMBOT (CLEAN & POWERFUL DUAL ENGINE)
     -- ──────────────────────────────────────────
     pcall(function()
-        tAim:AddSection("Status & Activation")
-        tAim:AddToggle("Enable Aimbot", Config.Aimbot.Enabled, function(v) Config.Aimbot.Enabled = v end)
-        tAim:AddDropdown("Activation Mode", {"Hold", "Toggle", "Always"}, Config.Aimbot.ActivationMode, function(v) Config.Aimbot.ActivationMode = v end)
-        tAim:AddDropdown("Aimbot Keybind", safeKeybinds, Config.Aimbot.KeybindName, function(v)
-            Config.Aimbot.KeybindName = v
+        tAim:AddSection("⚡ Strong Aimbot (Potente)")
+        tAim:AddToggle("Enable Strong Aimbot", Config.Aimbot.StrongEnabled, function(v) Config.Aimbot.StrongEnabled = v end)
+        tAim:AddDropdown("Activation Mode", {"Hold", "Always", "Toggle"}, Config.Aimbot.StrongMode, function(v) Config.Aimbot.StrongMode = v end)
+        tAim:AddDropdown("Strong Keybind", safeKeybinds, Config.Aimbot.StrongKeyName, function(v)
+            Config.Aimbot.StrongKeyName = v
             local bind = KeybindMap[v]
             if bind then
-                Config.Aimbot.ActivationKey = bind.Value
-                Config.Aimbot.ActivationKeyType = bind.Type
-                Notify.Send("Aimbot Key: " .. v, C3(255, 200, 50), 2)
+                Config.Aimbot.StrongKey = bind.Value
+                Config.Aimbot.StrongKeyType = bind.Type
+                Notify.Send("Strong Aim Key: " .. v, C3(255, 100, 100), 2)
             end
         end)
-        tAim:AddToggle("Silent Aim (Experimental)", Config.Aimbot.SilentAim, function(v) Config.Aimbot.SilentAim = v end)
-        tAim:AddToggle("Light Aim Assist", Config.Aimbot.AimAssist, function(v) Config.Aimbot.AimAssist = v end)
-        tAim:AddSlider("Aim Assist Strength", 4, 30, Config.Aimbot.AssistStrength, "%", 1, function(v) Config.Aimbot.AssistStrength = v end)
+        tAim:AddDropdown("Target Bone", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.StrongPart, function(v) Config.Aimbot.StrongPart = v end)
+        tAim:AddSlider("FOV Radius", 30, 500, Config.Aimbot.StrongFOV, "px", 5, function(v) Config.Aimbot.StrongFOV = v end)
 
-        tAim:AddSection("Targeting")
-        tAim:AddDropdown("Target Body Part", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.TargetPart, function(v) Config.Aimbot.TargetPart = v end)
-        tAim:AddToggle("Prioritize Visible Bones", Config.Aimbot.BonePriority, function(v) Config.Aimbot.BonePriority = v end)
-        tAim:AddDropdown("Target Priority", {"Crosshair", "Distance"}, Config.Aimbot.TargetMode, function(v) Config.Aimbot.TargetMode = v end)
+        tAim:AddSection("🎯 Soft Aim (Morbido / Regolabile)")
+        tAim:AddToggle("Enable Soft Aim", Config.Aimbot.SoftEnabled, function(v) Config.Aimbot.SoftEnabled = v end)
+        tAim:AddDropdown("Activation Mode", {"Hold", "Always", "Toggle"}, Config.Aimbot.SoftMode, function(v) Config.Aimbot.SoftMode = v end)
+        tAim:AddDropdown("Soft Keybind", safeKeybinds, Config.Aimbot.SoftKeyName, function(v)
+            Config.Aimbot.SoftKeyName = v
+            local bind = KeybindMap[v]
+            if bind then
+                Config.Aimbot.SoftKey = bind.Value
+                Config.Aimbot.SoftKeyType = bind.Type
+                Notify.Send("Soft Aim Key: " .. v, C3(100, 255, 150), 2)
+            end
+        end)
+        tAim:AddSlider("Smoothness", 1.5, 15, Config.Aimbot.SoftSmooth, "", 0.5, function(v) Config.Aimbot.SoftSmooth = v end)
+        tAim:AddSlider("FOV Radius", 30, 400, Config.Aimbot.SoftFOV, "px", 5, function(v) Config.Aimbot.SoftFOV = v end)
+        tAim:AddDropdown("Target Bone", {"Head", "UpperTorso", "HumanoidRootPart"}, Config.Aimbot.SoftPart, function(v) Config.Aimbot.SoftPart = v end)
+
+        tAim:AddSection("🚗 Vehicle Fix & Target Settings")
+        tAim:AddToggle("Vehicle & Glass Penetration", Config.Aimbot.VehiclePenetration, function(v) Config.Aimbot.VehiclePenetration = v end)
         tAim:AddToggle("Wall Check (Obstacles)", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
         tAim:AddToggle("Ignore Teammates", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
-        tAim:AddToggle("Ignore Dead / Knocked", Config.Aimbot.IgnoreKnocked, function(v) Config.Aimbot.IgnoreKnocked = v end)
-
-        tAim:AddSection("FOV & Precision")
-        tAim:AddSlider("FOV Radius", 20, 500, Config.Aimbot.FOV, "px", 5, function(v) Config.Aimbot.FOV = v end)
         tAim:AddToggle("Show FOV Circle", Config.Aimbot.ShowFOV, function(v) Config.Aimbot.ShowFOV = v end)
-        tAim:AddColorPicker("FOV Circle Color", Config.Aimbot.FOVColor, function(v) Config.Aimbot.FOVColor = v end)
-        tAim:AddSlider("Smoothing (Fluidity)", 1, 20, Config.Aimbot.Smoothing, "", 0.5, function(v) Config.Aimbot.Smoothing = v end)
-        tAim:AddToggle("Humanize Jitter", Config.Aimbot.HumanizeJitter, function(v) Config.Aimbot.HumanizeJitter = v end)
-        tAim:AddSlider("Jitter Strength", 0.1, 2, Config.Aimbot.JitterStrength, "", 0.1, function(v) Config.Aimbot.JitterStrength = v end)
-        tAim:AddToggle("Movement Prediction", Config.Aimbot.Prediction, function(v) Config.Aimbot.Prediction = v end)
-        tAim:AddSlider("Prediction Strength", 0.05, 0.5, Config.Aimbot.PredictionMultiplier, "", 0.01, function(v) Config.Aimbot.PredictionMultiplier = v end)
-        tAim:AddSlider("Max Lock Distance", 50, 1000, Config.Aimbot.MaxDistance, " studs", 25, function(v) Config.Aimbot.MaxDistance = v end)
-
-        tAim:AddSection("Visuals & Extra")
-        tAim:AddToggle("Adaptive Smoothing", Config.Aimbot.AdaptiveSmoothing, function(v) Config.Aimbot.AdaptiveSmoothing = v end)
-        tAim:AddSlider("Adaptive Min Speed", 1, 10, Config.Aimbot.AdaptiveMin, "", 0.5, function(v) Config.Aimbot.AdaptiveMin = v end)
-        tAim:AddSlider("Adaptive Max Speed", 5, 30, Config.Aimbot.AdaptiveMax, "", 0.5, function(v) Config.Aimbot.AdaptiveMax = v end)
-        tAim:AddToggle("Show Snap Line", Config.Aimbot.ShowSnapLine, function(v) Config.Aimbot.ShowSnapLine = v end)
-        tAim:AddColorPicker("Snap Line Color", Config.Aimbot.SnapLineColor, function(v) Config.Aimbot.SnapLineColor = v end)
-        tAim:AddToggle("Show Lock Indicator", Config.Aimbot.ShowLockIndicator, function(v) Config.Aimbot.ShowLockIndicator = v end)
-        tAim:AddColorPicker("Lock Indicator Color", Config.Aimbot.LockIndicatorColor, function(v) Config.Aimbot.LockIndicatorColor = v end)
-        tAim:AddToggle("Auto Switch Target", Config.Aimbot.AutoSwitch, function(v) Config.Aimbot.AutoSwitch = v end)
-        tAim:AddToggle("Sticky Aim (Lock-On)", Config.Aimbot.StickyAim, function(v) Config.Aimbot.StickyAim = v end)
-        tAim:AddToggle("Show Target Info", Config.Aimbot.ShowTargetInfo, function(v) Config.Aimbot.ShowTargetInfo = v end)
     end)
 
     -- ──────────────────────────────────────────
@@ -3666,17 +3692,23 @@ local function OnInputBegan(input, gp)
         end)
     end
 
-    -- Aimbot (v3: custom keybind)
-    if matchesBind(input, Config.Aimbot.ActivationKey, Config.Aimbot.ActivationKeyType) then
-        if Config.Aimbot.ActivationMode == "Toggle" then
-            State.AimbotToggled = not State.AimbotToggled
-            if State.AimbotToggled then
-                Notify.Send("Aimbot: ON", C3(50, 255, 100), 1.5)
-            else
-                Notify.Send("Aimbot: OFF", C3(255, 50, 80), 1.5)
-            end
+    -- Strong Aimbot Key
+    if matchesBind(input, Config.Aimbot.StrongKey, Config.Aimbot.StrongKeyType) then
+        if Config.Aimbot.StrongMode == "Toggle" then
+            State.StrongAimToggled = not State.StrongAimToggled
+            Notify.Send("Strong Aim: " .. (State.StrongAimToggled and "ON" or "OFF"), State.StrongAimToggled and C3(50, 255, 100) or C3(255, 50, 80), 1.5)
         else
-            State.AimbotHeld = true
+            State.StrongAimHeld = true
+        end
+    end
+
+    -- Soft Aim Key
+    if matchesBind(input, Config.Aimbot.SoftKey, Config.Aimbot.SoftKeyType) then
+        if Config.Aimbot.SoftMode == "Toggle" then
+            State.SoftAimToggled = not State.SoftAimToggled
+            Notify.Send("Soft Aim: " .. (State.SoftAimToggled and "ON" or "OFF"), State.SoftAimToggled and C3(50, 255, 100) or C3(255, 50, 80), 1.5)
+        else
+            State.SoftAimHeld = true
         end
     end
 
@@ -3687,17 +3719,24 @@ local function OnInputBegan(input, gp)
 end
 
 local function OnInputEnded(input, _)
-    -- Aimbot release
-    if matchesBind(input, Config.Aimbot.ActivationKey, Config.Aimbot.ActivationKeyType) then
-        State.AimbotHeld = false
-        if Config.Aimbot.ActivationMode == "Hold" then
+    -- Strong Aim release
+    if matchesBind(input, Config.Aimbot.StrongKey, Config.Aimbot.StrongKeyType) then
+        State.StrongAimHeld = false
+        if Config.Aimbot.StrongMode == "Hold" then
             State.CurrentTarget = nil
             if TargetDot then pcall(function() TargetDot.Visible = false end) end
-            if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
-            if SnapLine then pcall(function() SnapLine.Visible = false end) end
-            if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
         end
     end
+
+    -- Soft Aim release
+    if matchesBind(input, Config.Aimbot.SoftKey, Config.Aimbot.SoftKeyType) then
+        State.SoftAimHeld = false
+        if Config.Aimbot.SoftMode == "Hold" then
+            State.CurrentTarget = nil
+            if TargetDot then pcall(function() TargetDot.Visible = false end) end
+        end
+    end
+
     -- Triggerbot release
     if matchesBind(input, Config.Triggerbot.ActivationKey, Config.Triggerbot.ActivationKeyType) then
         State.TriggerbotHeld = false
@@ -3730,15 +3769,21 @@ local function RenderLoop()
         end)
     end
 
-    -- Aimbot FOV Circle
+    -- Aimbot FOV Circle (Adapts dynamically to active mode)
     if FOVCircle then
-        if Config.Aimbot.Enabled and Config.Aimbot.ShowFOV then
+        local activeMode = Aimbot.GetActiveMode()
+        local shouldShow = Config.Aimbot.ShowFOV and (Config.Aimbot.StrongEnabled or Config.Aimbot.SoftEnabled)
+        if shouldShow then
+            local activeRadius = Config.Aimbot.StrongFOV
+            if activeMode == "Soft" or (Config.Aimbot.SoftEnabled and not Config.Aimbot.StrongEnabled) then
+                activeRadius = Config.Aimbot.SoftFOV
+            end
             FOVCircle.Position = Util.Center()
-            FOVCircle.Radius = Config.Aimbot.FOV
+            FOVCircle.Radius = activeRadius
             FOVCircle.Color = Config.Aimbot.FOVColor
             FOVCircle.Transparency = Config.Aimbot.FOVTransparency
-            FOVCircle.NumSides = Config.Aimbot.FOVSides
-            FOVCircle.Thickness = Config.Aimbot.FOVThickness
+            FOVCircle.NumSides = 64
+            FOVCircle.Thickness = 1
             FOVCircle.Visible = true
         else
             FOVCircle.Visible = false
@@ -3759,77 +3804,25 @@ local function RenderLoop()
         end
     end
 
-    -- Aimbot
-    if Aimbot.IsActive() then
-        local target
+    -- Aimbot (Strong Lock & Soft Aim)
+    local activeMode = Aimbot.GetActiveMode()
+    if activeMode then
+        local targetPart = (activeMode == "Strong") and Config.Aimbot.StrongPart or Config.Aimbot.SoftPart
+        local targetFOV = (activeMode == "Strong") and Config.Aimbot.StrongFOV or Config.Aimbot.SoftFOV
+        local smoothVal = (activeMode == "Strong") and (Config.Aimbot.StrongSmooth or 1.0) or (Config.Aimbot.SoftSmooth or 6.0)
 
-        -- v3: Auto switch on target death
-        if Config.Aimbot.StickyAim and State.CurrentTarget then
-            if Util.Alive(State.CurrentTarget) then
-                target = State.CurrentTarget
-            elseif Config.Aimbot.AutoSwitch then
-                target = Aimbot.FindTarget()
-                State.CurrentTarget = target
-            end
-        else
-            target = Aimbot.FindTarget()
-            State.CurrentTarget = target
-        end
-
+        local target = Aimbot.FindTarget(targetFOV, targetPart)
         if target and target.Character then
-            -- v3: Bone priority
-            local targetPart = Config.Aimbot.TargetPart
-            if Config.Aimbot.BonePriority then
-                targetPart = Util.GetBestBone(target.Character)
-            end
-
-            local part = target.Character:FindFirstChild(targetPart)
+            local part = target.Character:FindFirstChild(targetPart) or target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("UpperTorso")
             if part then
-                -- v3: Silent aim sets target but doesn't move mouse
-                if Config.Aimbot.SilentAim then
-                    _silentAimTarget = Aimbot.Predict(part)
-                    -- Just show indicators without moving mouse
-                    local sp, on = Util.W2S(_silentAimTarget)
-                    if on then
-                        if TargetDot then TargetDot.Position = sp; TargetDot.Visible = true end
-                        if Config.Aimbot.ShowSnapLine and SnapLine then
-                            SnapLine.From = Util.Center(); SnapLine.To = sp
-                            SnapLine.Color = Config.Aimbot.SnapLineColor; SnapLine.Visible = true
-                        end
-                        if Config.Aimbot.ShowLockIndicator and LockIndicator then
-                            LockIndicator.Position = sp; LockIndicator.Radius = 15
-                            LockIndicator.Color = Config.Aimbot.LockIndicatorColor; LockIndicator.Visible = true
-                        end
-                    end
-                else
-                    Aimbot.AimAt(Aimbot.Predict(part))
-                end
-
-                -- Target info display
-                if Config.Aimbot.ShowTargetInfo and TargetInfo then
-                    local hum = target.Character:FindFirstChildOfClass("Humanoid")
-                    if hum then
-                        local dist = mFloor(Util.D3(part.Position, Camera.CFrame.Position))
-                        TargetInfo.Text = target.DisplayName .. " | " .. mFloor(hum.Health) .. "/" .. mFloor(hum.MaxHealth) .. " | " .. dist .. "m"
-                        local center = Util.Center()
-                        TargetInfo.Position = V2(center.X - TargetInfo.TextBounds.X/2, center.Y + Config.Aimbot.FOV + 10)
-                        TargetInfo.Visible = true
-                    end
-                end
+                local predictedPos = Aimbot.Predict(part, target)
+                Aimbot.AimAt(predictedPos, smoothVal)
             end
         else
-            _silentAimTarget = nil
             if TargetDot then pcall(function() TargetDot.Visible = false end) end
-            if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
-            if SnapLine then pcall(function() SnapLine.Visible = false end) end
-            if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
         end
     else
-        _silentAimTarget = nil
         if TargetDot then pcall(function() TargetDot.Visible = false end) end
-        if TargetInfo then pcall(function() TargetInfo.Visible = false end) end
-        if SnapLine then pcall(function() SnapLine.Visible = false end) end
-        if LockIndicator then pcall(function() LockIndicator.Visible = false end) end
     end
 
     -- Triggerbot
