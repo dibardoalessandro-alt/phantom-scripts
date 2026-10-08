@@ -810,47 +810,73 @@ function Util.GetItemRarity(tool, itemName)
     if not itemName then return "Common", RARITY_COLORS.Common end
     local lower = itemName:lower():match("^%s*(.-)%s*$")
 
-    -- 1. Explicit rarity from tool attributes
+    -- 1. Check explicit tool Attributes (BlockSpin items often have Rarity/Tier attributes)
     if tool then
+        local attrRarity = nil
         pcall(function()
-            for _, rKey in ipairs({"Rarity","rarity","Tier","tier","ItemRarity","itemRarity","Quality","quality","Grade","grade"}) do
+            for _, rKey in ipairs({"Rarity","rarity","Tier","tier","ItemRarity","itemRarity","Quality","quality"}) do
                 local rAttr = tool:GetAttribute(rKey)
                 if rAttr and type(rAttr) == "string" and #rAttr > 0 then
-                    local erLow = rAttr:lower()
-                    if erLow:find("mythic")    then return "Mythic", RARITY_COLORS.Mythic end
-                    if erLow:find("legend")    then return "Legendary", RARITY_COLORS.Legendary end
-                    if erLow:find("epic")      then return "Epic", RARITY_COLORS.Epic end
-                    if erLow:find("rare")      then return "Rare", RARITY_COLORS.Rare end
-                    if erLow:find("uncommon")   then return "Uncommon", RARITY_COLORS.Uncommon end
-                    if erLow:find("utility")    then return "Utility", RARITY_COLORS.Utility end
-                    if erLow:find("common")     then return "Common", RARITY_COLORS.Common end
+                    attrRarity = rAttr
+                    break
                 end
             end
         end)
-    end
-
-    -- 2. Exact match
-    local direct = BLOCKSPIN_RARITIES[lower]
-    if direct then return direct.r, direct.c end
-
-    -- 3. Safe partial: only keys 4+ chars, whole-word boundary
-    for k, v in pairs(BLOCKSPIN_RARITIES) do
-        if #k >= 4 and lower:find(k, 1, true) then
-            local si, ei = lower:find(k, 1, true)
-            local before = si > 1 and lower:sub(si-1, si-1) or " "
-            local after = ei < #lower and lower:sub(ei+1, ei+1) or " "
-            if before:match("[%s%-%_%./ ,]") and after:match("[%s%-%_%./ ,]") then
-                return v.r, v.c
-            end
+        if attrRarity then
+            local erLow = attrRarity:lower()
+            if erLow:find("mythic")    then return "Mythic", RARITY_COLORS.Mythic end
+            if erLow:find("legend")    then return "Legendary", RARITY_COLORS.Legendary end
+            if erLow:find("epic")      then return "Epic", RARITY_COLORS.Epic end
+            if erLow:find("rare")      then return "Rare", RARITY_COLORS.Rare end
+            if erLow:find("uncommon")   then return "Uncommon", RARITY_COLORS.Uncommon end
+            if erLow:find("utility") or erLow:find("med") then return "Utility", RARITY_COLORS.Utility end
+            if erLow:find("common")     then return "Common", RARITY_COLORS.Common end
         end
     end
 
+    -- 2. Exact match in BLOCKSPIN_RARITIES
+    local direct = BLOCKSPIN_RARITIES[lower]
+    if direct then return direct.r, direct.c end
+
+    -- 3. Partial keyword matching against known weapons
+    for k, v in pairs(BLOCKSPIN_RARITIES) do
+        if #k >= 3 and lower:find(k, 1, true) then
+            return v.r, v.c
+        end
+    end
+
+    -- 4. Semantic category matching (Fish, Cures, Food, Valuables, Melee, Guns)
+    -- Utility: Healing, Cures, Medical, Food, Fish
+    if lower:find("med") or lower:find("heal") or lower:find("blood") or lower:find("band") or lower:find("cure") or lower:find("pill")
+       or lower:find("fish") or lower:find("pesce") or lower:find("salmon") or lower:find("trout") or lower:find("bass")
+       or lower:find("drink") or lower:find("water") or lower:find("apple") or lower:find("burger") or lower:find("energy") then
+        return "Utility", RARITY_COLORS.Utility
+    end
+
+    -- Legendary / Gold
+    if lower:find("gold") or lower:find("golden") or lower:find("minigun") or lower:find("rpg") or lower:find("rocket") or lower:find("flamethrower") then
+        return "Legendary", RARITY_COLORS.Legendary
+    end
+
+    -- Epic: Sniper, Heavy, Katana, Hack
+    if lower:find("sniper") or lower:find("barrett") or lower:find("awp") or lower:find("katana") or lower:find("sword") or lower:find("hack") or lower:find("c4") then
+        return "Epic", RARITY_COLORS.Epic
+    end
+
+    -- Rare: Rifles, Shotguns
+    if lower:find("rifle") or lower:find("shotgun") or lower:find("glock") or lower:find("p226") or lower:find("ak") or lower:find("m4") or lower:find("vector") or lower:find("rod") then
+        return "Rare", RARITY_COLORS.Rare
+    end
+
+    -- Uncommon: SMGs, Pistols, Lockpick
+    if lower:find("smg") or lower:find("uzi") or lower:find("pistol") or lower:find("lockpick") or lower:find("revolver") then
+        return "Uncommon", RARITY_COLORS.Uncommon
+    end
+
+    -- Default: Clean Common Silver (#D1D5DB)
     return "Common", RARITY_COLORS.Common
 end
 
--- ───────────────────────────────────────────────────
--- GetToolDamage
--- ───────────────────────────────────────────────────
 function Util.GetToolDamage(tool)
     local dmg = nil
     pcall(function()
@@ -973,14 +999,14 @@ function Util.ResolveToolInfo(tool)
 
     local realName = nil
 
-    -- 1. Check Attributes on the Tool (DisplayName, WeaponName, ItemName, etc.)
+    -- 1. Check direct Attributes on the Tool (Developers often put DisplayName, ItemName, RealName here)
     pcall(function()
-        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "Name", "Title", "Label"}) do
+        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "Name", "Title", "Label"}) do
             local val = tool:GetAttribute(attr)
             if val and type(val) == "string" and #val > 1 then
-                local clean = Util.CleanToolName(val)
-                if clean and not Util.IsGarbageName(clean) then
-                    realName = clean
+                local s = val:match("^%s*(.-)%s*$")
+                if #s > 1 and not s:match("^%x%x%x%x%x%x%x%x%-") then
+                    realName = s
                     return
                 end
             end
@@ -990,12 +1016,12 @@ function Util.ResolveToolInfo(tool)
     -- 2. Check StringValue objects inside the Tool
     if not realName then
         pcall(function()
-            for _, valName in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "Name"}) do
+            for _, valName in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "Name"}) do
                 local sv = tool:FindFirstChild(valName)
-                if sv and sv:IsA("StringValue") and #sv.Value > 1 then
-                    local clean = Util.CleanToolName(sv.Value)
-                    if clean and not Util.IsGarbageName(clean) then
-                        realName = clean
+                if sv and sv:IsA("StringValue") and type(sv.Value) == "string" and #sv.Value > 1 then
+                    local s = sv.Value:match("^%s*(.-)%s*$")
+                    if #s > 1 and not s:match("^%x%x%x%x%x%x%x%x%-") then
+                        realName = s
                         return
                     end
                 end
@@ -1003,81 +1029,74 @@ function Util.ResolveToolInfo(tool)
         end)
     end
 
-    -- 3. Check tool.ToolTip
+    -- 3. Check tool.ToolTip (Often set to the clean item name for hotbar tooltips)
     if not realName then
         pcall(function()
             local tt = tool.ToolTip
             if tt and type(tt) == "string" and #tt > 1 then
-                local clean = Util.CleanToolName(tt)
-                if clean and not Util.IsGarbageName(clean) then realName = clean end
+                local s = tt:match("^%s*(.-)%s*$")
+                local sLow = s:lower()
+                if #s > 1 and sLow ~= "tool" and sLow ~= "weapon" and sLow ~= "item" then
+                    realName = s
+                end
             end
         end)
     end
 
-    -- 4. Check tool.Name (Direct tool name)
+    -- 4. Check tool.Name directly (The actual in-game instance name)
     if not realName then
         local raw = tool.Name
-        if raw and type(raw) == "string" and #raw > 1 then
-            local clean = Util.CleanToolName(raw)
-            if clean and not Util.IsGarbageName(clean) then realName = clean end
+        if raw and type(raw) == "string" and #raw > 0 then
+            realName = raw
         end
     end
 
-    -- 5. Child inspection (Models, Animations, Sounds) if tool.Name was generic
-    if not realName or realName:lower() == "tool" or realName:lower() == "weapon" or realName:lower() == "gun" then
+    -- 5. If realName is generic ("Tool", "Weapon", "Gun", "Item"), check child models / parts / animations
+    local lowCheck = realName and realName:lower() or ""
+    if lowCheck == "tool" or lowCheck == "weapon" or lowCheck == "gun" or lowCheck == "item" or lowCheck == "handle" then
         pcall(function()
-            -- Check animations for weapon names (e.g. Remington_Shoot, MP5_Idle)
+            -- Check child Model / MeshPart for real weapon name
+            for _, c in ipairs(tool:GetChildren()) do
+                if (c:IsA("Model") or c:IsA("BasePart")) and c.Name ~= "Handle" and c.Name ~= "Part" and #c.Name > 1 then
+                    local cn = c.Name:match("^%s*(.-)%s*$")
+                    local cnLow = cn:lower()
+                    if #cn > 1 and cnLow ~= "model" and cnLow ~= "meshpart" and cnLow ~= "part" and cnLow ~= "tool" then
+                        realName = cn
+                        return
+                    end
+                end
+            end
+            -- Check child animations (e.g. Remington_Shoot, MP5_Reload)
             for _, desc in ipairs(tool:GetDescendants()) do
                 if desc:IsA("Animation") or desc:IsA("Sound") then
-                    local dn = desc.Name
-                    local prefix = dn:match("^([%a%d%-]+)_")
+                    local prefix = desc.Name:match("^([%a%d%s%-]+)_")
                     if prefix and #prefix > 1 then
                         local pLow = prefix:lower()
-                        if KNOWN_WEAPONS[pLow] or BLOCKSPIN_RARITIES[pLow] then
+                        if pLow ~= "idle" and pLow ~= "shoot" and pLow ~= "equip" and pLow ~= "reload" and pLow ~= "fire" then
                             realName = prefix
                             return
                         end
                     end
                 end
             end
-            -- Check child models/meshparts
-            for _, c in ipairs(tool:GetChildren()) do
-                local cLow = c.Name:lower()
-                if KNOWN_WEAPONS[cLow] or BLOCKSPIN_RARITIES[cLow] then
-                    realName = c.Name
-                    return
-                end
-            end
         end)
     end
 
-    -- 6. Direct word boundary matching against KNOWN_WEAPONS on tool.Name
-    if not realName then
-        local rawLow = tool.Name:lower():gsub("[^%a%d]", " ")
-        for kw, _ in pairs(KNOWN_WEAPONS) do
-            if rawLow:find("%f[%a]" .. kw .. "%f[%A]") then
-                realName = kw
-                break
-            end
-        end
+    if not realName or #realName == 0 then
+        realName = tool.Name or "Item"
     end
 
-    -- 7. Ultimate fallback: clean raw tool.Name (strip prefixes/underscores)
-    if not realName or realName:lower() == "tool" or realName:lower() == "weapon" then
-        local raw = tool.Name
-        if raw and #raw > 1 then
-            raw = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("_", " ")
-            raw = raw:match("^%s*(.-)%s*$")
-            if #raw > 1 and not raw:lower():find("garbage") then
-                realName = raw
-            end
-        end
-    end
+    -- Clean formatting:
+    -- Remove technical prefixes if any (Tool_, Weapon_, Gun_, Item_)
+    realName = realName:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
+    realName = realName:gsub("_", " "):match("^%s*(.-)%s*$")
 
-    if not realName then return nil, nil, nil end
-
+    -- Clean capitalization
     realName = CapitalizeName(realName)
+
+    -- Dynamic Rarity & Color Detection (Checks attributes, dictionary, or semantic color)
     local rarity, color = Util.GetItemRarity(tool, realName)
+
     return realName, rarity, color
 end
 
