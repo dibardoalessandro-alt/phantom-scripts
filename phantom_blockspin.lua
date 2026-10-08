@@ -971,234 +971,112 @@ end
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
 
-    local rawName = tool.Name
     local realName = nil
 
-    -- ── 1. ReplicatedStorage cache lookup ──
-    local rsMap = BuildRSWeaponMap()
-    if rsMap and rawName then
-        local rsHit = rsMap[rawName:lower()]
-        if rsHit and not Util.IsGarbageName(rsHit) then
-            realName = rsHit
-        end
-    end
-
-    -- ── 2. Known weapon whitelist ──
-    if not realName then
-        local lowRaw = rawName:lower():match("^%s*(.-)%s*$")
-        if KNOWN_WEAPONS[lowRaw] then
-            realName = rawName:match("^%s*(.-)%s*$")
-        elseif BLOCKSPIN_RARITIES[lowRaw] then
-            realName = rawName:match("^%s*(.-)%s*$")
-        end
-    end
-
-    -- ── 3. tool.Name if human-readable ──
-    if not realName and not Util.IsGarbageName(rawName) then
-        local cleaned = Util.CleanToolName(rawName)
-        if cleaned then realName = cleaned end
-    end
-
-    -- ── Shotgun disambiguation ──
-    if realName and realName:lower() == "shotgun" then
-        local found = nil
-        pcall(function()
-            for _, desc in ipairs(tool:GetDescendants()) do
-                local dn = desc.Name:lower()
-                if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
-                if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
-                if dn:find("remington") or dn:find("870") then found = "Remington"; return end
+    -- 1. Check Attributes on the Tool (DisplayName, WeaponName, ItemName, etc.)
+    pcall(function()
+        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "Name", "Title", "Label"}) do
+            local val = tool:GetAttribute(attr)
+            if val and type(val) == "string" and #val > 1 then
+                local clean = Util.CleanToolName(val)
+                if clean and not Util.IsGarbageName(clean) then
+                    realName = clean
+                    return
+                end
             end
-        end)
-        realName = found or "Remington"
-    end
+        end
+    end)
 
-    -- ── 4-10. Deep inspection (only when we still have no name) ──
-    if not realName or Util.IsGarbageName(realName) then
-        realName = nil
-
-        -- 4. Attributes scan
+    -- 2. Check StringValue objects inside the Tool
+    if not realName then
         pcall(function()
-            for _, key in ipairs({"DisplayName","displayName","ItemName","itemName","WeaponName","weaponName","GunName","gunName","ToolName","toolName","Label","label","Title","title","Weapon","Item"}) do
-                if realName then return end
-                local val = tool:GetAttribute(key)
-                if type(val) == "string" and #val > 1 then
-                    local valTrim = val:match("^%s*(.-)%s*$")
-                    local valLow = valTrim:lower()
-                    if KNOWN_WEAPONS[valLow] or BLOCKSPIN_RARITIES[valLow] then
-                        realName = valTrim
+            for _, valName in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "Name"}) do
+                local sv = tool:FindFirstChild(valName)
+                if sv and sv:IsA("StringValue") and #sv.Value > 1 then
+                    local clean = Util.CleanToolName(sv.Value)
+                    if clean and not Util.IsGarbageName(clean) then
+                        realName = clean
                         return
                     end
-                    if not Util.IsGarbageName(valTrim) then
-                        local cleaned = Util.CleanToolName(valTrim)
-                        if cleaned then realName = cleaned; return end
-                    end
                 end
             end
         end)
+    end
 
-        -- 5. ToolTip
-        if not realName then
-            pcall(function()
-                local tt = tool.ToolTip
-                if tt and type(tt) == "string" and #tt > 1 then
-                    local ttTrim = tt:match("^%s*(.-)%s*$")
-                    local ttLow = ttTrim:lower()
-                    if KNOWN_WEAPONS[ttLow] or BLOCKSPIN_RARITIES[ttLow] then
-                        realName = ttTrim
-                    elseif not Util.IsGarbageName(ttTrim) then
-                        realName = Util.CleanToolName(ttTrim)
-                    end
-                end
-            end)
+    -- 3. Check tool.ToolTip
+    if not realName then
+        pcall(function()
+            local tt = tool.ToolTip
+            if tt and type(tt) == "string" and #tt > 1 then
+                local clean = Util.CleanToolName(tt)
+                if clean and not Util.IsGarbageName(clean) then realName = clean end
+            end
+        end)
+    end
+
+    -- 4. Check tool.Name (Direct tool name)
+    if not realName then
+        local raw = tool.Name
+        if raw and type(raw) == "string" and #raw > 1 then
+            local clean = Util.CleanToolName(raw)
+            if clean and not Util.IsGarbageName(clean) then realName = clean end
         end
+    end
 
-        -- 6. Scan ALL string attributes — accept ONLY if it matches a known weapon
-        if not realName then
-            pcall(function()
-                for _, attrVal in pairs(tool:GetAttributes()) do
-                    if realName then return end
-                    if type(attrVal) == "string" and #attrVal > 1 and #attrVal < 40 then
-                        local valLow = attrVal:lower():match("^%s*(.-)%s*$")
-                        if KNOWN_WEAPONS[valLow] or BLOCKSPIN_RARITIES[valLow] then
-                            realName = attrVal:match("^%s*(.-)%s*$")
+    -- 5. Child inspection (Models, Animations, Sounds) if tool.Name was generic
+    if not realName or realName:lower() == "tool" or realName:lower() == "weapon" or realName:lower() == "gun" then
+        pcall(function()
+            -- Check animations for weapon names (e.g. Remington_Shoot, MP5_Idle)
+            for _, desc in ipairs(tool:GetDescendants()) do
+                if desc:IsA("Animation") or desc:IsA("Sound") then
+                    local dn = desc.Name
+                    local prefix = dn:match("^([%a%d%-]+)_")
+                    if prefix and #prefix > 1 then
+                        local pLow = prefix:lower()
+                        if KNOWN_WEAPONS[pLow] or BLOCKSPIN_RARITIES[pLow] then
+                            realName = prefix
                             return
                         end
                     end
                 end
-            end)
-        end
-
-        -- 7. Cross-reference attribute values against RS map
-        if not realName and rsMap then
-            pcall(function()
-                for _, attrVal in pairs(tool:GetAttributes()) do
-                    if realName then return end
-                    local key = tostring(attrVal):lower()
-                    local rsHit = rsMap[key]
-                    if rsHit and not Util.IsGarbageName(rsHit) then
-                        realName = rsHit
-                        return
-                    end
+            end
+            -- Check child models/meshparts
+            for _, c in ipairs(tool:GetChildren()) do
+                local cLow = c.Name:lower()
+                if KNOWN_WEAPONS[cLow] or BLOCKSPIN_RARITIES[cLow] then
+                    realName = c.Name
+                    return
                 end
-            end)
-        end
+            end
+        end)
+    end
 
-        -- 8. Child name scan
-        if not realName then
-            pcall(function()
-                -- Pass 1: children matching known weapons
-                for _, child in ipairs(tool:GetChildren()) do
-                    if realName then return end
-                    local dnLow = child.Name:lower()
-                    if KNOWN_WEAPONS[dnLow] or BLOCKSPIN_RARITIES[dnLow] then
-                        realName = child.Name
-                        return
-                    end
-                end
-
-                -- Pass 2: ONLY accept children whose cleaned name matches a known weapon
-                -- Do NOT use loose "4+ chars" heuristic — that picks up MeshPart/Blender names
-                for _, child in ipairs(tool:GetChildren()) do
-                    if realName then return end
-                    local dn = child.Name
-                    if not IGNORED_CHILDREN[dn:lower()] and not dn:match("^%d+$") then
-                        if not child:IsA("Script") and not child:IsA("LocalScript")
-                           and not child:IsA("ModuleScript") and not child:IsA("RemoteEvent")
-                           and not child:IsA("RemoteFunction") and not child:IsA("BindableEvent")
-                           and not child:IsA("BindableFunction") then
-                            local c = Util.CleanToolName(dn)
-                            if c then
-                                local cLow = c:lower()
-                                -- ONLY accept if it's a confirmed known weapon name
-                                if KNOWN_WEAPONS[cLow] or BLOCKSPIN_RARITIES[cLow] then
-                                    realName = c
-                                    return
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-
-        -- 9. Animation prefix scan (e.g. "Remington_Shoot", "DoubleBarrel_Idle")
-        if not realName then
-            pcall(function()
-                for _, desc in ipairs(tool:GetDescendants()) do
-                    if realName then return end
-                    if desc:IsA("Animation") then
-                        local animName = desc.Name
-                        if animName and animName:find("_") then
-                            local prefix = animName:split("_")[1]
-                            if prefix and #prefix > 1 then
-                                local prefLow = prefix:lower()
-                                if KNOWN_WEAPONS[prefLow] or BLOCKSPIN_RARITIES[prefLow] then
-                                    realName = prefix
-                                    return
-                                end
-                                if not prefix:match("^%d+$") and not Util.IsGarbageName(prefix) then
-                                    local c = Util.CleanToolName(prefix)
-                                    if c and #c >= 4 then
-                                        realName = c
-                                        return
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-
-        -- 10. StringValue scan — known weapons only
-        if not realName then
-            pcall(function()
-                for _, desc in ipairs(tool:GetDescendants()) do
-                    if realName then return end
-                    if desc:IsA("StringValue") then
-                        local sv = desc.Value
-                        if type(sv) == "string" and #sv > 1 and #sv < 40 then
-                            local svLow = sv:lower():match("^%s*(.-)%s*$")
-                            if KNOWN_WEAPONS[svLow] or BLOCKSPIN_RARITIES[svLow] then
-                                realName = sv:match("^%s*(.-)%s*$")
-                                return
-                            end
-                        end
-                    end
-                end
-            end)
+    -- 6. Direct word boundary matching against KNOWN_WEAPONS on tool.Name
+    if not realName then
+        local rawLow = tool.Name:lower():gsub("[^%a%d]", " ")
+        for kw, _ in pairs(KNOWN_WEAPONS) do
+            if rawLow:find("%f[%a]" .. kw .. "%f[%A]") then
+                realName = kw
+                break
+            end
         end
     end
 
-    -- ── Final gate: se ancora nulla, usa tool.Name grezzo dopo cleanup base ──
-    if not realName or Util.IsGarbageName(realName) then
-        -- Ultimo tentativo: pulisci il nome grezzo e mostralo comunque
-        -- Questo garantisce che OGNI tool venga mostrato, anche se non in whitelist
-        local rawFallback = rawName
-        -- Rimuovi prefissi comuni e underscore
-        rawFallback = rawFallback:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", "")
-        rawFallback = rawFallback:gsub("^Melee_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
-        rawFallback = rawFallback:gsub("^%d+_", ""):gsub("_%d+$", "")
-        rawFallback = rawFallback:gsub("_", " "):match("^%s*(.-)%s*$")
-        -- Blocca solo UUID, path e nomi puramente numerici
-        local rfLow = rawFallback:lower()
-        local isPath = rawFallback:find("/") or rawFallback:find("\\")
-        local isUUID = rawFallback:match("^%x%x%x%x%x%x%x%x%-")
-        local isNum  = rawFallback:match("^%d+$")
-        local tooShort = #rawFallback <= 1
-        local hasLetter = rawFallback:match("%a")
-        if not isPath and not isUUID and not isNum and not tooShort and hasLetter and #rawFallback <= 48 then
-            realName = rawFallback
-        else
-            return nil, nil, nil
+    -- 7. Ultimate fallback: clean raw tool.Name (strip prefixes/underscores)
+    if not realName or realName:lower() == "tool" or realName:lower() == "weapon" then
+        local raw = tool.Name
+        if raw and #raw > 1 then
+            raw = raw:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("_", " ")
+            raw = raw:match("^%s*(.-)%s*$")
+            if #raw > 1 and not raw:lower():find("garbage") then
+                realName = raw
+            end
         end
     end
 
-    -- Clean capitalization
+    if not realName then return nil, nil, nil end
+
     realName = CapitalizeName(realName)
-
-    -- Rarity lookup
     local rarity, color = Util.GetItemRarity(tool, realName)
     return realName, rarity, color
 end
@@ -1208,50 +1086,10 @@ function Util.ResolveToolName(tool)
     return name
 end
 
-
-local function _bsCat(tool)
-    local ok, a = pcall(function() return tool:GetAttributes() end)
-    if not ok then a = {} end
-    local rn = a["RarityName"] or a["rarityName"] or a["Rarity"] or a["rarity"]
-    local hp = a["HealthRestoreAmount"] or a["HealthRestore"]
-    local dur = a["Durability"] or a["durability"]
-    local au = a["automatic"] or a["Automatic"]
-    local rel = a["ReloadMultiplierOffset"] or a["ReloadSpeed"]
-    local spd = a["SpeedMultiplier"] or a["speedMultiplier"]
-    local dmg = a["Damage"] or a["BaseDamage"]
-    local ammo = a["MaxAmmo"] or a["Ammo"]
-    local cat, det = nil, ""
-    if type(hp) == "number" and hp > 0 then
-        cat = "Medkit"; det = "+" .. math.floor(hp) .. " HP"
-    elseif au ~= nil or rel ~= nil or type(ammo) == "number" then
-        cat = (au == true) and "Auto Weapon" or "Weapon"
-        if type(dmg) == "number" and dmg > 0 then det = math.floor(dmg) .. " DMG" end
-    elseif type(spd) == "number" then
-        cat = spd >= 1.3 and "Speed Boost" or "Armor"
-        det = "x" .. string.format("%.1f", spd)
-    elseif type(dur) == "number" and dur > 0 then
-        cat = "Melee"; det = math.floor(dur) .. " DUR"
-    end
-    if not cat then return nil, nil, nil end
-    local rc, rname = RARITY_COLORS.Common, "Common"
-    if type(rn) == "string" and #rn > 0 then
-        local rl = rn:lower()
-        if rl:find("mythic") then rname="Mythic"; rc=RARITY_COLORS.Mythic
-        elseif rl:find("legend") then rname="Legendary"; rc=RARITY_COLORS.Legendary
-        elseif rl:find("epic") then rname="Epic"; rc=RARITY_COLORS.Epic
-        elseif rl:find("rare") then rname="Rare"; rc=RARITY_COLORS.Rare
-        elseif rl:find("uncommon") then rname="Uncommon"; rc=RARITY_COLORS.Uncommon
-        end
-    end
-    local disp = cat
-    if det ~= "" then disp = disp .. " [" .. det .. "]" end
-    return disp, rname, rc
-end
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
     local name, rarity, color = Util.ResolveToolInfo(tool)
-    if not name then name, rarity, color = _bsCat(tool) end
-    if not name then return nil end
+    if not name or #name == 0 then return nil end
 
     return {
         name = name,
@@ -1262,7 +1100,6 @@ function Util.GetWeaponDetails(tool, isEquipped)
     }
 end
 
--- v10.0: Tool info cache — 1.5s TTL
 local _toolInfoCache = setmetatable({}, {__mode = "k"})
 
 function Util.GetToolInfo(tool, isEquipped)
