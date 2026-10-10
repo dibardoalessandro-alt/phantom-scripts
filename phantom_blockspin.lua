@@ -11,6 +11,559 @@
 --]]
 
 -- ═══════════════════════════════════════════════════
+-- VAMPAUTH KEY SYSTEM ENGINE & HARDWARE LICENSING GATE
+-- ═══════════════════════════════════════════════════
+local VAMP_CONFIG = {
+    ProjectId  = "H7T2ZIHD13MK5TDS",
+    AuthSecret = "76a8c158d61a451807e5471948653947b8605b20400667cf",
+    GetKeyUrl  = "https://vampauth.com/flow/H7T2ZIHD13MK5TDS",
+    KeyFile    = "phantom_blockspin_key.txt",
+}
+
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local function IdentifyExecutor()
+    local ok, name = pcall(function() return identifyexecutor() end)
+    if ok and type(name) == "string" and name ~= "" then return name end
+    return "unknown"
+end
+
+local function HttpFetch(url, method, headers, body)
+    local send = request or http_request or (syn and syn.request)
+    if send then
+        local ok, res = pcall(send, { Url = url, Method = method, Headers = headers, Body = body })
+        if ok and res then
+            return res.StatusCode or res.statusCode or res.status_code or res.status or 0, res.Body or res.body or ""
+        end
+    end
+
+    local ok, res = pcall(function()
+        return HttpService:RequestAsync({ Url = url, Method = method, Headers = headers, Body = body })
+    end)
+    if not ok or not res then
+        return 0, ""
+    end
+    return res.StatusCode or res.statusCode or res.status_code or res.status or 0, res.Body or res.body or ""
+end
+
+local function JSONDecode(text)
+    local ok, data = pcall(function() return HttpService:JSONDecode(text) end)
+    if not ok then return nil end
+    return data
+end
+
+local function JSONEncode(data)
+    local ok, text = pcall(function() return HttpService:JSONEncode(data) end)
+    if not ok then return "{}" end
+    return text
+end
+
+local function NewNonce()
+    return HttpService:GenerateGUID(false) .. HttpService:GenerateGUID(false)
+end
+
+local function DefaultHWID()
+    local ok, id = pcall(function()
+        return game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    if ok and type(id) == "string" and id ~= "" then return id end
+    return "unknown-hwid"
+end
+
+local H0, H1, H2, H3, H4 = 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0
+
+local function ToBytes(msg)
+    local n = #msg
+    local bytes = {}
+    for i = 1, n do bytes[i] = string.byte(msg, i) end
+    return bytes, n
+end
+
+local function SHA1(msg)
+    local bytes, n = ToBytes(msg)
+    bytes[n + 1] = 0x80
+    local pad = (64 - ((n + 1 + 8) % 64)) % 64
+    for i = n + 2, n + 1 + pad do bytes[i] = 0 end
+    local bits = n * 8
+    local base = n + 1 + pad
+    for i = 1, 8 do
+        bytes[base + i] = math.floor(bits / 2 ^ ((8 - i) * 8)) % 256
+    end
+
+    local h0, h1, h2, h3, h4 = H0, H1, H2, H3, H4
+    local w = {}
+    for off = 0, base + 8 - 1, 64 do
+        for i = 1, 16 do
+            local j = off + (i - 1) * 4
+            w[i] = bytes[j + 1] * 0x1000000 + bytes[j + 2] * 0x10000 + bytes[j + 3] * 0x100 + bytes[j + 4]
+        end
+        for i = 17, 80 do
+            local v = bit32.bxor(bit32.bxor(w[i - 3], w[i - 8]), bit32.bxor(w[i - 14], w[i - 16]))
+            w[i] = bit32.lrotate(v, 1)
+        end
+        local a, b, c, d, e = h0, h1, h2, h3, h4
+        for i = 1, 80 do
+            local f, k
+            if i <= 20 then
+                f = bit32.bxor(bit32.band(b, c), bit32.band(bit32.bnot(b), d))
+                k = 0x5A827999
+            elseif i <= 40 then
+                f = bit32.bxor(bit32.bxor(b, c), d)
+                k = 0x6ED9EBA1
+            elseif i <= 60 then
+                f = bit32.bxor(bit32.bxor(bit32.band(b, c), bit32.band(b, d)), bit32.band(c, d))
+                k = 0x8F1BBCDC
+            else
+                f = bit32.bxor(bit32.bxor(b, c), d)
+                k = 0xCA62C1D6
+            end
+            local temp = bit32.band(bit32.lrotate(a, 5) + f + e + k + w[i], 0xFFFFFFFF)
+            e = d
+            d = c
+            c = bit32.lrotate(b, 30)
+            b = a
+            a = temp
+        end
+        h0 = bit32.band(h0 + a, 0xFFFFFFFF)
+        h1 = bit32.band(h1 + b, 0xFFFFFFFF)
+        h2 = bit32.band(h2 + c, 0xFFFFFFFF)
+        h3 = bit32.band(h3 + d, 0xFFFFFFFF)
+        h4 = bit32.band(h4 + e, 0xFFFFFFFF)
+    end
+    return string.format("%08x%08x%08x%08x%08x", h0, h1, h2, h3, h4)
+end
+
+local function ToRawBytes(hex)
+    local out = {}
+    for i = 1, #hex, 2 do
+        out[#out + 1] = string.char(tonumber(hex:sub(i, i), 16) * 16 + tonumber(hex:sub(i + 1, i + 1), 16))
+    end
+    return table.concat(out)
+end
+
+local function Pack(bytes)
+    local out = {}
+    for i = 1, #bytes do out[i] = string.char(bytes[i]) end
+    return table.concat(out)
+end
+
+local function HMACSha1Hex(secret, message)
+    local key = secret
+    if #key > 64 then
+        key = ToRawBytes(SHA1(key))
+    end
+
+    local keyBytes, keyLen = ToBytes(key)
+    local ipad, opad = {}, {}
+    for i = 1, 64 do
+        local kb = i <= keyLen and keyBytes[i] or 0
+        ipad[i] = bit32.bxor(kb, 0x36)
+        opad[i] = bit32.bxor(kb, 0x5C)
+    end
+
+    return SHA1(Pack(opad) .. ToRawBytes(SHA1(Pack(ipad) .. message)))
+end
+
+local function SignRequest(secret, parts)
+    return HMACSha1Hex(secret, table.concat(parts, "|"))
+end
+
+local function ExpirySeconds(iso)
+    if not iso then return 0 end
+    local ok, dt = pcall(DateTime.fromIsoDate, iso)
+    if not ok then return 0 end
+    return math.floor(dt.UnixTimestampMillis / 1000)
+end
+
+local Vampauth = {}
+Vampauth.__index = Vampauth
+
+function Vampauth.new(cfg)
+    cfg = cfg or {}
+    return setmetatable({
+        baseUrl = cfg.baseUrl or "https://vampauth.com/api",
+        projectId = cfg.projectId or VAMP_CONFIG.ProjectId,
+        authSecret = cfg.authSecret or VAMP_CONFIG.AuthSecret,
+        hwid = cfg.hwid or DefaultHWID(),
+        state = nil,
+    }, Vampauth)
+end
+
+function Vampauth:Check(key)
+    self.state = nil
+    local hwid = self.hwid
+    local nonce = NewNonce()
+
+    if not self.projectId or #self.projectId == 0 then
+        return false, "Config missing: projectId"
+    end
+    if not self.authSecret or #self.authSecret == 0 then
+        return false, "Config missing: authSecret"
+    end
+
+    local signature = SignRequest(self.authSecret, { nonce, key, hwid })
+    local executor = IdentifyExecutor()
+    local url = self.baseUrl .. "/v1/key/check"
+    local payload = { project_id = self.projectId, key = key, hwid = hwid, nonce = nonce, signature = signature }
+    if executor ~= "unknown" then payload.executor = executor end
+
+    local status, text = HttpFetch(
+        url,
+        "POST",
+        { ["Content-Type"] = "application/json" },
+        JSONEncode(payload)
+    )
+
+    if status == 0 and text == "" then return false, "Connection error (request failed)" end
+    local data = JSONDecode(text)
+
+    if status < 200 or status >= 300 then
+        local reason = (data and data.message) or (data and data.error) or ("HTTP " .. tostring(status))
+        return false, reason
+    end
+    if not data or data.nonce_echo ~= nonce or not data.signature or not data.project_id then
+        return false, "Security error: invalid response"
+    end
+
+    local okVerify, valid = pcall(function()
+        local expected = HMACSha1Hex(self.authSecret,
+            nonce .. "|" .. tostring(data.status) .. "|" .. tostring(ExpirySeconds(data.expires_at)) .. "|" .. data.project_id)
+        return expected == data.signature
+    end)
+    if not okVerify or not valid then
+        return false, "Security error: signature mismatch"
+    end
+
+    if data.expires_at then
+        local okdt, dt = pcall(DateTime.fromIsoDate, data.expires_at)
+        if okdt and dt.UnixTimestamp <= os.time() then
+            return false, "Key expired"
+        end
+    end
+
+    self.state = data
+    return true, data
+end
+
+local function ReadSavedKey()
+    local isf = isfile or (syn and syn.isfile)
+    local rf = readfile or (syn and syn.readfile)
+    if isf and rf and pcall(isf, VAMP_CONFIG.KeyFile) and isf(VAMP_CONFIG.KeyFile) then
+        local ok, content = pcall(rf, VAMP_CONFIG.KeyFile)
+        if ok and type(content) == "string" then
+            return content:match("^%s*(.-)%s*$")
+        end
+    end
+    return nil
+end
+
+local function SaveKey(key)
+    local wf = writefile or (syn and syn.writefile)
+    if wf then pcall(wf, VAMP_CONFIG.KeyFile, key) end
+end
+
+local function CopyToClipboard(text)
+    local sc = setclipboard or toclipboard or (syn and syn.write_clipboard) or (Clipboard and Clipboard.set)
+    if sc then
+        pcall(sc, text)
+        return true
+    end
+    return false
+end
+
+-- Key System Modal GUI
+local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
+    local parentGui = nil
+    pcall(function()
+        if gethui then parentGui = gethui()
+        elseif CoreGui then parentGui = CoreGui
+        elseif Players.LocalPlayer then parentGui = Players.LocalPlayer:FindFirstChild("PlayerGui") end
+    end)
+    if not parentGui then parentGui = CoreGui end
+
+    local existing = parentGui:FindFirstChild("PhantomKeySystem")
+    if existing then existing:Destroy() end
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "PhantomKeySystem"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = parentGui
+
+    local Main = Instance.new("Frame")
+    Main.Name = "MainModal"
+    Main.Size = UDim2.new(0, 440, 0, 270)
+    Main.Position = UDim2.new(0.5, -220, 0.5, -135)
+    Main.BackgroundColor3 = Color3.fromRGB(14, 13, 20)
+    Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
+    Main.Parent = ScreenGui
+
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 12)
+    MainCorner.Parent = Main
+
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Color = Color3.fromRGB(99, 102, 241)
+    MainStroke.Thickness = 1.5
+    MainStroke.Parent = Main
+
+    -- Top Header Bar
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 46)
+    Header.BackgroundColor3 = Color3.fromRGB(20, 19, 29)
+    Header.BorderSizePixel = 0
+    Header.Parent = Main
+
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 12)
+    HeaderCorner.Parent = Header
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -50, 0, 24)
+    Title.Position = UDim2.new(0, 16, 0, 4)
+    Title.BackgroundTransparency = 1
+    Title.Text = "PHANTOM // AUTHENTICATION"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 14
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
+
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Size = UDim2.new(1, -50, 0, 16)
+    Subtitle.Position = UDim2.new(0, 16, 0, 25)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.Text = "BlockSpin Edition · Powered by VampAuth"
+    Subtitle.TextColor3 = Color3.fromRGB(148, 163, 184)
+    Subtitle.TextSize = 11
+    Subtitle.Font = Enum.Font.Gotham
+    Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    Subtitle.Parent = Header
+
+    -- Make Header Draggable
+    local dragging, dragInput, dragStart, startPos
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    Header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Close Button
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+    CloseBtn.Position = UDim2.new(1, -38, 0, 9)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 29, 42)
+    CloseBtn.Text = "✕"
+    CloseBtn.TextColor3 = Color3.fromRGB(203, 213, 225)
+    CloseBtn.TextSize = 12
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.BorderSizePixel = 0
+    CloseBtn.Parent = Header
+
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseBtn
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+        if onCancel then onCancel() end
+    end)
+
+    -- Status Label
+    local Status = Instance.new("TextLabel")
+    Status.Size = UDim2.new(1, -32, 0, 22)
+    Status.Position = UDim2.new(0, 16, 0, 62)
+    Status.BackgroundTransparency = 1
+    Status.Text = "Please enter your license key to continue:"
+    Status.TextColor3 = Color3.fromRGB(203, 213, 225)
+    Status.TextSize = 12
+    Status.Font = Enum.Font.Gotham
+    Status.TextXAlignment = Enum.TextXAlignment.Left
+    Status.Parent = Main
+
+    -- Input Box Frame
+    local InputFrame = Instance.new("Frame")
+    InputFrame.Size = UDim2.new(1, -32, 0, 42)
+    InputFrame.Position = UDim2.new(0, 16, 0, 92)
+    InputFrame.BackgroundColor3 = Color3.fromRGB(22, 21, 32)
+    InputFrame.BorderSizePixel = 0
+    InputFrame.Parent = Main
+
+    local InputCorner = Instance.new("UICorner")
+    InputCorner.CornerRadius = UDim.new(0, 8)
+    InputCorner.Parent = InputFrame
+
+    local InputStroke = Instance.new("UIStroke")
+    InputStroke.Color = Color3.fromRGB(46, 45, 64)
+    InputStroke.Thickness = 1
+    InputStroke.Parent = InputFrame
+
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(1, -20, 1, 0)
+    TextBox.Position = UDim2.new(0, 10, 0, 0)
+    TextBox.BackgroundTransparency = 1
+    TextBox.PlaceholderText = "Paste your license key here..."
+    TextBox.PlaceholderColor3 = Color3.fromRGB(100, 116, 139)
+    TextBox.Text = ""
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.TextSize = 13
+    TextBox.Font = Enum.Font.Gotham
+    TextBox.TextXAlignment = Enum.TextXAlignment.Left
+    TextBox.ClearTextOnFocus = false
+    TextBox.Parent = InputFrame
+
+    -- Buttons Area
+    local SubmitBtn = Instance.new("TextButton")
+    SubmitBtn.Size = UDim2.new(0, 198, 0, 40)
+    SubmitBtn.Position = UDim2.new(0, 16, 0, 150)
+    SubmitBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
+    SubmitBtn.Text = "SUBMIT KEY"
+    SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmitBtn.TextSize = 13
+    SubmitBtn.Font = Enum.Font.GothamBold
+    SubmitBtn.BorderSizePixel = 0
+    SubmitBtn.Parent = Main
+
+    local SubmitCorner = Instance.new("UICorner")
+    SubmitCorner.CornerRadius = UDim.new(0, 8)
+    SubmitCorner.Parent = SubmitBtn
+
+    local GetKeyBtn = Instance.new("TextButton")
+    GetKeyBtn.Size = UDim2.new(0, 198, 0, 40)
+    GetKeyBtn.Position = UDim2.new(1, -214, 0, 150)
+    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(30, 29, 44)
+    GetKeyBtn.Text = "GET KEY LINK"
+    GetKeyBtn.TextColor3 = Color3.fromRGB(165, 180, 252)
+    GetKeyBtn.TextSize = 13
+    GetKeyBtn.Font = Enum.Font.GothamBold
+    GetKeyBtn.BorderSizePixel = 0
+    GetKeyBtn.Parent = Main
+
+    local GetKeyCorner = Instance.new("UICorner")
+    GetKeyCorner.CornerRadius = UDim.new(0, 8)
+    GetKeyCorner.Parent = GetKeyBtn
+
+    local Footnote = Instance.new("TextLabel")
+    Footnote.Size = UDim2.new(1, -32, 0, 40)
+    Footnote.Position = UDim2.new(0, 16, 0, 202)
+    Footnote.BackgroundTransparency = 1
+    Footnote.Text = "Keys are hardware-bound and saved automatically to your device."
+    Footnote.TextColor3 = Color3.fromRGB(100, 116, 139)
+    Footnote.TextSize = 10
+    Footnote.Font = Enum.Font.Gotham
+    Footnote.TextWrapped = true
+    Footnote.Parent = Main
+
+    local isChecking = false
+
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        local copied = CopyToClipboard(VAMP_CONFIG.GetKeyUrl)
+        if copied then
+            Status.Text = "[✓] Key checkpoint link copied to clipboard!"
+            Status.TextColor3 = Color3.fromRGB(56, 189, 248)
+        else
+            Status.Text = "Link: " .. VAMP_CONFIG.GetKeyUrl
+            Status.TextColor3 = Color3.fromRGB(250, 204, 21)
+        end
+    end)
+
+    SubmitBtn.MouseButton1Click:Connect(function()
+        if isChecking then return end
+        local rawKey = TextBox.Text:match("^%s*(.-)%s*$")
+        if not rawKey or #rawKey == 0 then
+            Status.Text = "[!] Please enter a license key first."
+            Status.TextColor3 = Color3.fromRGB(248, 113, 113)
+            return
+        end
+
+        isChecking = true
+        SubmitBtn.Text = "VERIFYING..."
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(79, 70, 229)
+        Status.Text = "Connecting to VampAuth API..."
+        Status.TextColor3 = Color3.fromRGB(250, 204, 21)
+
+        task.spawn(function()
+            local ok, data = vp:Check(rawKey)
+            if ok then
+                SaveKey(rawKey)
+                Status.Text = "[✓] License Valid! Launching script..."
+                Status.TextColor3 = Color3.fromRGB(34, 197, 94)
+                SubmitBtn.Text = "VERIFIED"
+                SubmitBtn.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+                task.wait(0.8)
+                ScreenGui:Destroy()
+                onKeyVerified(rawKey)
+            else
+                Status.Text = "[✗] " .. tostring(data or "Invalid Key")
+                Status.TextColor3 = Color3.fromRGB(239, 68, 68)
+                SubmitBtn.Text = "SUBMIT KEY"
+                SubmitBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
+                isChecking = false
+            end
+        end)
+    end)
+end
+
+-- Authenticate before cheat initialization
+local vp = Vampauth.new({
+    projectId = VAMP_CONFIG.ProjectId,
+    authSecret = VAMP_CONFIG.AuthSecret
+})
+
+local isKeyVerified = false
+local savedKey = ReadSavedKey()
+
+if savedKey and #savedKey > 0 then
+    local ok, data = vp:Check(savedKey)
+    if ok then
+        isKeyVerified = true
+    end
+end
+
+if not isKeyVerified then
+    local gateDone = Instance.new("BindableEvent")
+    local userCancelled = false
+    ShowKeySystemModal(vp, function(validKey)
+        isKeyVerified = true
+        gateDone:Fire()
+    end, function()
+        userCancelled = true
+        gateDone:Fire()
+    end)
+    gateDone.Event:Wait()
+    gateDone:Destroy()
+
+    if userCancelled or not isKeyVerified then
+        return
+    end
+end
+-- ═══════════════════════════════════════════════════
+-- END VAMPAUTH KEY SYSTEM ENGINE
+-- ═══════════════════════════════════════════════════
+
+
+
+-- ═══════════════════════════════════════════════════
 -- SAFE FONT DETECTION
 -- ═══════════════════════════════════════════════════
 local function getFont()
