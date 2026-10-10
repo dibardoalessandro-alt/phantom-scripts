@@ -275,21 +275,49 @@ local function CopyToClipboard(text)
 end
 
 -- Key System Modal GUI
-local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
-    local parentGui = nil
-    pcall(function()
-        if gethui then parentGui = gethui()
-        elseif CoreGui then parentGui = CoreGui
-        elseif Players.LocalPlayer then parentGui = Players.LocalPlayer:FindFirstChild("PlayerGui") end
-    end)
-    if not parentGui then parentGui = CoreGui end
+local function GetSafeGuiParent()
+    local parent = nil
+    if typeof(gethui) == "function" then
+        local ok, h = pcall(gethui)
+        if ok and h then parent = h end
+    end
+    if not parent then
+        pcall(function()
+            local lp = Players.LocalPlayer
+            if not lp then
+                Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+                lp = Players.LocalPlayer
+            end
+            if lp then
+                parent = lp:FindFirstChildOfClass("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
+            end
+        end)
+    end
+    if not parent then
+        pcall(function()
+            parent = CoreGui
+        end)
+    end
+    return parent
+end
 
-    local existing = parentGui:FindFirstChild("PhantomKeySystem")
-    if existing then existing:Destroy() end
+local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
+    local parentGui = GetSafeGuiParent()
+    if not parentGui then
+        warn("[PHANTOM AUTH] Critical: No valid GUI parent available.")
+        return
+    end
+
+    pcall(function()
+        local existing = parentGui:FindFirstChild("PhantomKeySystem")
+        if existing then existing:Destroy() end
+    end)
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "PhantomKeySystem"
     ScreenGui.ResetOnSpawn = false
+    ScreenGui.DisplayOrder = 2147483647
+    ScreenGui.IgnoreGuiInset = true
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.Parent = parentGui
 
