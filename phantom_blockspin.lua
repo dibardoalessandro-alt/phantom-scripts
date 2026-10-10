@@ -4462,7 +4462,7 @@ local function Init()
     PlayerMods.SetupAntiAFK()
 
     setFPS(0)
-    Notify.Send("PRV SERVICE v12.0 Uncapped FPS Loaded!", C3(56, 189, 248), 4)
+    Notify.Send("PRV SERVICE v13.0 Loaded (Triggerbot FOV & Instant Ready)", C3(56, 189, 248), 4)
     Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
     Notify.Send("Settings > Save Configuration per salvare!", C3(0, 255, 180), 6)
 end
