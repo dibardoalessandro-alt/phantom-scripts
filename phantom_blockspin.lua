@@ -1,6 +1,6 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PRV SERVICE v12.0 · 120 FPS Ultra-Fluid Edition             ║
+    ║     PRV SERVICE v13.0 · Perfect Triggerbot & FOV Auto-Fire Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi K per aprire/chiudere il menu                          ║
@@ -215,14 +215,12 @@ local Config = {
     -- ── TRIGGERBOT ──
     Triggerbot = {
         Enabled        = false,
-        ActivationMode = "Always",      -- "Hold" / "Always"
+        ActivationMode = "Always",      -- "Always" / "Hold" / "Toggle"
         KeybindName    = "LeftAlt",
         ActivationKey  = Enum.KeyCode.LeftAlt,
         ActivationKeyType = "Key",
-        MinDelay       = 0,            -- v3.3: default 0 = instant
-        MaxDelay       = 0,            -- v3.3: default 0 = instant
-        MaxDistance     = 300,
-        HitChance      = 100,          -- v3.3: default 100%
+        MaxDistance    = 400,
+        HitChance      = 100,          -- 100%
         HeadshotOnly   = false,
         BurstMode      = false,
         BurstCount     = 3,
@@ -230,22 +228,15 @@ local Config = {
         TeamCheck      = false,
         TargetParts    = {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
                          "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"},
-        -- v3.3: NEW FEATURES
-        InstantFire    = true,          -- 0 delay, fires IMMEDIATELY on detection
-        AutoSpray      = true,          -- hold fire continuously (for automatic weapons)
-        SprayRate      = 0.01,          -- delay between spray shots (basically 0)
-        UseFOV         = false,         -- use FOV circle instead of direct crosshair
-        FOV            = 80,            -- triggerbot FOV radius in pixels
-        ShowFOV        = false,         -- show triggerbot FOV circle
-        FOVColor       = C3(255, 150, 50),
+        -- Overhauled engine: Instant Fire & FOV Mode
+        InstantFire    = true,          -- Fires immediately upon detecting target
+        FireDelay      = 0.01,          -- Ultra-fast shot delay (s)
+        UseFOV         = false,         -- false = Crosshair mode (only on crosshair); true = FOV auto-fire
+        FOV            = 80,            -- Triggerbot FOV radius in pixels
+        ShowFOV        = false,         -- Show FOV circle
+        FOVColor       = C3(255, 140, 20),
         FOVThickness   = 1,
-        FOVTransparency = 0.5,
-        -- Kept from v3
-        RapidFire      = false,
-        RapidFireRate  = 0.02,
-        HumanizedPattern = false,       -- v3.3: default off for instant
-        SmartTiming    = false,
-        StableFrames   = 3,
+        FOVTransparency = 0.6,
     },
 
     -- ── PLAYER ── (v3: NEW TAB)
@@ -285,6 +276,7 @@ local State = {
     SoftAimHeld     = false,
     SoftAimToggled  = false,
     TriggerbotHeld  = false,
+    TriggerbotToggled = false,
     CurrentTarget   = nil,
     Connections     = {},
     ESPCache        = {},
@@ -2509,110 +2501,129 @@ pcall(function()
 end)
 
 -- ═══════════════════════════════════════════════════
--- TRIGGERBOT ENGINE (v3.3: REWRITTEN - FOV + Instant + AutoSpray)
+-- TRIGGERBOT ENGINE (v13.0: OVERHAULED - Crosshair Snap + FOV Auto-Fire)
 -- ═══════════════════════════════════════════════════
 local Triggerbot = {}
 local _lastTrig = 0
-local _sprayActive = false
 
--- v3.3: Triggerbot FOV circle
+-- Triggerbot FOV circle
 local TrigFOVCircle
 pcall(function()
     TrigFOVCircle = Drawing.new("Circle")
-    TrigFOVCircle.Filled = false; TrigFOVCircle.NumSides = 48
-    TrigFOVCircle.Thickness = 1; TrigFOVCircle.Visible = false
+    TrigFOVCircle.Filled = false
+    TrigFOVCircle.NumSides = 48
+    TrigFOVCircle.Thickness = 1
+    TrigFOVCircle.Visible = false
 end)
+
+local function GetAimPoint()
+    local mouseLoc = UserInputService:GetMouseLocation()
+    if mouseLoc and mouseLoc.X > 0 and mouseLoc.Y > 0 then
+        return mouseLoc
+    end
+    return Util.Center()
+end
+
+-- Universal hardware / executor input dispatcher (Xeno, Solara, Wave, native)
+local function ExecuteClick()
+    local clicked = false
+    -- 1. Native mouse1click
+    if typeof(mouse1click) == "function" then
+        local ok = pcall(mouse1click)
+        if ok then clicked = true end
+    end
+    -- 2. mouse1press & mouse1release
+    if not clicked and typeof(mouse1press) == "function" and typeof(mouse1release) == "function" then
+        pcall(function()
+            mouse1press()
+            task.defer(function()
+                task.wait(0.015)
+                pcall(mouse1release)
+            end)
+        end)
+        clicked = true
+    end
+    -- 3. mouse1down & mouse1up
+    if not clicked and typeof(mouse1down) == "function" and typeof(mouse1up) == "function" then
+        pcall(function()
+            mouse1down()
+            task.defer(function()
+                task.wait(0.015)
+                pcall(mouse1up)
+            end)
+        end)
+        clicked = true
+    end
+    -- 4. VirtualInputManager fallback
+    if not clicked then
+        pcall(function()
+            local vim = game:GetService("VirtualInputManager")
+            local mLoc = GetAimPoint()
+            vim:SendMouseButtonEvent(mLoc.X, mLoc.Y, 0, true, game, 0)
+            task.defer(function()
+                task.wait(0.015)
+                vim:SendMouseButtonEvent(mLoc.X, mLoc.Y, 0, false, game, 0)
+            end)
+            clicked = true
+        end)
+    end
+    -- 5. VirtualUser fallback
+    if not clicked then
+        pcall(function()
+            local vu = game:GetService("VirtualUser")
+            local mLoc = GetAimPoint()
+            vu:CaptureController()
+            vu:Button1Down(Vector2.new(mLoc.X, mLoc.Y), Camera.CFrame)
+            task.defer(function()
+                task.wait(0.015)
+                vu:Button1Up(Vector2.new(mLoc.X, mLoc.Y), Camera.CFrame)
+            end)
+            clicked = true
+        end)
+    end
+end
 
 function Triggerbot.IsActive()
     if not Config.Triggerbot.Enabled then return false end
     if Config.Triggerbot.ActivationMode == "Always" then return true end
+    if Config.Triggerbot.ActivationMode == "Toggle" then return State.TriggerbotToggled end
     return State.TriggerbotHeld
 end
 
--- v3.3: Check if any enemy body part is within the triggerbot FOV circle
-function Triggerbot.FindFOVTarget()
-    local center = Util.Center()
-    local fovRadius = Config.Triggerbot.FOV
-    local best = nil
-    local bestDist = mHuge
+-- Checks if crosshair or FOV contains a valid target
+function Triggerbot.FindTarget()
+    local aimPoint = GetAimPoint()
+    local camPos = Camera.CFrame.Position
+    local maxDist = Config.Triggerbot.MaxDistance or 400
 
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and Util.Alive(p) then
-            if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
-                local char = p.Character
-                if char then
-                    -- Check all target parts
-                    for _, partName in ipairs(Config.Triggerbot.TargetParts) do
-                        local part = char:FindFirstChild(partName)
-                        if part then
-                            local sp, on = Util.W2S(part.Position)
-                            if on then
-                                local d2 = Util.D2(sp, center)
-                                if d2 <= fovRadius then
-                                    local d3 = Util.D3(part.Position, Camera.CFrame.Position)
-                                    if d3 <= Config.Triggerbot.MaxDistance and d3 < bestDist then
-                                        -- Headshot only filter
-                                        if Config.Triggerbot.HeadshotOnly then
-                                            if partName == "Head" then
-                                                best = p; bestDist = d3
-                                            end
-                                        else
-                                            best = p; bestDist = d3
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return best
-end
-
-function Triggerbot.Process()
-    if not Triggerbot.IsActive() then
-        _sprayActive = false
-        return
-    end
-    if not HAS_MOUSE1CLICK then return end
-
-    local now = Tick()
-    local hasTarget = false
-
-    -- v3.3: TWO MODES - FOV based or Crosshair based
+    -- ══════════════════════════════════════════════════════════════
+    -- MODE 1: FOV AUTO-FIRE MODE (Spara automatico ogni volta che un player entra nel FOV)
+    -- ══════════════════════════════════════════════════════════════
     if Config.Triggerbot.UseFOV then
-        -- FOV MODE: fire if any enemy body part is within the FOV circle
-        local target = Triggerbot.FindFOVTarget()
-        hasTarget = (target ~= nil)
-    else
-        -- CROSSHAIR MODE: hybrid raycast + screen-center part intersection (flawless at ANY distance)
-        local center = Util.Center()
+        local fovRadius = Config.Triggerbot.FOV or 80
+        local bestDist = mHuge
+        local targetFound = false
 
-        -- 1. Check direct 2D crosshair alignment with all target parts (immune to transparent barriers / hitboxes)
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and Util.Alive(p) then
                 if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
                     local char = p.Character
                     if char then
-                        local root = char:FindFirstChild("HumanoidRootPart")
-                        if root then
-                            local d3 = Util.D3(root.Position, Camera.CFrame.Position)
-                            if d3 <= Config.Triggerbot.MaxDistance then
-                                for _, partName in ipairs(Config.Triggerbot.TargetParts) do
-                                    local part = char:FindFirstChild(partName)
-                                    if part then
-                                        local vp, on = Camera:WorldToViewportPoint(part.Position)
-                                        if on and vp.Z > 0 then
-                                            local partScreenRadius = mClamp((part.Size.Magnitude / 2) * (Camera.ViewportSize.Y / (2 * math.tan(math.rad(Camera.FieldOfView / 2)) * vp.Z)), 4, 30)
-                                            if Util.D2(V2(vp.X, vp.Y), center) <= partScreenRadius then
-                                                if Config.Triggerbot.HeadshotOnly then
-                                                    if partName == "Head" then hasTarget = true break end
-                                                else
-                                                    hasTarget = true
-                                                    break
-                                                end
+                        local partsToCheck = Config.Triggerbot.HeadshotOnly and {"Head"} or Config.Triggerbot.TargetParts
+                        for _, partName in ipairs(partsToCheck) do
+                            local part = char:FindFirstChild(partName)
+                            if part then
+                                local sp, on = Util.W2S(part.Position)
+                                if on then
+                                    local dist2D = Util.D2(sp, aimPoint)
+                                    if dist2D <= fovRadius then
+                                        local dist3D = Util.D3(part.Position, camPos)
+                                        if dist3D <= maxDist and dist3D < bestDist then
+                                            -- Line of sight check (non spara attraverso muri solidi impenetrabili)
+                                            if Util.Visible(camPos, part.Position, p) then
+                                                bestDist = dist3D
+                                                targetFound = true
+                                                break
                                             end
                                         end
                                     end
@@ -2622,80 +2633,148 @@ function Triggerbot.Process()
                     end
                 end
             end
-            if hasTarget then break end
+            if targetFound then break end
         end
+        return targetFound
+    end
 
-        -- 2. Fallback to physical Raycast if 2D check didn't trip
-        if not hasTarget then
-            local ray = Camera:ViewportPointToRay(center.X, center.Y)
-            local r = Workspace:Raycast(ray.Origin, ray.Direction * Config.Triggerbot.MaxDistance, _sharedRayParams)
-            if r and r.Instance then
-                local hitInstance = r.Instance
-                local current = hitInstance
-                while current and current ~= Workspace do
-                    if current:IsA("Model") then
-                        local p = Players:GetPlayerFromCharacter(current)
-                        if p and p ~= LocalPlayer then
-                            if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
-                                hasTarget = true
-                            end
-                            break
+    -- ══════════════════════════════════════════════════════════════
+    -- MODE 2: NORMAL CROSSHAIR MODE (Spara SUBITO e SOLO quando il mirino sta sul player)
+    -- ══════════════════════════════════════════════════════════════
+
+    -- 1. Native Mouse.Target detection (Infallibile al 100% nel motore Roblox)
+    local mouse = LocalPlayer:GetMouse()
+    if mouse and mouse.Target then
+        local hitPart = mouse.Target
+        local model = hitPart:FindFirstAncestorOfClass("Model")
+        if model then
+            local p = Players:GetPlayerFromCharacter(model)
+            if p and p ~= LocalPlayer and Util.Alive(p) then
+                if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                    local dist3D = Util.D3(hitPart.Position, camPos)
+                    if dist3D <= maxDist then
+                        if Config.Triggerbot.HeadshotOnly then
+                            if hitPart.Name == "Head" then return true end
+                        else
+                            return true
                         end
                     end
-                    current = current.Parent
                 end
             end
         end
     end
 
-    -- No target found? Stop spray and return
-    if not hasTarget then
-        _sprayActive = false
-        State.StableCount = 0
-        State.LastCrosshairTarget = nil
-        return
-    end
+    -- 2. Precision Multi-Pass Raycast attraverso il mirino (Penetra vetro e accessori)
+    local ray = Camera:ViewportPointToRay(aimPoint.X, aimPoint.Y)
+    local curOrigin = ray.Origin
+    local curDir = ray.Direction * maxDist
+    local remainingDist = maxDist
 
-    -- v3.3: INSTANT FIRE MODE - 0 delay, fire immediately
-    if Config.Triggerbot.InstantFire then
-        -- No delay check, just fire
-    elseif Config.Triggerbot.AutoSpray then
-        -- SPRAY MODE: continuous fire with minimal delay
-        if now - _lastTrig < Config.Triggerbot.SprayRate then return end
-    elseif Config.Triggerbot.RapidFire then
-        if now - _lastTrig < Config.Triggerbot.RapidFireRate then return end
-    else
-        -- Normal delay
-        local delay
-        if Config.Triggerbot.HumanizedPattern then
-            local base = (Config.Triggerbot.MinDelay + Config.Triggerbot.MaxDelay) / 2
-            local variance = (Config.Triggerbot.MaxDelay - Config.Triggerbot.MinDelay) / 2
-            local r1, r2 = math.random(), math.random()
-            local gaussian = mSqrt(-2 * math.log(r1 + 0.001)) * mCos(2 * mPi * r2)
-            delay = mClamp(base + gaussian * variance * 0.3, Config.Triggerbot.MinDelay, Config.Triggerbot.MaxDelay)
-        else
-            delay = Util.RF(Config.Triggerbot.MinDelay, Config.Triggerbot.MaxDelay)
-        end
-        if now - _lastTrig < delay then return end
-    end
-
-    -- Hit chance check
-    if mRandom(1, 100) > Config.Triggerbot.HitChance then _lastTrig = now return end
-
-    -- FIRE!
-    if Config.Triggerbot.BurstMode then
-        for i = 1, Config.Triggerbot.BurstCount do
-            mouse1click()
-            if i < Config.Triggerbot.BurstCount then
-                tWait(Config.Triggerbot.BurstDelay)
+    for pass = 1, 4 do
+        local res = Workspace:Raycast(curOrigin, curDir, _sharedRayParams)
+        if not res or not res.Instance then break end
+        local hit = res.Instance
+        local model = hit:FindFirstAncestorOfClass("Model")
+        if model then
+            local p = Players:GetPlayerFromCharacter(model)
+            if p and p ~= LocalPlayer and Util.Alive(p) then
+                if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                    if Config.Triggerbot.HeadshotOnly then
+                        if hit.Name == "Head" then return true end
+                    else
+                        return true
+                    end
+                end
+                break
             end
         end
-    else
-        mouse1click()
+
+        if hit.Transparency >= 0.5 or not hit.CanCollide then
+            curOrigin = res.Position + (ray.Direction * 0.1)
+            remainingDist = remainingDist - (res.Position - curOrigin).Magnitude
+            if remainingDist <= 0.5 then break end
+            curDir = ray.Direction * remainingDist
+        else
+            break
+        end
     end
+
+    -- 3. Screen-Space Hitbox Projection (Fix per 1v1 ravvicinato: calcolo dinamico senza capping artificiale)
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and Util.Alive(p) then
+            if not (Config.Triggerbot.TeamCheck and Util.IsTeam(p)) then
+                local char = p.Character
+                if char then
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        local dist3D = Util.D3(root.Position, camPos)
+                        if dist3D <= maxDist then
+                            local partsToCheck = Config.Triggerbot.HeadshotOnly and {"Head"} or Config.Triggerbot.TargetParts
+                            for _, partName in ipairs(partsToCheck) do
+                                local part = char:FindFirstChild(partName)
+                                if part then
+                                    local vp, on = Camera:WorldToViewportPoint(part.Position)
+                                    if on and vp.Z > 0 then
+                                        local partRadius3D = math.max(part.Size.X, part.Size.Y, part.Size.Z) * 0.55
+                                        local fovRad = math.rad(Camera.FieldOfView / 2)
+                                        local screenRadius = (partRadius3D * Camera.ViewportSize.Y) / (2 * math.tan(fovRad) * vp.Z)
+                                        screenRadius = mClamp(screenRadius, 5, 200)
+
+                                        if Util.D2(V2(vp.X, vp.Y), aimPoint) <= screenRadius then
+                                            if Util.Visible(camPos, part.Position, p) then
+                                                return true
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+function Triggerbot.Process()
+    if not Triggerbot.IsActive() then return end
+
+    local hasTarget = Triggerbot.FindTarget()
+    if not hasTarget then return end
+
+    local now = Tick()
+    local shotDelay = Config.Triggerbot.FireDelay or 0.01
+    if not Config.Triggerbot.InstantFire then
+        shotDelay = math.max(shotDelay, 0.05)
+    end
+
+    if now - _lastTrig < shotDelay then return end
+
+    if Config.Triggerbot.HitChance and Config.Triggerbot.HitChance < 100 then
+        if mRandom(1, 100) > Config.Triggerbot.HitChance then
+            _lastTrig = now
+            return
+        end
+    end
+
+    -- Fire weapon
+    if Config.Triggerbot.BurstMode then
+        task.spawn(function()
+            for i = 1, (Config.Triggerbot.BurstCount or 3) do
+                ExecuteClick()
+                if i < (Config.Triggerbot.BurstCount or 3) then
+                    tWait(Config.Triggerbot.BurstDelay or 0.05)
+                end
+            end
+        end)
+    else
+        ExecuteClick()
+    end
+
     _lastTrig = now
-    _sprayActive = true
-    State.HitCount = State.HitCount + 1
+    State.HitCount = (State.HitCount or 0) + 1
 end
 
 -- ═══════════════════════════════════════════════════
@@ -3912,11 +3991,16 @@ local function BuildNativeGUI()
 
     -- ──────────────────────────────────────────
     -- 4. POPULATE TRIGGERBOT
-    -- ──────────────────────────────────────────
     pcall(function()
         tTrig:AddSection("General")
-        tTrig:AddToggle("Enable Triggerbot", Config.Triggerbot.Enabled, function(v) Config.Triggerbot.Enabled = v end)
-        tTrig:AddDropdown("Activation Mode", {"Hold", "Toggle", "Always"}, Config.Triggerbot.ActivationMode, function(v) Config.Triggerbot.ActivationMode = v end)
+        tTrig:AddToggle("Enable Triggerbot", Config.Triggerbot.Enabled, function(v)
+            Config.Triggerbot.Enabled = v
+            if TrigFOVCircle and not v then TrigFOVCircle.Visible = false end
+        end)
+        tTrig:AddDropdown("Activation Mode", {"Always", "Hold", "Toggle"}, Config.Triggerbot.ActivationMode, function(v)
+            Config.Triggerbot.ActivationMode = v
+            if v == "Toggle" then State.TriggerbotToggled = true end
+        end)
         tTrig:AddDropdown("Triggerbot Keybind", safeKeybinds, Config.Triggerbot.KeybindName, function(v)
             Config.Triggerbot.KeybindName = v
             local bind = KeybindMap[v]
@@ -3927,15 +4011,37 @@ local function BuildNativeGUI()
             end
         end)
 
+        tTrig:AddSection("Modes & FOV")
+        tTrig:AddToggle("FOV Auto-Fire Mode", Config.Triggerbot.UseFOV, function(v)
+            Config.Triggerbot.UseFOV = v
+            if TrigFOVCircle then
+                TrigFOVCircle.Visible = (v and Config.Triggerbot.ShowFOV and Config.Triggerbot.Enabled)
+            end
+            if v then
+                Notify.Send("Triggerbot: Modalita FOV [ATTIVA]", C3(255, 150, 50), 2)
+            else
+                Notify.Send("Triggerbot: Mirino Diretto [ATTIVO]", C3(50, 255, 150), 2)
+            end
+        end)
+        tTrig:AddSlider("FOV Radius", 20, 300, Config.Triggerbot.FOV, " px", 5, function(v)
+            Config.Triggerbot.FOV = v
+            if TrigFOVCircle then TrigFOVCircle.Radius = v end
+        end)
+        tTrig:AddToggle("Show FOV Circle", Config.Triggerbot.ShowFOV, function(v)
+            Config.Triggerbot.ShowFOV = v
+            if TrigFOVCircle then
+                TrigFOVCircle.Visible = (v and Config.Triggerbot.UseFOV and Config.Triggerbot.Enabled)
+            end
+        end)
+
         tTrig:AddSection("Firing Parameters")
-        tTrig:AddToggle("Continuous Auto-Shoot", Config.Triggerbot.AutoShoot, function(v) Config.Triggerbot.AutoShoot = v end)
-        tTrig:AddToggle("Spray Mode", Config.Triggerbot.Spray, function(v) Config.Triggerbot.Spray = v end)
-        tTrig:AddSlider("Shot Delay", 0.01, 0.15, Config.Triggerbot.SprayRate, "s", 0.01, function(v) Config.Triggerbot.SprayRate = v end)
-        tTrig:AddSlider("Hit Chance", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
+        tTrig:AddToggle("Instant Fire", Config.Triggerbot.InstantFire, function(v) Config.Triggerbot.InstantFire = v end)
+        tTrig:AddSlider("Shot Delay", 0.00, 0.20, Config.Triggerbot.FireDelay, "s", 0.01, function(v) Config.Triggerbot.FireDelay = v end)
         tTrig:AddToggle("Headshot Only", Config.Triggerbot.HeadshotOnly, function(v) Config.Triggerbot.HeadshotOnly = v end)
+        tTrig:AddToggle("Team Check", Config.Triggerbot.TeamCheck, function(v) Config.Triggerbot.TeamCheck = v end)
+        tTrig:AddSlider("Hit Chance", 1, 100, Config.Triggerbot.HitChance, "%", 1, function(v) Config.Triggerbot.HitChance = v end)
     end)
 
-    -- ──────────────────────────────────────────
     -- 5. POPULATE PLAYER
     -- ──────────────────────────────────────────
     pcall(function()
@@ -4122,9 +4228,14 @@ local function OnInputBegan(input, gp)
         end
     end
 
-    -- Triggerbot (v3: custom keybind)
+    -- Triggerbot (custom keybind)
     if matchesBind(input, Config.Triggerbot.ActivationKey, Config.Triggerbot.ActivationKeyType) then
-        State.TriggerbotHeld = true
+        if Config.Triggerbot.ActivationMode == "Toggle" then
+            State.TriggerbotToggled = not State.TriggerbotToggled
+            Notify.Send("Triggerbot: " .. (State.TriggerbotToggled and "ON" or "OFF"), C3(255, 200, 50), 1.5)
+        else
+            State.TriggerbotHeld = true
+        end
     end
 end
 
@@ -4149,7 +4260,9 @@ local function OnInputEnded(input, _)
 
     -- Triggerbot release
     if matchesBind(input, Config.Triggerbot.ActivationKey, Config.Triggerbot.ActivationKeyType) then
-        State.TriggerbotHeld = false
+        if Config.Triggerbot.ActivationMode == "Hold" then
+            State.TriggerbotHeld = false
+        end
     end
 end
 
@@ -4203,7 +4316,7 @@ local function RenderLoop()
     -- v3.3: Triggerbot FOV Circle
     if TrigFOVCircle then
         if Config.Triggerbot.Enabled and Config.Triggerbot.UseFOV and Config.Triggerbot.ShowFOV then
-            TrigFOVCircle.Position = Util.Center()
+            TrigFOVCircle.Position = UserInputService:GetMouseLocation()
             TrigFOVCircle.Radius = Config.Triggerbot.FOV
             TrigFOVCircle.Color = Config.Triggerbot.FOVColor
             TrigFOVCircle.Thickness = Config.Triggerbot.FOVThickness
