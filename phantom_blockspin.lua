@@ -1,6 +1,6 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PRV SERVICE v13.2 · Flawless Weapon Resolver & Triggerbot Edition             ║
+    ║     PRV SERVICE v13.3 · 100% Exact Weapon & Item Resolver Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi K per aprire/chiudere il menu                          ║
@@ -1144,48 +1144,48 @@ local WEAPON_KEYWORD_DB = {
     { name = "Anaconda", rarity = "Mythic", color = RARITY_COLORS.Mythic, keys = {"anaconda", "colt anaconda", "python", "magnum"} },
 
     -- Legendary (Gold)
+    { name = "RPG", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"rpg 7", "rpg7", "rpg", "rocket launcher", "bazooka"} },
     { name = "Remington", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"remington", "r870", "870", "pump"} },
     { name = "MP5", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"mp5sd", "mp5k", "mp5"} },
-    { name = "RPG", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"rpg-7", "rpg7", "rpg", "rocket", "launcher", "bazooka"} },
     { name = "Minigun", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"minigun", "microgun"} },
     { name = "Flamethrower", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"flamethrower", "lanciafiamme"} },
     { name = "Gold AK", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"gold ak", "golden ak"} },
     { name = "Golden Gun", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"golden gun", "gold gun", "gold pistol"} },
 
     -- Epic (Purple)
-    { name = "Double Barrel", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"double barrel", "doublebarrel", "double-barrel", "db"} },
+    { name = "Double Barrel", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"double barrel", "doublebarrel", "db"} },
     { name = "Barrett .50 Cal", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"barrett", "50cal", "50 cal", "m82"} },
-    { name = "Sniper Rifle", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"sniper rifle", "sniper", "awp", "dragunov", "svd", "m24", "r700", "hunting rifle"} },
+    { name = "Sniper Rifle", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"sniper rifle", "sniper", "awp", "dragunov", "svd", "m24", "r700"} },
     { name = "G3", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"g3a3", "hk g3", "g3"} },
-    { name = "Quantum Hack Tool", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"quantum hack", "hack tool", "hacker tool", "quantum", "atm hack"} },
+    { name = "Quantum Hack Tool", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"quantum hack", "hack tool", "quantum", "atm hack"} },
     { name = "Machete", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"machete", "machette"} },
     { name = "Katana", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"katana", "sword"} },
     { name = "Crossbow", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"crossbow"} },
 
     -- Rare (Blue / Cyan)
-    { name = "Sawed-Off", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"sawed-off", "sawed off", "sawedoff", "sawn-off", "sawn off", "sawnoff", "sawed", "sawn"} },
+    { name = "Sawed-Off", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"sawed off", "sawedoff", "sawn off", "sawnoff", "sawed", "sawn"} },
     { name = "Frying Pan", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"frying pan", "frying", "padella", "pan"} },
-    { name = "AK-47", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ak-47", "ak47", "akm", "draco", "ak"} },
+    { name = "AK-47", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ak 47", "ak47", "akm", "draco", "ak"} },
     { name = "M16", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"m16a4", "m16a2", "m16"} },
-    { name = "M4A1", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"m4a1", "m4", "ar-15", "ar15", "hk416", "416"} },
-    { name = "SCAR", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"scar-l", "scar-h", "scar"} },
+    { name = "M4A1", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"m4a1", "m4", "ar 15", "ar15", "hk416", "416"} },
+    { name = "SCAR", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"scar l", "scar h", "scar"} },
     { name = "Vector", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"kriss vector", "vector"} },
     { name = "P90", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"p90"} },
-    { name = "AC-9", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ac-9", "ac9"} },
+    { name = "AC-9", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ac 9", "ac9"} },
     { name = "Desert Eagle", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"desert eagle", "deagle"} },
-    { name = "SPAS-12", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"spas-12", "spas12", "spas"} },
+    { name = "SPAS-12", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"spas 12", "spas12", "spas"} },
     { name = "Fishing Rod", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"fishing rod", "fishing", "canna da pesca", "pesca"} },
-    { name = "Energy Shot", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"energy shot", "energy drink", "energy", "booster", "stim"} },
+    { name = "Energy Shot", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"energy shot", "energy drink", "energy", "booster"} },
 
     -- Uncommon (Green)
     { name = "H9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"hudson h9", "h9", "hudson"} },
     { name = "Glock", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"glock 17", "glock 18", "glock 19", "glock17", "glock18", "glock", "g17", "g18", "g19"} },
     { name = "P226", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"sig p226", "p226", "sig sauer", "sig", "226"} },
     { name = "Uzi", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"micro uzi", "uzi"} },
-    { name = "MAC-10", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"mac-10", "mac10", "mac 10"} },
-    { name = "TEC-9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"tec-9", "tec9"} },
+    { name = "MAC-10", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"mac 10", "mac10"} },
+    { name = "TEC-9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"tec 9", "tec9"} },
     { name = "Lockpick", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"lockpick", "grimaldello"} },
-    { name = "C4", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"c4", "grenade", "granata", "pipe bomb", "dynamite", "molotov", "flashbang", "smoke grenade"} },
+    { name = "C4", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"c4", "grenade", "granata", "pipe bomb", "dynamite", "molotov", "flashbang"} },
 
     -- Common / Melee
     { name = "Combat Knife", rarity = "Common", color = RARITY_COLORS.Common, keys = {"combat knife", "tactical knife", "coltello", "knife", "dagger", "shank"} },
@@ -1194,12 +1194,12 @@ local WEAPON_KEYWORD_DB = {
     { name = "Tactical Axe", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tactical axe", "ascia", "axe", "hatchet", "fire axe"} },
     { name = "Sledgehammer", rarity = "Common", color = RARITY_COLORS.Common, keys = {"sledge hammer", "sledgehammer", "martello", "hammer"} },
 
-    -- Utility / Medical
-    { name = "Blood Bag", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"blood bag", "bloodbag", "blood"} },
+    -- Utility / Medical (STRICT: "blood bag" only, NEVER bare "blood"!)
+    { name = "Blood Bag", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"blood bag", "bloodbag", "sacca di sangue"} },
     { name = "Medkit", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"medkit", "medical kit", "first aid", "first aid kit"} },
     { name = "Bandage", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"bandage", "bende", "benda"} },
 
-    -- Generic Weapon Fallbacks (Never drop these!)
+    -- Generic Weapon Fallbacks
     { name = "Shotgun", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"shotgun"} },
     { name = "Pistol", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"pistol", "handgun"} },
     { name = "Rifle", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"rifle", "assault rifle"} },
@@ -1208,16 +1208,20 @@ local WEAPON_KEYWORD_DB = {
     { name = "Revolver", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"revolver"} },
     { name = "Primary Weapon", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"primary"} },
     { name = "Secondary Weapon", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"secondary"} },
-    { name = "Firearm", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"gun", "firearm", "weapon"} },
+    { name = "Firearm", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"firearm"} },
 }
 
+-- Strict word boundary matcher (zero false positives: 'pan' will NEVER match 'panel' or 'spanner')
 local function MatchWeaponKeywords(text)
     if not text or type(text) ~= "string" then return nil end
-    local lower = " " .. text:lower():gsub("[^%a%d]", " ") .. " "
+    local clean = text:lower():gsub("[^%a%d]", " ")
+    local padded = " " .. clean:gsub("%s+", " ") .. " "
+
     for _, entry in ipairs(WEAPON_KEYWORD_DB) do
         for _, k in ipairs(entry.keys) do
-            local kPattern = "%s" .. k .. "%s"
-            if lower:find(kPattern) or lower:find(k, 1, true) then
+            local cleanKey = k:lower():gsub("[^%a%d]", " "):gsub("%s+", " ")
+            local kPattern = " " .. cleanKey .. " "
+            if padded:find(kPattern, 1, true) then
                 return entry.name, entry.rarity, entry.color
             end
         end
@@ -1227,27 +1231,8 @@ end
 
 function Util.ResolveToolInfo(tool)
     if not tool then return nil, nil, nil end
-
-    -- Support Tool, Model, Folder, MeshPart
     local isTool = pcall(function() return tool:IsA("Tool") end) and tool:IsA("Tool")
-    local isModel = pcall(function() return tool:IsA("Model") end) and tool:IsA("Model")
-    local isFolder = pcall(function() return tool:IsA("Folder") end) and tool:IsA("Folder")
-    local isPart = pcall(function() return tool:IsA("BasePart") end) and tool:IsA("BasePart")
-    if not (isTool or isModel or isFolder or isPart) then return nil, nil, nil end
-
-    local BODY_PARTS = {
-        ["head"]=true, ["torso"]=true, ["uppertorso"]=true, ["lowertorso"]=true,
-        ["humanoidrootpart"]=true, ["leftarm"]=true, ["rightarm"]=true,
-        ["leftleg"]=true, ["rightleg"]=true, ["lefthand"]=true, ["righthand"]=true,
-        ["leftupperarm"]=true, ["leftlowerarm"]=true, ["rightupperarm"]=true, ["rightlowerarm"]=true,
-        ["leftupperleg"]=true, ["leftlowerleg"]=true, ["rightupperleg"]=true, ["rightlowerleg"]=true,
-        ["leftfoot"]=true, ["rightfoot"]=true, ["humanoid"]=true, ["animate"]=true,
-    }
-    if isModel or isPart then
-        local rawLow = (tool.Name or ""):lower():match("^%s*(.-)%s*$")
-        if BODY_PARTS[rawLow] then return nil, nil, nil end
-        if pcall(function() return tool:IsA("Accessory") end) and tool:IsA("Accessory") then return nil, nil, nil end
-    end
+    if not isTool then return nil, nil, nil end
 
     local rawToolName = tool.Name or ""
     local lowToolName = rawToolName:lower():match("^%s*(.-)%s*$")
@@ -1257,27 +1242,21 @@ function Util.ResolveToolInfo(tool)
         return nil, nil, nil
     end
 
-    -- 1. Keyword Database Match directly on tool.Name
+    -- 1. DIRECT TOOL.NAME MATCH FIRST (If tool is called "RPG" or "Remington", match immediately!)
     local kwName, kwRarity, kwColor = MatchWeaponKeywords(rawToolName)
     if kwName then
         return kwName, kwRarity, kwColor
     end
 
-    -- 2. Attributes on the Tool (DisplayName, ItemName, GunName, etc.)
+    -- 2. Attributes on the Tool (DisplayName, WeaponName, ItemName, etc.)
     local attrHit = nil
     pcall(function()
-        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "ActualName", "ItemTitle", "Title", "Label", "Name", "Type"}) do
+        for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "Name", "Title"}) do
             local val = tool:GetAttribute(attr)
             if val and type(val) == "string" and #val > 1 then
                 local aName, aRar, aCol = MatchWeaponKeywords(val)
                 if aName then
                     attrHit = {aName, aRar, aCol}
-                    return
-                end
-                local c = Util.CleanToolName(val)
-                if c and not Util.IsGarbageName(c) then
-                    local r, col = Util.GetItemRarity(tool, c)
-                    attrHit = {CapitalizeName(c), r, col}
                     return
                 end
             end
@@ -1286,74 +1265,57 @@ function Util.ResolveToolInfo(tool)
     if attrHit then return attrHit[1], attrHit[2], attrHit[3] end
 
     -- 3. Tool.ToolTip
-    if isTool then
-        pcall(function()
-            local tt = tool.ToolTip
-            if tt and type(tt) == "string" and #tt > 1 then
-                local tName, tRar, tCol = MatchWeaponKeywords(tt)
-                if tName then
-                    attrHit = {tName, tRar, tCol}
-                    return
-                end
-            end
-        end)
-        if attrHit then return attrHit[1], attrHit[2], attrHit[3] end
-    end
-
-    -- 4. StringValue objects inside tool
     pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            if desc:IsA("StringValue") then
-                local sVal = desc.Value
-                if type(sVal) == "string" and #sVal > 1 then
-                    local sName, sRar, sCol = MatchWeaponKeywords(sVal)
-                    if sName then
-                        attrHit = {sName, sRar, sCol}
-                        return
-                    end
-                end
-            end
-        end
-    end)
-    if attrHit then return attrHit[1], attrHit[2], attrHit[3] end
-
-    -- 5. Child / Descendant Models, MeshParts, Animations, Sounds
-    pcall(function()
-        for _, desc in ipairs(tool:GetDescendants()) do
-            local dn = desc.Name
-            local dName, dRar, dCol = MatchWeaponKeywords(dn)
-            if dName then
-                attrHit = {dName, dRar, dCol}
+        local tt = tool.ToolTip
+        if tt and type(tt) == "string" and #tt > 1 then
+            local tName, tRar, tCol = MatchWeaponKeywords(tt)
+            if tName then
+                attrHit = {tName, tRar, tCol}
                 return
             end
         end
     end)
     if attrHit then return attrHit[1], attrHit[2], attrHit[3] end
 
-    -- 6. ReplicatedStorage registry lookup
+    -- 4. Direct Children (Models, StringValues, Animations with prefix)
+    pcall(function()
+        for _, child in ipairs(tool:GetChildren()) do
+            if child:IsA("StringValue") and #child.Value > 1 then
+                local sName, sRar, sCol = MatchWeaponKeywords(child.Value)
+                if sName then attrHit = {sName, sRar, sCol}; return end
+            elseif child:IsA("Model") or child:IsA("MeshPart") then
+                local cName, cRar, cCol = MatchWeaponKeywords(child.Name)
+                if cName then attrHit = {cName, cRar, cCol}; return end
+            elseif child:IsA("Animation") or child:IsA("Sound") then
+                local prefix = child.Name:match("^([%a%d%s%-]+)_")
+                if prefix and #prefix > 1 then
+                    local pName, pRar, pCol = MatchWeaponKeywords(prefix)
+                    if pName then attrHit = {pName, pRar, pCol}; return end
+                end
+            end
+        end
+    end)
+    if attrHit then return attrHit[1], attrHit[2], attrHit[3] end
+
+    -- 5. ReplicatedStorage registry lookup
     local rsMap = BuildRSWeaponMap()
     if rsMap and rawToolName and #rawToolName > 0 then
         local rsHit = rsMap[rawToolName:lower()]
         if rsHit then
             local rName, rRar, rCol = MatchWeaponKeywords(rsHit)
             if rName then return rName, rRar, rCol end
-            local clean = Util.CleanToolName(rsHit)
-            if clean and not Util.IsGarbageName(clean) then
-                local r, c = Util.GetItemRarity(tool, clean)
-                return CapitalizeName(clean), r, c
-            end
         end
     end
 
-    -- 7. Fallback: Clean raw tool name
+    -- 6. Clean direct tool name (e.g. "Lockpick", "Medkit", "Apple")
     local cleaned = Util.CleanToolName(rawToolName)
     if cleaned and #cleaned > 1 and not Util.IsGarbageName(cleaned) then
         local rar, col = Util.GetItemRarity(tool, cleaned)
         return CapitalizeName(cleaned), rar, col
     end
 
-    -- 8. Ultimate fallback for equipped tools: If it's a Tool in hand and not digits/nuthing, DISPLAY IT!
-    if isTool and #rawToolName > 1 and not rawToolName:match("^%d+$") and not isIgnoredEmoteOrCiv(rawToolName) then
+    -- 7. Ultimate fallback for tools in hand
+    if #rawToolName > 1 and not rawToolName:match("^%d+$") and not isIgnoredEmoteOrCiv(rawToolName) then
         local displayName = CapitalizeName(rawToolName)
         local rar, col = Util.GetItemRarity(tool, displayName)
         return displayName, rar, col
@@ -1422,72 +1384,44 @@ function Util.FindEquippedWeapons(player, char)
 
     if not char then return equippedList end
 
-    -- 1. Scan direct Tools in Character (Standard Roblox Humanoid:EquipTool)
+    -- 1. Direct Tools equipped in Character (Standard Roblox Humanoid:EquipTool)
     for _, c in ipairs(char:GetChildren()) do
         if c:IsA("Tool") then
             addWeapon(Util.GetWeaponDetails(c, true))
         end
     end
 
-    -- 2. Scan direct Models in Character (Excluding body parts & accessories)
-    local BODY_PARTS = {
-        ["head"]=true, ["torso"]=true, ["uppertorso"]=true, ["lowertorso"]=true,
-        ["humanoidrootpart"]=true, ["leftarm"]=true, ["rightarm"]=true,
-        ["leftleg"]=true, ["rightleg"]=true, ["lefthand"]=true, ["righthand"]=true,
-        ["leftupperarm"]=true, ["leftlowerarm"]=true, ["rightupperarm"]=true, ["rightlowerarm"]=true,
-        ["leftupperleg"]=true, ["leftlowerleg"]=true, ["rightupperleg"]=true, ["rightlowerleg"]=true,
-        ["leftfoot"]=true, ["rightfoot"]=true,
-    }
-    for _, c in ipairs(char:GetChildren()) do
-        if c:IsA("Model") and not c:IsA("Accessory") then
-            local nLow = c.Name:lower():match("^%s*(.-)%s*$")
-            if not BODY_PARTS[nLow] then
-                addWeapon(Util.GetWeaponDetails(c, true))
-            end
-        end
-    end
-
-    -- 3. Scan Hand attachments (RightHand / Right Arm / LeftHand)
+    -- 2. Tools held inside hands/arms
     for _, limbName in ipairs({"RightHand", "Right Arm", "LeftHand", "Left Arm"}) do
         local limb = char:FindFirstChild(limbName)
         if limb then
             for _, c in ipairs(limb:GetChildren()) do
-                if c:IsA("Tool") or c:IsA("Model") or c:IsA("MeshPart") then
+                if c:IsA("Tool") then
                     addWeapon(Util.GetWeaponDetails(c, true))
                 end
             end
         end
     end
 
-    -- 4. Scan subfolders inside Character (Weapons / Guns / Equipped)
-    for _, folderName in ipairs({"Weapons", "Equipped", "CurrentWeapon", "Guns", "Tools"}) do
-        local f = char:FindFirstChild(folderName)
+    -- 3. Dedicated weapons folder inside Character
+    for _, fName in ipairs({"Weapons", "Equipped", "CurrentWeapon", "Guns"}) do
+        local f = char:FindFirstChild(fName)
         if f then
             for _, c in ipairs(f:GetChildren()) do
-                addWeapon(Util.GetWeaponDetails(c, true))
-            end
-        end
-    end
-
-    -- 5. Scan Character and Player attributes
-    for _, entity in ipairs({char, player}) do
-        if entity then
-            for _, attr in ipairs({"EquippedWeapon", "Equipped", "CurrentWeapon", "HoldingWeapon", "Weapon", "Holding", "CurrentTool", "Tool"}) do
-                local val = entity:GetAttribute(attr)
-                if val and type(val) == "string" and #val > 1 then
-                    addWeapon(Util.GetWeaponDetails(val, true))
+                if c:IsA("Tool") then
+                    addWeapon(Util.GetWeaponDetails(c, true))
                 end
             end
         end
     end
 
-    -- 6. Check Backpack for tools flagged with Equipped / Active attribute
+    -- 4. Check Backpack for tools flagged with Active / Equipped attribute
     local bp = player and player:FindFirstChild("Backpack")
     if bp then
         for _, c in ipairs(bp:GetChildren()) do
             if c:IsA("Tool") then
                 local isEq = false
-                for _, attr in ipairs({"Equipped", "IsEquipped", "Active", "Selected", "InHand", "Equip"}) do
+                for _, attr in ipairs({"Equipped", "IsEquipped", "Active", "Selected", "InHand"}) do
                     if c:GetAttribute(attr) == true then isEq = true break end
                 end
                 if isEq then
@@ -4534,7 +4468,7 @@ local function Init()
     PlayerMods.SetupAntiAFK()
 
     setFPS(0)
-    Notify.Send("PRV SERVICE v13.2 Loaded (Flawless Equipped Weapon ESP)", C3(56, 189, 248), 4)
+    Notify.Send("PRV SERVICE v13.3 Loaded (Exact Weapon & Item ESP)", C3(56, 189, 248), 4)
     Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
     Notify.Send("Settings > Save Configuration per salvare!", C3(0, 255, 180), 6)
 end
