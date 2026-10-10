@@ -579,7 +579,14 @@ local GARBAGE_WORDS = {
     ["new"]=true, ["old"]=true, ["copy"]=true, ["clone"]=true,
     ["body"]=true, ["head"]=true, ["torso"]=true, ["arm"]=true, ["leg"]=true,
     ["muzzle"]=true, ["flash"]=true, ["barrel"]=true, ["trigger"]=true,
-    ["magazine"]=true, ["scope"]=true, ["stock"]=true, ["grip"]=true,
+    ["magazine"]=true, ["magazines"]=true, ["mag"]=true, ["mags"]=true,
+    ["magmodel"]=true, ["mag_model"]=true, ["magpart"]=true, ["clip"]=true, ["clipmodel"]=true,
+    ["slidemodel"]=true, ["slide"]=true, ["bolt"]=true, ["boltmodel"]=true, ["chamber"]=true,
+    ["bodymodel"]=true, ["gunmodel"]=true, ["weaponmodel"]=true, ["toolmodel"]=true,
+    ["scope"]=true, ["scopemodel"]=true, ["stock"]=true, ["stockmodel"]=true, ["grip"]=true,
+    ["foregrip"]=true, ["ironsight"]=true, ["ironsights"]=true, ["sight"]=true, ["sights"]=true,
+    ["reddot"]=true, ["optic"]=true, ["optics"]=true, ["ammo"]=true, ["ammomodel"]=true,
+    ["bullet"]=true, ["bullets"]=true, ["shell"]=true, ["shells"]=true, ["casing"]=true,
     ["gunscript"]=true, ["weaponscript"]=true, ["toolscript"]=true,
     ["anim"]=true, ["anims"]=true, ["sounds"]=true, ["parts"]=true,
     ["visuals"]=true, ["fx"]=true, ["vfx"]=true, ["sfx"]=true,
@@ -595,6 +602,11 @@ local IGNORED_CHILDREN = {
     ["handle"]=true, ["parts"]=true, ["sounds"]=true, ["animations"]=true,
     ["settings"]=true, ["config"]=true, ["client"]=true, ["server"]=true,
     ["gunscript"]=true, ["hitbox"]=true, ["muzzle"]=true, ["flash"]=true,
+    ["magmodel"]=true, ["mag_model"]=true, ["magpart"]=true, ["mag"]=true, ["magazine"]=true,
+    ["clip"]=true, ["clipmodel"]=true, ["slidemodel"]=true, ["slide"]=true,
+    ["bolt"]=true, ["boltmodel"]=true, ["chamber"]=true, ["bodymodel"]=true,
+    ["gunmodel"]=true, ["weaponmodel"]=true, ["toolmodel"]=true, ["scopemodel"]=true,
+    ["stockmodel"]=true, ["ammo"]=true, ["ammomodel"]=true, ["bullet"]=true, ["shell"]=true,
     ["sound"]=true, ["particles"]=true, ["camera"]=true, ["visuals"]=true,
     ["meshpart"]=true, ["part"]=true, ["model"]=true, ["body"]=true,
     ["effect"]=true, ["effects"]=true, ["fx"]=true, ["vfx"]=true,
@@ -648,6 +660,28 @@ function Util.IsGarbageName(str)
     -- Roblox asset strings
     local low = s:lower()
     if low:find("rbxasset") or low:find("rbxgameasset") then return true end
+
+    -- Weapon component model names (MagModel, SlideModel, BodyModel, etc.)
+    if low == "magmodel" or low == "mag_model" or low == "magpart" or low == "mag" or low == "magazine" then
+        return true
+    end
+    if low:find("model$") then
+        local p = low:gsub("%s*model$", ""):match("^%s*(.-)%s*$")
+        if p == "mag" or p == "slide" or p == "body" or p == "gun" or p == "weapon" or p == "tool" or p == "bolt" or p == "clip" or p == "stock" or p == "scope" or p == "ammo" or p == "barrel" or p == "sight" or p == "" then
+            return true
+        end
+    end
+
+    -- Weapon component model names (MagModel, SlideModel, BodyModel, etc.)
+    if low == "magmodel" or low == "mag_model" or low == "magpart" or low == "mag" or low == "magazine" then
+        return true
+    end
+    if low:find("model$") then
+        local p = low:gsub("%s*model$", ""):match("^%s*(.-)%s*$")
+        if p == "mag" or p == "slide" or p == "body" or p == "gun" or p == "weapon" or p == "tool" or p == "bolt" or p == "clip" or p == "stock" or p == "scope" or p == "ammo" or p == "barrel" or p == "sight" or p == "" then
+            return true
+        end
+    end
 
     -- Garbage words (exact whole-string match only)
     if GARBAGE_WORDS[low] then return true end
@@ -1074,6 +1108,9 @@ local BANNED_NAME_WORDS = {
     ["gun"]=true, ["guns"]=true, ["item"]=true, ["items"]=true,
     ["primary"]=true, ["secondary"]=true, ["gear"]=true,
     ["handle"]=true, ["part"]=true, ["meshpart"]=true, ["model"]=true,
+    ["magmodel"]=true, ["mag_model"]=true, ["magpart"]=true, ["mag"]=true, ["magazine"]=true,
+    ["clip"]=true, ["clipmodel"]=true, ["slidemodel"]=true, ["slide"]=true,
+    ["bolt"]=true, ["boltmodel"]=true, ["bodymodel"]=true, ["gunmodel"]=true, ["weaponmodel"]=true,
     ["hitbox"]=true, ["animation"]=true, ["sound"]=true, ["type"]=true,
     ["category"]=true, ["class"]=true, ["tier"]=true, ["rarity"]=true,
     ["none"]=true, ["nil"]=true, ["null"]=true, ["unknown"]=true,
@@ -1128,7 +1165,7 @@ function Util.ResolveToolInfo(tool)
 
     local realName = nil
 
-    -- Specific BlockSpin weapon alias mapping on tool.Name (e.g. if tool is called "Shotgun", it's the Sawed-Off!)
+    -- Specific BlockSpin weapon alias mapping on tool.Name
     if lowToolName == "shotgun" or lowToolName == "sawnoff" or lowToolName == "sawn-off" or lowToolName == "sawed off" or lowToolName == "sawedoff" then
         realName = "Sawed-Off"
     elseif lowToolName == "machette" then
@@ -1137,103 +1174,86 @@ function Util.ResolveToolInfo(tool)
         realName = "AK-47"
     end
 
-    -- 1. Whitelist direct check on tool.Name (Katana, Remington, Sawed-Off, Lockpick, Medkit, etc.)
+    -- 1. Whitelist direct check on tool.Name
     if not realName and KNOWN_WEAPONS[lowToolName] then
         realName = rawToolName:match("^%s*(.-)%s*$")
     end
 
-    -- 2. Clean human-readable tool.Name (if not numeric serial ID and not banned/garbage words)
-    if not realName and isValidHumanName(rawToolName) then
-        realName = rawToolName:match("^%s*(.-)%s*$")
+    -- 2. Clean tool.Name check against whitelist & human name
+    local cleanedToolName = Util.CleanToolName(rawToolName)
+    if not realName and cleanedToolName then
+        local lowClean = cleanedToolName:lower()
+        if KNOWN_WEAPONS[lowClean] or BLOCKSPIN_RARITIES[lowClean] then
+            realName = cleanedToolName
+        elseif isValidHumanName(cleanedToolName) and not Util.IsGarbageName(cleanedToolName) then
+            realName = cleanedToolName
+        end
     end
 
-    -- 3. Specific Display/Weapon attributes on the Tool (strictly excluding Type, Category, Rarity, etc.)
+    -- 3. ReplicatedStorage cache lookup (EARLY — identifies registered tools instantly!)
+    if not realName and rawToolName and #rawToolName > 0 then
+        local rsMap = BuildRSWeaponMap()
+        if rsMap then
+            local rsHit = rsMap[rawToolName:lower()]
+            if rsHit and isValidHumanName(rsHit) and not Util.IsGarbageName(rsHit) then
+                realName = rsHit
+            end
+        end
+    end
+
+    -- 4. Attributes on the Tool (DisplayName, ItemName, WeaponName, etc.)
     if not realName then
         pcall(function()
-            for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "FishName", "FishType", "Species", "RealName", "ActualName", "ItemTitle"}) do
+            for _, attr in ipairs({"DisplayName", "ItemName", "WeaponName", "GunName", "ToolName", "RealName", "ActualName", "ItemTitle", "Title", "Label"}) do
                 local val = tool:GetAttribute(attr)
-                if isValidHumanName(val) then
-                    realName = tostring(val):match("^%s*(.-)%s*$")
-                    return
-                end
-            end
-        end)
-    end
-
-    -- 4. Check tool.ToolTip
-    if not realName then
-        pcall(function()
-            local tt = tool.ToolTip
-            if isValidHumanName(tt) then
-                realName = tt:match("^%s*(.-)%s*$")
-            end
-        end)
-    end
-
-    -- 5. Scan attributes specifically ignoring metadata/classification/rarity keys
-    if not realName then
-        pcall(function()
-            local IGNORED_ATTR_KEYS = {
-                ["rarity"]=true, ["tier"]=true, ["type"]=true, ["category"]=true,
-                ["class"]=true, ["slot"]=true, ["id"]=true, ["serial"]=true,
-                ["ammo"]=true, ["maxammo"]=true, ["damage"]=true, ["state"]=true,
-                ["durability"]=true, ["level"]=true, ["weight"]=true, ["equipped"]=true,
-                ["fishweight"]=true,
-            }
-            for k, val in pairs(tool:GetAttributes()) do
-                local kLow = tostring(k):lower()
-                if not IGNORED_ATTR_KEYS[kLow] and isValidHumanName(val) then
-                    realName = tostring(val):match("^%s*(.-)%s*$")
-                    return
-                end
-            end
-        end)
-    end
-
-    -- 6. Check StringValue objects inside the Tool (e.g. ItemName, DisplayName, GunName)
-    if not realName then
-        pcall(function()
-            for _, desc in ipairs(tool:GetDescendants()) do
-                if desc:IsA("StringValue") then
-                    local sVal = desc.Value
-                    local sName = desc.Name:lower()
-                    if (sName:find("name") or sName:find("display") or sName:find("weapon") or sName:find("item")) and isValidHumanName(sVal) then
-                        realName = sVal:match("^%s*(.-)%s*$")
+                if val and type(val) == "string" and #val > 1 then
+                    local vTrim = tostring(val):match("^%s*(.-)%s*$")
+                    local vLow = vTrim:lower()
+                    if KNOWN_WEAPONS[vLow] or BLOCKSPIN_RARITIES[vLow] then
+                        realName = vTrim
                         return
+                    end
+                    if isValidHumanName(vTrim) and not Util.IsGarbageName(vTrim) then
+                        local c = Util.CleanToolName(vTrim)
+                        if c then realName = c; return end
                     end
                 end
             end
         end)
     end
 
-    -- 7. Check child Models, MeshParts, or Parts (often named after the actual weapon, e.g. "Katana", "Remington")
+    -- 5. ToolTip
     if not realName then
         pcall(function()
-            for _, desc in ipairs(tool:GetChildren()) do
-                if (desc:IsA("Model") or desc:IsA("MeshPart") or desc:IsA("BasePart")) and isValidHumanName(desc.Name) then
-                    realName = desc.Name
-                    return
-                end
-            end
-            for _, desc in ipairs(tool:GetDescendants()) do
-                if (desc:IsA("Model") or desc:IsA("MeshPart")) and isValidHumanName(desc.Name) then
-                    realName = desc.Name
-                    return
+            local tt = tool.ToolTip
+            if tt and type(tt) == "string" and #tt > 1 then
+                local ttTrim = tt:match("^%s*(.-)%s*$")
+                local ttLow = ttTrim:lower()
+                if KNOWN_WEAPONS[ttLow] or BLOCKSPIN_RARITIES[ttLow] then
+                    realName = ttTrim
+                elseif isValidHumanName(ttTrim) and not Util.IsGarbageName(ttTrim) then
+                    realName = Util.CleanToolName(ttTrim)
                 end
             end
         end)
     end
 
-    -- 8. Check animations and sounds (e.g. "Remington_Shoot", "MP5_Reload", "Katana_Swing")
+    -- 6. StringValue objects inside Tool (DisplayName, WeaponName, ItemName, etc.)
     if not realName then
         pcall(function()
             for _, desc in ipairs(tool:GetDescendants()) do
-                if desc:IsA("Animation") or desc:IsA("Sound") then
-                    local prefix = desc.Name:match("^([%a%d%s%-]+)_")
-                    if isValidHumanName(prefix) then
-                        local pLow = prefix:lower()
-                        if pLow ~= "idle" and pLow ~= "shoot" and pLow ~= "equip" and pLow ~= "reload" and pLow ~= "fire" and pLow ~= "swing" and pLow ~= "slash" then
-                            realName = prefix
+                if desc:IsA("StringValue") then
+                    local sVal = desc.Value
+                    if type(sVal) == "string" and #sVal > 1 then
+                        local sTrim = sVal:match("^%s*(.-)%s*$")
+                        local sLow = sTrim:lower()
+                        if KNOWN_WEAPONS[sLow] or BLOCKSPIN_RARITIES[sLow] then
+                            realName = sTrim
+                            return
+                        end
+                        local sName = desc.Name:lower()
+                        if (sName:find("name") or sName:find("display") or sName:find("weapon") or sName:find("item")) and isValidHumanName(sTrim) and not Util.IsGarbageName(sTrim) then
+                            realName = sTrim
                             return
                         end
                     end
@@ -1242,8 +1262,104 @@ function Util.ResolveToolInfo(tool)
         end)
     end
 
-    -- 9. Fallback for Fishing / Catch items:
-    -- In BlockSpin, caught fish Tools have Weight or Fish attributes
+    -- 7. Children / Descendants matching KNOWN WEAPONS FIRST!
+    -- If a tool has a child model named "Remington" or "AK-47" alongside "MagModel",
+    -- the true weapon is ALWAYS matched and MagModel is never selected!
+    if not realName then
+        pcall(function()
+            -- Pass 7a: Exact known weapon match on child names
+            for _, child in ipairs(tool:GetChildren()) do
+                local cLow = child.Name:lower():match("^%s*(.-)%s*$")
+                if KNOWN_WEAPONS[cLow] or BLOCKSPIN_RARITIES[cLow] then
+                    realName = child.Name
+                    return
+                end
+                local cClean = Util.CleanToolName(child.Name)
+                if cClean and (KNOWN_WEAPONS[cClean:lower()] or BLOCKSPIN_RARITIES[cClean:lower()]) then
+                    realName = cClean
+                    return
+                end
+            end
+
+            -- Pass 7b: Exact known weapon match on descendants (e.g. inside Parts/Body)
+            for _, desc in ipairs(tool:GetDescendants()) do
+                if desc:IsA("Model") or desc:IsA("MeshPart") then
+                    local dLow = desc.Name:lower():match("^%s*(.-)%s*$")
+                    if KNOWN_WEAPONS[dLow] or BLOCKSPIN_RARITIES[dLow] then
+                        realName = desc.Name
+                        return
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 8. Animation & Sound names (e.g. "Remington_Shoot", "MP5_Reload", "Katana_Swing", "Glock_Fire")
+    -- In BlockSpin and Roblox gun frameworks, animation/sound prefixes reflect the exact gun!
+    if not realName then
+        pcall(function()
+            for _, desc in ipairs(tool:GetDescendants()) do
+                if desc:IsA("Animation") or desc:IsA("Sound") then
+                    local an = desc.Name
+                    -- Prefix before underscore (e.g. "Remington_Shoot" -> "Remington")
+                    local prefix = an:match("^([%a%d%s%-]+)_")
+                    if prefix and #prefix > 1 then
+                        local pLow = prefix:lower():match("^%s*(.-)%s*$")
+                        if KNOWN_WEAPONS[pLow] or BLOCKSPIN_RARITIES[pLow] then
+                            realName = prefix
+                            return
+                        end
+                        if isValidHumanName(prefix) and not Util.IsGarbageName(prefix) then
+                            local pClean = Util.CleanToolName(prefix)
+                            if pClean and (KNOWN_WEAPONS[pClean:lower()] or BLOCKSPIN_RARITIES[pClean:lower()]) then
+                                realName = pClean
+                                return
+                            end
+                        end
+                    end
+                    -- Also check if animation name directly contains a known weapon key
+                    local anLow = an:lower()
+                    for kw, _ in pairs(KNOWN_WEAPONS) do
+                        if #kw >= 3 and anLow:find("%f[%a]" .. kw .. "%f[%A]") then
+                            realName = kw
+                            return
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 9. Child Models / MeshParts — STRICTLY excluding weapon components & MagModel!
+    if not realName then
+        pcall(function()
+            for _, desc in ipairs(tool:GetChildren()) do
+                local dn = desc.Name
+                local dnLow = dn:lower()
+                -- Strictly ignore MagModel, Magazine, Handle, Parts, etc.
+                if not IGNORED_CHILDREN[dnLow] and not BANNED_NAME_WORDS[dnLow] and not dn:match("^%d+$") then
+                    if desc:IsA("Model") or desc:IsA("MeshPart") then
+                        -- Strip "Model" suffix if present (e.g. "RemingtonModel" -> "Remington")
+                        local stripped = dn:gsub("[Mm]odel$", ""):match("^%s*(.-)%s*$")
+                        local sLow = stripped:lower()
+                        if KNOWN_WEAPONS[sLow] or BLOCKSPIN_RARITIES[sLow] then
+                            realName = stripped
+                            return
+                        end
+                        if isValidHumanName(stripped) and not Util.IsGarbageName(stripped) then
+                            local c = Util.CleanToolName(stripped)
+                            if c and isValidHumanName(c) and not Util.IsGarbageName(c) then
+                                realName = c
+                                return
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 10. Fallback for Fishing / Catch items
     if not realName then
         pcall(function()
             local weight = tool:GetAttribute("Weight") or tool:GetAttribute("weight") or tool:GetAttribute("FishWeight")
@@ -1260,16 +1376,7 @@ function Util.ResolveToolInfo(tool)
         end)
     end
 
-    -- 10. ReplicatedStorage cross-reference (safe map lookup)
-    if not realName and tool.Name then
-        local rsMap = BuildRSWeaponMap()
-        if rsMap then
-            local hit = rsMap[tool.Name:lower()]
-            if isValidHumanName(hit) then realName = hit end
-        end
-    end
-
-    -- 11. Check tool type clues as last resort (HealthRestore -> Medkit, Damage -> Weapon)
+    -- 11. Tool attribute clues as last resort (HealthRestore -> Medkit, Damage -> Weapon)
     if not realName then
         pcall(function()
             local hp = tool:GetAttribute("HealthRestoreAmount") or tool:GetAttribute("HealthRestore")
@@ -1277,24 +1384,33 @@ function Util.ResolveToolInfo(tool)
             local ammo = tool:GetAttribute("MaxAmmo") or tool:GetAttribute("Ammo")
             if type(hp) == "number" and hp > 0 then
                 realName = "Medkit"
-            elseif (type(dmg) == "number" and dmg > 0) or type(ammo) == "number" then
-                realName = "Weapon"
             end
         end)
     end
 
-    -- IF STILL NOT FOUND OR NUMERIC, DO NOT RETURN NUMERIC SERIAL NUMBER!
-    if not realName or not isValidHumanName(realName) then
+    -- 12. Final gate: if still not found, check if cleaned tool.Name is human readable (not numeric ID or garbage)
+    if not realName and cleanedToolName and isValidHumanName(cleanedToolName) and not Util.IsGarbageName(cleanedToolName) then
+        realName = cleanedToolName
+    end
+
+    -- IF STILL NOT FOUND, NUMERIC, OR COMPONENT/GARBAGE, DO NOT DISPLAY IT!
+    if not realName or not isValidHumanName(realName) or Util.IsGarbageName(realName) then
         return nil, nil, nil
     end
 
-    -- Clean formatting:
-    realName = realName:gsub("^Tool_", ""):gsub("^Weapon_", ""):gsub("^Item_", ""):gsub("^Gun_", ""):gsub("^Equip_", "")
-    realName = realName:gsub("_", " "):match("^%s*(.-)%s*$")
-
+    -- Shotgun disambiguation
     local lowFinal = realName:lower()
     if lowFinal == "shotgun" or lowFinal == "sawnoff" or lowFinal == "sawn-off" or lowFinal == "sawed off" or lowFinal == "sawedoff" then
-        realName = "Sawed-Off"
+        local found = nil
+        pcall(function()
+            for _, desc in ipairs(tool:GetDescendants()) do
+                local dn = desc.Name:lower()
+                if dn:find("sawed") or dn:find("sawn") then found = "Sawed-Off"; return end
+                if dn:find("double") or dn:find("db") then found = "Double Barrel"; return end
+                if dn:find("remington") or dn:find("870") then found = "Remington"; return end
+            end
+        end)
+        realName = found or "Sawed-Off"
     elseif lowFinal == "machette" then
         realName = "Machete"
     elseif lowFinal == "ak47" then
