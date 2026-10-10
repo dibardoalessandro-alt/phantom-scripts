@@ -812,6 +812,8 @@ local BLOCKSPIN_RARITIES = {
     ["g3"]                  = { r = "Epic",      c = RARITY_COLORS.Epic },
     ["deagle"]              = { r = "Epic",      c = RARITY_COLORS.Epic },
     ["desert eagle"]        = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["aa-12"]               = { r = "Epic",      c = RARITY_COLORS.Epic },
+    ["aa12"]                = { r = "Epic",      c = RARITY_COLORS.Epic },
     ["quantum hack tool"]   = { r = "Epic",      c = RARITY_COLORS.Epic },
     ["crossbow"]            = { r = "Epic",      c = RARITY_COLORS.Epic },
 
@@ -821,6 +823,9 @@ local BLOCKSPIN_RARITIES = {
     ["sawn-off"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
     ["sawnoff"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
     ["sawedoff"]            = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["spas-12"]             = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["spas12"]              = { r = "Rare",      c = RARITY_COLORS.Rare },
+    ["spas"]                = { r = "Rare",      c = RARITY_COLORS.Rare },
     ["frying pan"]          = { r = "Rare",      c = RARITY_COLORS.Rare },
     ["pan"]                 = { r = "Rare",      c = RARITY_COLORS.Rare },
     ["glock"]               = { r = "Rare",      c = RARITY_COLORS.Rare },
@@ -852,7 +857,10 @@ local BLOCKSPIN_RARITIES = {
     ["c4"]                  = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
     ["taser"]               = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
     ["molotov"]             = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["grenade"]             = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["flashbang"]           = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
     ["sledge hammer"]       = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
+    ["sledgehammer"]        = { r = "Uncommon",  c = RARITY_COLORS.Uncommon },
 
     -- Utility (Teal / Medical)
     ["blood bag"]           = { r = "Utility",   c = RARITY_COLORS.Utility },
@@ -1153,9 +1161,13 @@ local WEAPON_KEYWORD_DB = {
     { name = "Golden Gun", rarity = "Legendary", color = RARITY_COLORS.Legendary, keys = {"golden gun", "gold gun", "gold pistol"} },
 
     -- Epic (Purple)
+    { name = "Desert Eagle", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"desert eagle", "deagle"} },
     { name = "Double Barrel", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"double barrel", "doublebarrel", "db"} },
-    { name = "Barrett .50 Cal", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"barrett", "50cal", "50 cal", "m82"} },
-    { name = "Sniper Rifle", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"sniper rifle", "sniper", "awp", "dragunov", "svd", "m24", "r700"} },
+    { name = "Barrett .50 Cal", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"barrett 50 cal", "barrett 50", "barrett", "50cal", "50 cal", "m82"} },
+    { name = "AWP", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"awp", "l96", "l96a1"} },
+    { name = "M24", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"m24", "r700", "remington 700"} },
+    { name = "Sniper Rifle", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"sniper rifle", "sniper", "dragunov", "svd"} },
+    { name = "AA-12", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"aa 12", "aa12", "aa"} },
     { name = "G3", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"g3a3", "hk g3", "g3"} },
     { name = "Quantum Hack Tool", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"quantum hack", "hack tool", "quantum", "atm hack"} },
     { name = "Machete", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"machete", "machette"} },
@@ -1163,41 +1175,57 @@ local WEAPON_KEYWORD_DB = {
     { name = "Crossbow", rarity = "Epic", color = RARITY_COLORS.Epic, keys = {"crossbow"} },
 
     -- Rare (Blue / Cyan)
-    { name = "Sawed-Off", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"sawed off", "sawedoff", "sawn off", "sawnoff", "sawed", "sawn"} },
-    { name = "Frying Pan", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"frying pan", "frying", "padella", "pan"} },
-    { name = "AK-47", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ak 47", "ak47", "akm", "draco", "ak"} },
+    { name = "Draco", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"draco"} },
+    { name = "AK-47", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ak 47", "ak47", "akm", "ak"} },
     { name = "M16", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"m16a4", "m16a2", "m16"} },
     { name = "M4A1", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"m4a1", "m4", "ar 15", "ar15", "hk416", "416"} },
     { name = "SCAR", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"scar l", "scar h", "scar"} },
     { name = "Vector", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"kriss vector", "vector"} },
     { name = "P90", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"p90"} },
-    { name = "AC-9", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"ac 9", "ac9"} },
-    { name = "Desert Eagle", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"desert eagle", "deagle"} },
+    { name = "Glock", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"glock 17", "glock 18", "glock 19", "glock17", "glock18", "glock", "g17", "g18", "g19"} },
+    { name = "P226", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"sig p226", "p226", "sig sauer", "sig", "226"} },
+    { name = "Sawed-Off", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"sawed off", "sawedoff", "sawn off", "sawnoff", "sawed", "sawn"} },
     { name = "SPAS-12", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"spas 12", "spas12", "spas"} },
-    { name = "Fishing Rod", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"fishing rod", "fishing", "canna da pesca", "pesca"} },
+    { name = "Frying Pan", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"frying pan", "padella", "pan"} },
+    { name = "Fishing Rod", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"fishing rod", "canna da pesca", "pesca"} },
     { name = "Energy Shot", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"energy shot", "energy drink", "energy", "booster"} },
 
     -- Uncommon (Green)
+    { name = "AC-9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"ac 9", "ac9"} },
     { name = "H9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"hudson h9", "h9", "hudson"} },
-    { name = "Glock", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"glock 17", "glock 18", "glock 19", "glock17", "glock18", "glock", "g17", "g18", "g19"} },
-    { name = "P226", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"sig p226", "p226", "sig sauer", "sig", "226"} },
     { name = "Uzi", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"micro uzi", "uzi"} },
     { name = "MAC-10", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"mac 10", "mac10"} },
     { name = "TEC-9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"tec 9", "tec9"} },
+    { name = "Skorpion", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"skorpion", "scorpion", "vz 61", "vz61"} },
+    { name = "C9", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"c9", "hi point"} },
+    { name = "Taser", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"taser", "stun gun"} },
+    { name = "Sledgehammer", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"sledge hammer", "sledgehammer"} },
     { name = "Lockpick", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"lockpick", "grimaldello"} },
-    { name = "C4", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"c4", "grenade", "granata", "pipe bomb", "dynamite", "molotov", "flashbang"} },
+    { name = "C4", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"c4", "pipe bomb", "dynamite"} },
+    { name = "Molotov", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"molotov"} },
+    { name = "Grenade", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"grenade", "granata", "frag"} },
+    { name = "Flashbang", rarity = "Uncommon", color = RARITY_COLORS.Uncommon, keys = {"flashbang", "flash"} },
 
-    -- Common / Melee
-    { name = "Combat Knife", rarity = "Common", color = RARITY_COLORS.Common, keys = {"combat knife", "tactical knife", "coltello", "knife", "dagger", "shank"} },
+    -- Common / Melee (Silver)
+    { name = "Combat Knife", rarity = "Common", color = RARITY_COLORS.Common, keys = {"combat knife", "coltello", "knife", "dagger"} },
+    { name = "Tactical Knife", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tactical knife"} },
+    { name = "Shank", rarity = "Common", color = RARITY_COLORS.Common, keys = {"shank"} },
+    { name = "Tactical Axe", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tactical axe", "ascia", "axe", "hatchet", "fire axe"} },
+    { name = "Tactical Shovel", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tactical shovel", "rusty shovel", "shovel", "pala"} },
     { name = "Baseball Bat", rarity = "Common", color = RARITY_COLORS.Common, keys = {"baseball bat", "baseball", "bat", "mazza"} },
     { name = "Crowbar", rarity = "Common", color = RARITY_COLORS.Common, keys = {"crowbar", "piede di porco"} },
-    { name = "Tactical Axe", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tactical axe", "ascia", "axe", "hatchet", "fire axe"} },
-    { name = "Sledgehammer", rarity = "Common", color = RARITY_COLORS.Common, keys = {"sledge hammer", "sledgehammer", "martello", "hammer"} },
+    { name = "Hammer", rarity = "Common", color = RARITY_COLORS.Common, keys = {"hammer", "martello"} },
+    { name = "Tire Iron", rarity = "Common", color = RARITY_COLORS.Common, keys = {"tire iron"} },
+    { name = "Metal Pipe", rarity = "Common", color = RARITY_COLORS.Common, keys = {"metal pipe", "pipe"} },
 
-    -- Utility / Medical (STRICT: "blood bag" only, NEVER bare "blood"!)
+    -- Utility / Medical (Teal)
     { name = "Blood Bag", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"blood bag", "bloodbag", "sacca di sangue"} },
     { name = "Medkit", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"medkit", "medical kit", "first aid", "first aid kit"} },
     { name = "Bandage", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"bandage", "bende", "benda"} },
+    { name = "Syringe", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"syringe", "siringa"} },
+    { name = "Adrenaline", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"adrenaline", "adrenalina"} },
+    { name = "Jerry Can", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"jerry can", "gas can", "tanica"} },
+    { name = "Fire Cracker", rarity = "Utility", color = RARITY_COLORS.Utility, keys = {"fire cracker", "firecracker", "petardo"} },
 
     -- Generic Weapon Fallbacks
     { name = "Shotgun", rarity = "Rare", color = RARITY_COLORS.Rare, keys = {"shotgun"} },
@@ -1334,9 +1362,13 @@ function Util.ResolveToolNameOrString(str)
     local s = str:match("^%s*(.-)%s*$")
     if #s <= 1 or Util.IsGarbageName(s) then return nil, nil, nil end
     local sLow = s:lower()
-    if sLow == "shotgun" or sLow == "sawnoff" or sLow == "sawn-off" then return "Sawed-Off", "Rare", RARITY_COLORS.Rare end
-    if sLow == "machette" then return "Machete", "Epic", RARITY_COLORS.Epic end
-    if sLow == "ak47" then return "AK-47", "Rare", RARITY_COLORS.Rare end
+    if isIgnoredEmoteOrCiv(sLow) then return nil, nil, nil end
+
+    local kwName, kwRarity, kwColor = MatchWeaponKeywords(s)
+    if kwName then
+        return kwName, kwRarity, kwColor
+    end
+
     local cleaned = Util.CleanToolName(s) or s
     local rarity, color = Util.GetItemRarity(nil, cleaned)
     return CapitalizeName(cleaned), rarity, color
