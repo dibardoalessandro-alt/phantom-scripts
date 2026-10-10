@@ -24,6 +24,8 @@ local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
 
 local function IdentifyExecutor()
     local ok, name = pcall(function() return identifyexecutor() end)
@@ -276,50 +278,91 @@ end
 
 -- Key System Modal GUI
 local function GetSafeGuiParent()
-    local parent = nil
-    if typeof(gethui) == "function" then
-        local ok, h = pcall(gethui)
-        if ok and h then parent = h end
-    end
-    if not parent then
-        pcall(function()
-            local lp = Players.LocalPlayer
-            if not lp then
-                Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    local coreGui = nil
+    pcall(function() coreGui = game:GetService("CoreGui") end)
+
+    local playerGui = nil
+    pcall(function()
+        local lp = Players.LocalPlayer
+        if not lp then
+            for _ = 1, 30 do
                 lp = Players.LocalPlayer
+                if lp then break end
+                task.wait(0.1)
             end
-            if lp then
-                parent = lp:FindFirstChildOfClass("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
-            end
-        end)
-    end
-    if not parent then
-        pcall(function()
-            parent = CoreGui
-        end)
-    end
-    return parent
+        end
+        if lp then
+            playerGui = lp:FindFirstChildOfClass("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
+        end
+    end)
+
+    local target = playerGui
+    pcall(function()
+        if coreGui and pcall(function() return coreGui.Name end) then
+            target = coreGui
+        end
+    end)
+
+    return target, playerGui
 end
 
 local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
-    local parentGui = GetSafeGuiParent()
-    if not parentGui then
+    local parentTarget, playerGui = GetSafeGuiParent()
+    if not parentTarget and not playerGui then
         warn("[PHANTOM AUTH] Critical: No valid GUI parent available.")
         return
     end
 
     pcall(function()
-        local existing = parentGui:FindFirstChild("PhantomKeySystem")
-        if existing then existing:Destroy() end
+        if parentTarget then
+            local old = parentTarget:FindFirstChild("PhantomKeySystem")
+            if old then old:Destroy() end
+        end
+        if playerGui then
+            local old2 = playerGui:FindFirstChild("PhantomKeySystem")
+            if old2 then old2:Destroy() end
+        end
     end)
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "PhantomKeySystem"
     ScreenGui.ResetOnSpawn = false
-    ScreenGui.DisplayOrder = 2147483647
-    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.DisplayOrder = 999999
+    pcall(function() ScreenGui.IgnoreGuiInset = true end)
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = parentGui
+
+    local okParent = false
+    pcall(function()
+        ScreenGui.Parent = parentTarget
+        okParent = true
+    end)
+    if (not okParent or not ScreenGui.Parent) and playerGui then
+        pcall(function() ScreenGui.Parent = playerGui end)
+    end
+
+    local mouseConn
+    pcall(function()
+        mouseConn = RunService.RenderStepped:Connect(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+            UserInputService.MouseIconEnabled = true
+        end)
+    end)
+
+    local function cleanupModal()
+        if mouseConn then
+            pcall(function() mouseConn:Disconnect() end)
+            mouseConn = nil
+        end
+        pcall(function() ScreenGui:Destroy() end)
+    end
+
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "PHANTOM AUTH",
+            Text = "Inserisci la licenza per sbloccare BlockSpin.",
+            Duration = 5
+        })
+    end)
 
     local Main = Instance.new("Frame")
     Main.Name = "MainModal"
@@ -413,7 +456,7 @@ local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
     CloseCorner.Parent = CloseBtn
 
     CloseBtn.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        cleanupModal()
         if onCancel then onCancel() end
     end)
 
@@ -513,7 +556,7 @@ local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
                 SubmitBtn.Text = "VERIFIED"
                 SubmitBtn.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
                 task.wait(0.8)
-                ScreenGui:Destroy()
+                cleanupModal()
                 onKeyVerified(rawKey)
             else
                 Status.Text = "[✗] " .. tostring(data or "Invalid Key")
@@ -545,13 +588,18 @@ end
 if not isKeyVerified then
     local gateDone = Instance.new("BindableEvent")
     local userCancelled = false
-    ShowKeySystemModal(vp, function(validKey)
-        isKeyVerified = true
-        gateDone:Fire()
-    end, function()
-        userCancelled = true
-        gateDone:Fire()
+    local okModal, errModal = pcall(function()
+        ShowKeySystemModal(vp, function(validKey)
+            isKeyVerified = true
+            gateDone:Fire()
+        end, function()
+            userCancelled = true
+            gateDone:Fire()
+        end)
     end)
+    if not okModal then
+        warn("[PHANTOM AUTH] Modal init error: " .. tostring(errModal))
+    end
     gateDone.Event:Wait()
     gateDone:Destroy()
 
