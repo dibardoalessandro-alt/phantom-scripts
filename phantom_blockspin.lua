@@ -1,6 +1,6 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║     PRV SERVICE v13.0 · Perfect Triggerbot & FOV Auto-Fire Edition             ║
+    ║     PRV SERVICE v13.1 · Universal Equipped Weapon & Triggerbot Edition             ║
     ║     Mouse Unlock · Tab Fix · Floating Pill · Built for Xeno   ║
     ╠═══════════════════════════════════════════════════════════════╣
     ║  Premi K per aprire/chiudere il menu                          ║
@@ -1145,7 +1145,26 @@ local function isValidHumanName(str)
 end
 
 function Util.ResolveToolInfo(tool)
-    if not tool or not tool:IsA("Tool") then return nil, nil, nil end
+    if not tool then return nil, nil, nil end
+    local isTool = pcall(function() return tool:IsA("Tool") end) and tool:IsA("Tool")
+    local isModel = pcall(function() return tool:IsA("Model") end) and tool:IsA("Model")
+    local isFolder = pcall(function() return tool:IsA("Folder") end) and tool:IsA("Folder")
+    local isPart = pcall(function() return tool:IsA("BasePart") end) and tool:IsA("BasePart")
+    if not (isTool or isModel or isFolder or isPart) then return nil, nil, nil end
+
+    local BODY_PARTS = {
+        ["head"]=true, ["torso"]=true, ["uppertorso"]=true, ["lowertorso"]=true,
+        ["humanoidrootpart"]=true, ["leftarm"]=true, ["rightarm"]=true,
+        ["leftleg"]=true, ["rightleg"]=true, ["lefthand"]=true, ["righthand"]=true,
+        ["leftupperarm"]=true, ["leftlowerarm"]=true, ["rightupperarm"]=true, ["rightlowerarm"]=true,
+        ["leftupperleg"]=true, ["leftlowerleg"]=true, ["rightupperleg"]=true, ["rightlowerleg"]=true,
+        ["leftfoot"]=true, ["rightfoot"]=true, ["humanoid"]=true, ["animate"]=true,
+    }
+    if isModel or isPart then
+        local rawLow = (tool.Name or ""):lower():match("^%s*(.-)%s*$")
+        if BODY_PARTS[rawLow] then return nil, nil, nil end
+        if pcall(function() return tool:IsA("Accessory") end) and tool:IsA("Accessory") then return nil, nil, nil end
+    end
 
     local rawToolName = tool.Name or ""
     local lowToolName = rawToolName:lower():match("^%s*(.-)%s*$")
@@ -1420,8 +1439,33 @@ function Util.ResolveToolName(tool)
     return name
 end
 
+function Util.ResolveToolNameOrString(str)
+    if not str or type(str) ~= "string" then return nil, nil, nil end
+    local s = str:match("^%s*(.-)%s*$")
+    if #s <= 1 or Util.IsGarbageName(s) then return nil, nil, nil end
+    local sLow = s:lower()
+    if sLow == "shotgun" or sLow == "sawnoff" or sLow == "sawn-off" then return "Sawed-Off", "Rare", RARITY_COLORS.Rare end
+    if sLow == "machette" then return "Machete", "Epic", RARITY_COLORS.Epic end
+    if sLow == "ak47" then return "AK-47", "Rare", RARITY_COLORS.Rare end
+    local cleaned = Util.CleanToolName(s) or s
+    local rarity, color = Util.GetItemRarity(nil, cleaned)
+    return CapitalizeName(cleaned), rarity, color
+end
+
 function Util.GetWeaponDetails(tool, isEquipped)
     if not tool then return nil end
+    if type(tool) == "string" then
+        local name, rarity, color = Util.ResolveToolNameOrString(tool)
+        if not name or #name == 0 then return nil end
+        return {
+            name = name,
+            rarity = rarity or "Common",
+            color = color or RARITY_COLORS.Common,
+            isEquipped = isEquipped or false,
+            damage = nil,
+        }
+    end
+
     local name, rarity, color = Util.ResolveToolInfo(tool)
     if not name or #name == 0 then return nil end
 
@@ -1432,6 +1476,100 @@ function Util.GetWeaponDetails(tool, isEquipped)
         isEquipped = isEquipped,
         damage = Util.GetToolDamage(tool),
     }
+end
+
+function Util.FindEquippedWeapons(player, char)
+    local equippedList = {}
+    local seen = {}
+
+    local function addWeapon(details)
+        if details and details.name then
+            local key = details.name:lower()
+            if not seen[key] then
+                seen[key] = true
+                tInsert(equippedList, details)
+            end
+        end
+    end
+
+    if not char then return equippedList end
+
+    -- 1. Scan direct Tools in Character (Standard Roblox Humanoid:EquipTool)
+    for _, c in ipairs(char:GetChildren()) do
+        if c:IsA("Tool") then
+            addWeapon(Util.GetWeaponDetails(c, true))
+        end
+    end
+
+    -- 2. Scan direct Models in Character (Excluding body parts & accessories)
+    local BODY_PARTS = {
+        ["head"]=true, ["torso"]=true, ["uppertorso"]=true, ["lowertorso"]=true,
+        ["humanoidrootpart"]=true, ["leftarm"]=true, ["rightarm"]=true,
+        ["leftleg"]=true, ["rightleg"]=true, ["lefthand"]=true, ["righthand"]=true,
+        ["leftupperarm"]=true, ["leftlowerarm"]=true, ["rightupperarm"]=true, ["rightlowerarm"]=true,
+        ["leftupperleg"]=true, ["leftlowerleg"]=true, ["rightupperleg"]=true, ["rightlowerleg"]=true,
+        ["leftfoot"]=true, ["rightfoot"]=true,
+    }
+    for _, c in ipairs(char:GetChildren()) do
+        if c:IsA("Model") and not c:IsA("Accessory") then
+            local nLow = c.Name:lower():match("^%s*(.-)%s*$")
+            if not BODY_PARTS[nLow] then
+                addWeapon(Util.GetWeaponDetails(c, true))
+            end
+        end
+    end
+
+    -- 3. Scan Hand attachments (RightHand / Right Arm / LeftHand)
+    for _, limbName in ipairs({"RightHand", "Right Arm", "LeftHand", "Left Arm"}) do
+        local limb = char:FindFirstChild(limbName)
+        if limb then
+            for _, c in ipairs(limb:GetChildren()) do
+                if c:IsA("Tool") or c:IsA("Model") or c:IsA("MeshPart") then
+                    addWeapon(Util.GetWeaponDetails(c, true))
+                end
+            end
+        end
+    end
+
+    -- 4. Scan subfolders inside Character (Weapons / Guns / Equipped)
+    for _, folderName in ipairs({"Weapons", "Equipped", "CurrentWeapon", "Guns", "Tools"}) do
+        local f = char:FindFirstChild(folderName)
+        if f then
+            for _, c in ipairs(f:GetChildren()) do
+                addWeapon(Util.GetWeaponDetails(c, true))
+            end
+        end
+    end
+
+    -- 5. Scan Character and Player attributes
+    for _, entity in ipairs({char, player}) do
+        if entity then
+            for _, attr in ipairs({"EquippedWeapon", "Equipped", "CurrentWeapon", "HoldingWeapon", "Weapon", "Holding", "CurrentTool", "Tool"}) do
+                local val = entity:GetAttribute(attr)
+                if val and type(val) == "string" and #val > 1 then
+                    addWeapon(Util.GetWeaponDetails(val, true))
+                end
+            end
+        end
+    end
+
+    -- 6. Check Backpack for tools flagged with Equipped / Active attribute
+    local bp = player and player:FindFirstChild("Backpack")
+    if bp then
+        for _, c in ipairs(bp:GetChildren()) do
+            if c:IsA("Tool") then
+                local isEq = false
+                for _, attr in ipairs({"Equipped", "IsEquipped", "Active", "Selected", "InHand", "Equip"}) do
+                    if c:GetAttribute(attr) == true then isEq = true break end
+                end
+                if isEq then
+                    addWeapon(Util.GetWeaponDetails(c, true))
+                end
+            end
+        end
+    end
+
+    return equippedList
 end
 
 local _toolInfoCache = setmetatable({}, {__mode = "k"})
@@ -2137,32 +2275,34 @@ function ESP.Update(player, d)
                 end
             end
 
-                        -- Inventory ESP (RichText Colored Weapons by Rarity - Clean, 100% Readable, Zero Broken Images)
+                        -- Inventory ESP (RichText Colored Weapons by Rarity - Universal Equipped + Backpack)
             if Config.InventoryESP.Enabled and d.InventoryLabel then
                 local now = Tick()
-                if not d._lastInvCheck or (now - d._lastInvCheck > 0.5) then
+                if not d._lastInvCheck or (now - d._lastInvCheck > 0.35) then
                     d._lastInvCheck = now
                     local formattedItems = {}
                     local itemCount = 0
+                    local seenEquipped = {}
 
-                    -- Equipped weapon (always first with [E])
+                    -- 1. Equipped weapon(s) (always first with [E])
                     if Config.InventoryESP.ShowEquipped then
-                        for _, c in ipairs(char:GetChildren()) do
-                            if c:IsA("Tool") and itemCount < (Config.InventoryESP.MaxItems or 6) then
-                                local details = Util.GetWeaponDetails(c, true)
-                                if details and details.name then
-                                    local r, g, b = math.floor(details.color.R * 255), math.floor(details.color.G * 255), math.floor(details.color.B * 255)
-                                    local hex = string.format("#%02X%02X%02X", r, g, b)
-                                    local dmgStr = (Config.InventoryESP.ShowDamage and details.damage) and (" [" .. details.damage .. " DMG]") or ""
-                                    local str = "<font color=\"#ffbe14\">[E] </font><font color=\"" .. hex .. "\"><b>" .. details.name .. "</b></font>" .. dmgStr
-                                    tInsert(formattedItems, str)
-                                    itemCount = itemCount + 1
-                                end
+                        local eqWeapons = Util.FindEquippedWeapons(player, char)
+                        for _, details in ipairs(eqWeapons) do
+                            if itemCount < (Config.InventoryESP.MaxItems or 8) then
+                                seenEquipped[details.name:lower()] = true
+                                local r = math.floor(details.color.R * 255)
+                                local g = math.floor(details.color.G * 255)
+                                local b = math.floor(details.color.B * 255)
+                                local hex = string.format("#%02X%02X%02X", r, g, b)
+                                local dmgStr = (Config.InventoryESP.ShowDamage and details.damage) and (" [" .. details.damage .. " DMG]") or ""
+                                local str = "<font color=\"#ffbe14\">[E] </font><font color=\"" .. hex .. "\"><b>" .. details.name .. "</b></font>" .. dmgStr
+                                tInsert(formattedItems, str)
+                                itemCount = itemCount + 1
                             end
                         end
                     end
 
-                    -- Backpack items with smart quantity grouping (e.g. Lockpick x3 instead of duplicates!)
+                    -- 2. Backpack items (grouped by quantity, skipping what's already marked [E])
                     if Config.InventoryESP.ShowBackpack then
                         local bp = player:FindFirstChild("Backpack")
                         if bp then
@@ -2171,18 +2311,20 @@ function ESP.Update(player, d)
                             local bpDetails = {}
 
                             for _, c in ipairs(bp:GetChildren()) do
-                                if c:IsA("Tool") and itemCount < (Config.InventoryESP.MaxItems or 6) then
+                                if c:IsA("Tool") and itemCount < (Config.InventoryESP.MaxItems or 8) then
                                     local details = Util.GetWeaponDetails(c, false)
                                     if details and details.name then
                                         local n = details.name
-                                        if not bpCounts[n] then
-                                            bpCounts[n] = 1
-                                            tInsert(bpOrder, n)
-                                            bpDetails[n] = details
-                                        else
-                                            bpCounts[n] = bpCounts[n] + 1
+                                        if not seenEquipped[n:lower()] then
+                                            if not bpCounts[n] then
+                                                bpCounts[n] = 1
+                                                tInsert(bpOrder, n)
+                                                bpDetails[n] = details
+                                            else
+                                                bpCounts[n] = bpCounts[n] + 1
+                                            end
+                                            itemCount = itemCount + 1
                                         end
-                                        itemCount = itemCount + 1
                                     end
                                 end
                             end
@@ -2190,7 +2332,9 @@ function ESP.Update(player, d)
                             for _, n in ipairs(bpOrder) do
                                 local count = bpCounts[n]
                                 local details = bpDetails[n]
-                                local r, g, b = math.floor(details.color.R * 255), math.floor(details.color.G * 255), math.floor(details.color.B * 255)
+                                local r = math.floor(details.color.R * 255)
+                                local g = math.floor(details.color.G * 255)
+                                local b = math.floor(details.color.B * 255)
                                 local hex = string.format("#%02X%02X%02X", r, g, b)
                                 local qtyStr = (count > 1) and (" x" .. count) or ""
                                 local dmgStr = (Config.InventoryESP.ShowDamage and details.damage) and (" [" .. details.damage .. "]") or ""
@@ -4462,7 +4606,7 @@ local function Init()
     PlayerMods.SetupAntiAFK()
 
     setFPS(0)
-    Notify.Send("PRV SERVICE v13.0 Loaded (Triggerbot FOV & Instant Ready)", C3(56, 189, 248), 4)
+    Notify.Send("PRV SERVICE v13.1 Loaded (Universal Equipped Weapon ESP)", C3(56, 189, 248), 4)
     Notify.Send("Press K to open/close menu", C3(200, 200, 200), 5)
     Notify.Send("Settings > Save Configuration per salvare!", C3(0, 255, 180), 6)
 end
