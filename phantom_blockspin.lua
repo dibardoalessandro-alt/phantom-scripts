@@ -462,7 +462,7 @@ local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
 
     -- Buttons Area
     local SubmitBtn = Instance.new("TextButton")
-    SubmitBtn.Size = UDim2.new(0, 198, 0, 40)
+    SubmitBtn.Size = UDim2.new(1, -32, 0, 42)
     SubmitBtn.Position = UDim2.new(0, 16, 0, 150)
     SubmitBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
     SubmitBtn.Text = "SUBMIT KEY"
@@ -476,21 +476,6 @@ local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
     SubmitCorner.CornerRadius = UDim.new(0, 8)
     SubmitCorner.Parent = SubmitBtn
 
-    local GetKeyBtn = Instance.new("TextButton")
-    GetKeyBtn.Size = UDim2.new(0, 198, 0, 40)
-    GetKeyBtn.Position = UDim2.new(1, -214, 0, 150)
-    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(30, 29, 44)
-    GetKeyBtn.Text = "GET KEY LINK"
-    GetKeyBtn.TextColor3 = Color3.fromRGB(165, 180, 252)
-    GetKeyBtn.TextSize = 13
-    GetKeyBtn.Font = Enum.Font.GothamBold
-    GetKeyBtn.BorderSizePixel = 0
-    GetKeyBtn.Parent = Main
-
-    local GetKeyCorner = Instance.new("UICorner")
-    GetKeyCorner.CornerRadius = UDim.new(0, 8)
-    GetKeyCorner.Parent = GetKeyBtn
-
     local Footnote = Instance.new("TextLabel")
     Footnote.Size = UDim2.new(1, -32, 0, 40)
     Footnote.Position = UDim2.new(0, 16, 0, 202)
@@ -503,17 +488,6 @@ local function ShowKeySystemModal(vp, onKeyVerified, onCancel)
     Footnote.Parent = Main
 
     local isChecking = false
-
-    GetKeyBtn.MouseButton1Click:Connect(function()
-        local copied = CopyToClipboard(VAMP_CONFIG.GetKeyUrl)
-        if copied then
-            Status.Text = "[✓] Key checkpoint link copied to clipboard!"
-            Status.TextColor3 = Color3.fromRGB(56, 189, 248)
-        else
-            Status.Text = "Link: " .. VAMP_CONFIG.GetKeyUrl
-            Status.TextColor3 = Color3.fromRGB(250, 204, 21)
-        end
-    end)
 
     SubmitBtn.MouseButton1Click:Connect(function()
         if isChecking then return end
